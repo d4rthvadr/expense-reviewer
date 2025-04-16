@@ -21,6 +21,9 @@ dist/
 .vscode/
 .idea/
 
+# Prisma output
+generated/prisma/
+
 # Other
 *.swp
 *.swo
