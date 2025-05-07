@@ -22,7 +22,7 @@ dist/
 .idea/
 
 # Prisma output
-generated/prisma/
+backend/generated/prisma/
 
 # Other
 *.swp

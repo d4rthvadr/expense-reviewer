@@ -1,2 +1,3 @@
-import agentRoute from './agent.route';
-export { agentRoute };
+import agentRoutes from './agent.route';
+import userRoutes from './user.route';
+export { agentRoutes, userRoutes };

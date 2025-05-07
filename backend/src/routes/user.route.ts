@@ -4,9 +4,11 @@ import { dependencyInjectionContainer } from './utils/di-container';
 
 const route = Express.Router();
 
-const { agentController } = dependencyInjectionContainer;
+const { userController } = dependencyInjectionContainer;
 
-// /api/agent/process-text
-route.post('/process-text', asyncHandler(agentController.processText));
+// /api/users/id
+route.get('/:id', asyncHandler(userController.findOne));
+// /api/users
+route.post('/', asyncHandler(userController.create));
 
 export default route;

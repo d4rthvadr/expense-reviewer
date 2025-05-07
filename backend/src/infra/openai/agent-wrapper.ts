@@ -1,6 +1,5 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import OpenAi from 'openai';
-import { openai } from '../../libs/open-ai';
 import { AgentWrapper } from '../interfaces/agent-wrapper.interface';
 
 class OpenAiAgentWrapper implements AgentWrapper {
@@ -11,7 +10,7 @@ class OpenAiAgentWrapper implements AgentWrapper {
     this.#openai = openai;
   }
 
-  async create(messages: ChatCompletionMessageParam[]): Promise<unknown> {
+  async create(messages: ChatCompletionMessageParam[]): Promise<string | null> {
     const completion = await this.#openai.chat.completions.create({
       model: this.model,
       messages: [
@@ -21,9 +20,8 @@ class OpenAiAgentWrapper implements AgentWrapper {
       max_tokens: 1000,
     });
 
-    return completion.choices[0].message.content;
+    return completion.choices[0]?.message?.content;
   }
 }
 
-const agentWrapper = new OpenAiAgentWrapper(openai);
-export { agentWrapper, AgentWrapper };
+export { OpenAiAgentWrapper, AgentWrapper };

@@ -4,6 +4,8 @@ Return a JSON array like: [ { "name": "Item Name", "quantity": 1, "price": 10.00
 Here is the Text:\n\n${text}
 `;
 
-export const buildPrompt = {
+const buildPrompt = {
   extractText,
 };
+
+export { buildPrompt };

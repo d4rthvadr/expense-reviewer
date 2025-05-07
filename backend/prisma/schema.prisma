@@ -13,3 +13,73 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  status    String?
+  type      String?
+  lastLogin DateTime?
+  updatedAt DateTime  @updatedAt
+  Budget    Budget[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ExpenseCategory ExpenseCategory[]
+}
+
+model Expense {
+  id           String   @id @default(cuid())
+  name         String
+  type         String
+  total_amount Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ExpenseCategory ExpenseCategory[]
+
+  ExpenseItem ExpenseItem[]
+}
+
+model ExpenseItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  qty         Int?
+  amount      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  expenseId String
+  expense   Expense @relation(fields: [expenseId], references: [id])
+}
+
+model ExpenseCategory {
+  id         String   @id @default(cuid())
+  expenseId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  expense  Expense  @relation(fields: [expenseId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  name      String?
+  userId    String
+  amount    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}

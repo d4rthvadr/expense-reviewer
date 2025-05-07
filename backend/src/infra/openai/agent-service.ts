@@ -1,5 +1,5 @@
 import { buildPrompt } from './prompt-builder';
-import { AgentWrapper, agentWrapper } from './agent-wrapper';
+import { AgentWrapper } from './agent-wrapper';
 
 export class AgentService {
   #agentWrapper: AgentWrapper;
@@ -19,6 +19,3 @@ export class AgentService {
     return completion;
   }
 }
-
-const agentService = new AgentService(agentWrapper);
-export { agentService };
