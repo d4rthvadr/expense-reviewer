@@ -6,6 +6,9 @@ import { createOpenAiFactory } from '../../libs/open-ai';
 import { UserController } from '../../controllers/user.controller';
 import { UserService } from '../../domain/services/user.service';
 import { UserRepository } from '../../domain/repositories/user.repository';
+import { ExpenseController } from '../../controllers/expense.controller';
+import { ExpenseService } from '../../domain/services/expense.service';
+import { ExpenseRepository } from '../../domain/repositories/expense.repository';
 
 class DependencyInjectionContainer {
   // clients
@@ -15,11 +18,14 @@ class DependencyInjectionContainer {
   // services
   #agentService: AgentService | null = null;
   #userService: UserService | null = null;
+  #expenseService: ExpenseService | null = null;
   // repositories
   #userRepository: UserRepository | null = null;
+  #expenseRepository: ExpenseRepository | null = null;
   // controllers
   #agentController: AgentController | null = null;
   #userController: UserController | null = null;
+  #expenseController: ExpenseController | null = null;
 
   constructor(openAiClient: OpenAI) {
     this.#openAiClient = openAiClient;
@@ -47,6 +53,12 @@ class DependencyInjectionContainer {
     }
     return this.#userService;
   }
+  get expenseService() {
+    if (!this.#expenseService) {
+      this.#expenseService = new ExpenseService(this.expenseRepository);
+    }
+    return this.#expenseService;
+  }
   // controllers
 
   get agentController() {
@@ -63,12 +75,25 @@ class DependencyInjectionContainer {
     return this.#userController;
   }
 
+  get expenseController() {
+    if (!this.#expenseController) {
+      this.#expenseController = new ExpenseController(this.expenseService);
+    }
+    return this.#expenseController;
+  }
+
   // repositories
   get userRepository() {
     if (!this.#userRepository) {
       this.#userRepository = new UserRepository();
     }
     return this.#userRepository;
+  }
+  get expenseRepository() {
+    if (!this.#expenseRepository) {
+      this.#expenseRepository = new ExpenseRepository();
+    }
+    return this.#expenseRepository;
   }
 }
 
