@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-interface UserInput {
+interface UserDataInput {
   id?: string;
   name?: string;
   email: string;
@@ -17,7 +17,7 @@ export class UserModel {
   #createdAt: Date;
   #updatedAt: Date;
 
-  constructor(data: UserInput) {
+  constructor(data: UserDataInput) {
     const {
       id = uuidv4(),
       name,
@@ -34,41 +34,88 @@ export class UserModel {
     this.#updatedAt = updatedAt;
   }
 
+  /**
+   * Gets the unique identifier of the user.
+   *
+   * @returns {string} The unique ID of the user.
+   */
   get id(): string {
     return this.#id;
   }
 
+  /**
+   * Gets the name of the user.
+   *
+   * @returns The name of the user as a string, or `undefined` if the name is not set.
+   */
   get name(): string | undefined {
     return this.#name;
   }
 
+  /**
+   * Sets the name of the user.
+   *
+   * @param value - The name to set for the user. Can be a string or undefined.
+   */
   set name(value: string | undefined) {
     this.#name = value;
-    this.#updatedAt = new Date();
   }
 
+  /**
+   * Gets the email address of the user.
+   *
+   * @returns The email address as a string.
+   */
   get email(): string {
     return this.#email;
   }
 
+  /**
+   * Sets the email address for the user.
+   *
+   * @param value - The email address to be assigned to the user.
+   */
   set email(value: string) {
     this.#email = value;
-    this.#updatedAt = new Date();
   }
 
+  /**
+   * Getter for the user's password.
+   *
+   * @remarks
+   * This method retrieves the user's password.
+   * Ensure that the password is handled securely and not exposed in logs or UI.
+   *
+   * @returns The user's password as a string.
+   */
   get password(): string {
     return this.#password;
   }
 
+  /**
+   * Sets the user's password.
+   * @param value - The new password to be set for the user.
+   *
+   * Note: Ensure the password is securely hashed before storing it.
+   */
   set password(value: string) {
     this.#password = value;
-    this.#updatedAt = new Date();
   }
 
+  /**
+   * Gets the creation date of the user.
+   *
+   * @returns {Date} The date and time when the user was created.
+   */
   get createdAt(): Date {
     return this.#createdAt;
   }
 
+  /**
+   * Gets the date and time when the user was last updated.
+   *
+   * @returns {Date} The timestamp of the last update.
+   */
   get updatedAt(): Date {
     return this.#updatedAt;
   }

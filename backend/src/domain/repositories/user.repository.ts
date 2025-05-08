@@ -1,29 +1,26 @@
-import { mapToUser } from './helpers/map-user';
+import { mapUser } from './helpers/map-user';
 import { User as UserEntity } from '../../../generated/prisma';
 import { UserModel } from '../../domain/models/user.model';
 import { Database } from '../../db/database';
-
-interface CreateUserInput {
-  name?: string;
-  email: string;
-  password: string;
-}
+import { log } from '../../libs/logger';
 
 export class UserRepository extends Database {
   constructor() {
     super();
   }
 
-  async findAll(): Promise<UserModel[]> {
-    const users: UserEntity[] = await this.user.findMany();
-
-    return users.map((user) => mapToUser(user));
-  }
   async findOne(userId: string): Promise<UserModel | null> {
-    const user: UserEntity | null = await this.user.findUnique({
-      where: { id: userId },
-    });
-    return mapToUser(user);
+    try {
+      const user: UserEntity | null = await this.user.findUnique({
+        where: { id: userId },
+      });
+
+      return mapUser(user);
+    } catch (error) {
+      log.error('An error occurred while finding user:', error);
+
+      throw error;
+    }
   }
 
   async save(data: UserModel): Promise<UserModel> {
@@ -44,9 +41,9 @@ export class UserRepository extends Database {
         },
       });
 
-      return mapToUser(user);
+      return mapUser(user);
     } catch (error) {
-      console.log(`Failed to save user ${data.email}`, error);
+      log.error('An error occurred while saving user:', error);
 
       throw error;
     }

@@ -1,15 +1,8 @@
+import { log } from '../libs/logger';
 import { UserService } from '../domain/services/user.service';
 import { Request, Response } from 'express';
-
-// Dtos
-
-interface CreateUserInputDto {
-  name?: string;
-  email: string;
-  password: string;
-}
-
-type RequestBodyType<T> = Request<unknown, unknown, T>;
+import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';
+import { RequestBodyType } from '../types/request-body.type';
 
 export class UserController {
   #userService: UserService;
@@ -17,8 +10,14 @@ export class UserController {
     this.#userService = userService;
   }
 
-  create = async (req: RequestBodyType<CreateUserInputDto>, res: Response) => {
+  create = async (
+    req: RequestBodyType<CreateUserRequestDto>,
+    res: Response
+  ) => {
     const { name, email, password } = req.body;
+
+    log.info('Creating user with data:', { name, email, password });
+
     const user = await this.#userService.create({
       name,
       email,

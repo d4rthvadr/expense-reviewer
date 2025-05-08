@@ -2,10 +2,10 @@ import { UserModel } from '../../models/user.model';
 import { User as UserEntity } from '../../../../generated/prisma';
 import { convertNullToUndefined } from './utils';
 
-export function mapToUser(entity: UserEntity): UserModel;
-export function mapToUser(entity: null): null;
-export function mapToUser(entity: UserEntity | null): UserModel | null;
-export function mapToUser(entity: UserEntity | null): UserModel | null {
+export function mapUser(entity: UserEntity): UserModel;
+export function mapUser(entity: null): null;
+export function mapUser(entity: UserEntity | null): UserModel | null;
+export function mapUser(entity: UserEntity | null): UserModel | null {
   if (!entity) {
     return null;
   }

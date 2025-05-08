@@ -6,16 +6,20 @@ interface UserCreateDto {
   password: string;
 }
 export class UserFactory {
+  /**
+   * Creates a new UserModel instance from the provided data.
+   * @param data - The data to create the user model.
+   * @returns A new UserModel instance.
+   */
   static createUser(data: UserCreateDto): UserModel {
     const { name, email, password } = data;
 
-    const user = new UserModel({
+    const user: UserModel = new UserModel({
       name,
       email,
       password,
     });
 
-    console.log('User created:', user);
     return user;
   }
 }
