@@ -11,7 +11,7 @@ This is the backend for the Expense Tracker application. It provides APIs to pro
 
 ## Prerequisites
 
-- Node.js (v16 or later)
+- Node.js (v20 or later)
 - npm or yarn
 - Docker (optional, for containerized deployment)
 
@@ -82,6 +82,29 @@ docker build -t expense-tracker-backend .
 
 ```bash
 docker run -p 3000:3000 --env-file .env expense-tracker-backend
+```
+
+## Folder structure
+
+```
+backend/
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   └── seed.ts
+├── src/
+│   ├── controllers/
+│   ├── routes/
+│   ├── app.js
+│   └── server.js
+├── tests/
+├── .env
+├── .gitignore
+├── Dockerfile
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── README.md
 ```
 
 ## Development

@@ -12,7 +12,7 @@
 ### Create User
 
 **Endpoint**:  
-`POST /api/user`
+`POST /api/users`
 
 **Request Body**:
 
@@ -60,3 +60,39 @@ curl -X POST https://your-api.com/api/user \
 
 - Ensure the `email` field is unique.
 - Validation should be performed on the server to ensure the proper input
+
+### Create expense
+
+**Endpoint**:  
+`POST /api/expenses`
+
+**Request Body**:
+
+```json
+{
+  "email": "string",
+  "name": "string"
+}
+```
+
+**Response**:
+
+```json
+{
+  "message": "string" // Success message
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "message": "User created successfully"
+}
+```
+
+**Status Codes**:
+
+- `201 Created`: User successfully created.
+- `400 Bad Request`: Missing or invalid fields in the request body.
+- `409 Conflict`: Email already exists.
