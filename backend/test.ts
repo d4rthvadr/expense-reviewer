@@ -1,3 +1,2 @@
-const greeting = 'Hello, World!';
-console.log(greeting);
-export { greeting };
+const test = 'Updated test';
+export { test };
