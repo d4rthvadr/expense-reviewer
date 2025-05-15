@@ -4,6 +4,15 @@ import { Expense as ExpenseEntity } from '../../../generated/prisma';
 import { log } from '../../libs/logger';
 import { mapExpense } from './helpers/map-expense';
 
+interface listExpenseDto {
+  filters: Record<string, unknown>;
+  sort: {
+    sortBy: string;
+    sortDir: string;
+  };
+  limit: number;
+  offset: number;
+}
 export interface ExpenseItemEntity {
   id?: string;
   name: string;
@@ -30,6 +39,72 @@ export class ExpenseRepository extends Database {
     super();
   }
 
+  async findById(expenseId: string): Promise<ExpenseModel | null> {
+    try {
+      const expense: ExpenseEntityFull | null = await this.expense.findFirst({
+        where: {
+          id: expenseId,
+        },
+        include: {
+          expenseItem: true,
+        },
+      });
+
+      return mapExpense(expense);
+    } catch (error) {
+      log.error('An error occurred while fetching expense:', error);
+
+      throw error;
+    }
+  }
+
+  async find(
+    data: listExpenseDto
+  ): Promise<{ data: ExpenseModel[]; total: number }> {
+    log.info(`Finding expenses with filters: ${JSON.stringify(data)}`);
+    let { filters, limit, offset } = data;
+
+    if (offset > 0) {
+      offset = offset * limit;
+    }
+
+    try {
+      const [records, total]: [ExpenseEntityFull[], number] =
+        await this.$transaction([
+          this.expense.findMany({
+            where: filters,
+            take: limit,
+            skip: offset,
+            include: {
+              expenseItem: true,
+            },
+            orderBy: {
+              [data.sort.sortBy]: data.sort.sortDir,
+            },
+          }),
+          this.expense.count({
+            where: filters,
+            take: limit,
+            skip: offset,
+          }),
+        ]);
+
+      const expenses = records.map((expense: ExpenseEntityFull) =>
+        mapExpense(expense)
+      );
+
+      return {
+        data: expenses,
+        total,
+      };
+    } catch (error) {
+      console.error('An error occurred while fetching expenses:', error);
+      log.error('An error occurred while fetching expenses:', error);
+
+      throw error;
+    }
+  }
+
   async save(data: ExpenseModel): Promise<ExpenseModel> {
     try {
       const expense: ExpenseEntityFull = await this.expense.upsert({
@@ -43,16 +118,22 @@ export class ExpenseRepository extends Database {
           total_amount: 0,
           userId: data.userId,
           expenseItem: {
-            create: data.items.map(createExpenseItem),
+            createMany: {
+              data: data.items.map(createExpenseItem),
+              skipDuplicates: true,
+            },
           },
         },
         update: {
-          name: data.name,
           type: data.type,
           total_amount: 0,
           userId: data.userId,
           expenseItem: {
-            create: data.items.map(createExpenseItem),
+            upsert: data.items.map((item) => ({
+              where: { id: item.id },
+              create: createExpenseItem(item),
+              update: createExpenseItem(item),
+            })),
           },
         },
         include: {
@@ -63,6 +144,25 @@ export class ExpenseRepository extends Database {
       return mapExpense(expense);
     } catch (error) {
       log.error('An error occurred while saving expense:', error);
+
+      throw error;
+    }
+  }
+
+  async delete(id: string): Promise<ExpenseModel> {
+    try {
+      const deletedExpense = await this.expense.delete({
+        where: {
+          id,
+        },
+        include: {
+          expenseItem: true, // Ensure expenseItem is included in the result
+        },
+      });
+
+      return mapExpense(deletedExpense);
+    } catch (error) {
+      log.error('An error occurred while deleting expense:', error);
 
       throw error;
     }

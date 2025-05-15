@@ -18,7 +18,6 @@ route.post(
       .trim()
       .notEmpty()
       .isLength({ min: 4 })
-      .isEmail()
       .withMessage('Name is required'),
     body('email')
       .trim()

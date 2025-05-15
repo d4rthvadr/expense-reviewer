@@ -1,4 +1,4 @@
-interface ExpenseItem {
+export interface ExpenseItem {
   name: string;
   amount: number;
   description?: string;
