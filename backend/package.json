@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node dist/server.js",
     "lint": "eslint 'src/**/*.{js,ts}'",
@@ -15,8 +16,8 @@
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "npm run lint:fix",
-      "npm run format"
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "keywords": [],
@@ -42,6 +43,7 @@
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1"
   }
 }
