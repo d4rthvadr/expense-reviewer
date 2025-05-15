@@ -1,1 +1,1 @@
-cd backend && npx lint-staged
+cd backend && echo "Running lint-staged..." && npx lint-staged --debug

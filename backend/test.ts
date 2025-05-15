@@ -1,2 +1,2 @@
-const test = 'Testing lint-staged';
+const test = 'Testing npm scripts';
 export { test };
