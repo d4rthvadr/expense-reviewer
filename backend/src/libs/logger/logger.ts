@@ -1,5 +1,6 @@
 import winston from 'winston';
-const { combine, colorize, timestamp, printf, json, errors } = winston.format;
+const { combine, colorize, timestamp, json, errors, prettyPrint } =
+  winston.format;
 
 const mode = process.env.NODE_ENV || 'prod';
 const level = mode === 'prod' ? 'info' : 'debug';
@@ -10,6 +11,7 @@ const transports: winston.transport[] = [
   new winston.transports.File({
     filename: 'logs/error.log',
     level: 'error',
+    format: json(),
   }),
 ];
 
@@ -28,9 +30,7 @@ const getLogFormat = () => {
     timestamp({
       format: timestampFormat,
     }),
-    printf(
-      ({ timestamp, level, message }) => `${timestamp} [${level}]: ${message} `
-    ),
+    prettyPrint(),
     errors({ stack: true })
   );
 };

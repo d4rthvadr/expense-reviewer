@@ -1,28 +1,58 @@
 import { logger as winstonLogger } from './logger';
 
-/**
- * Parses a message and converts it to a string.
- *
- * @param message - The message to be parsed, which can be a string or an object.
- * @returns The parsed message as a string. If the input is an object, it is converted to a JSON string.
- */
-const parseMessage = (message: string | object): string => {
-  if (typeof message === 'object') {
-    return JSON.stringify(message);
+type IError = unknown | Error;
+
+type LoggerLevels = {
+  info: {
+    message: string;
+  };
+  error: {
+    code: string;
+    message: string;
+    error: IError;
+  };
+  warn: {
+    code: string;
+    message: string;
+    error?: IError;
+  };
+};
+
+const truncateMessage = (str: string, maxLength: number = 200): string => {
+  if (str.length > maxLength) {
+    return str.substring(0, maxLength) + '...';
   }
-  return message;
+  return str;
+};
+const logData = (
+  payload:
+    | string
+    | LoggerLevels['info']
+    | LoggerLevels['warn']
+    | LoggerLevels['error'],
+  logLevel: keyof LoggerLevels
+) => {
+  if (typeof payload === 'string') {
+    return {
+      message: truncateMessage(payload),
+    };
+  } else if (typeof payload === 'object') {
+    const { message, ...rest } = payload;
+    return { message: truncateMessage(message), ...rest };
+  }
+  winstonLogger[logLevel](payload);
 };
 
 class Logger {
-  info(message: string | object, ...meta: unknown[]): void {
-    winstonLogger.info(parseMessage(message), meta);
+  info(payload: string | LoggerLevels['info']): void {
+    logData(payload, 'info');
   }
-  error(message: string, ...meta: unknown[]): void {
-    winstonLogger.error(parseMessage(message), meta);
+  error(payload: string | LoggerLevels['error']): void {
+    logData(payload, 'error');
   }
 
-  warn(message: string, ...meta: unknown[]): void {
-    winstonLogger.warn(parseMessage(message), meta);
+  warn(payload: string | LoggerLevels['warn']): void {
+    logData(payload, 'warn');
   }
 }
 
