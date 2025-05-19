@@ -52,7 +52,11 @@ export class ExpenseRepository extends Database {
 
       return mapExpense(expense);
     } catch (error) {
-      log.error('An error occurred while fetching expense:', error);
+      log.error({
+        message: 'An error occurred while fetching expense:',
+        error,
+        code: '',
+      });
 
       throw error;
     }
@@ -99,7 +103,11 @@ export class ExpenseRepository extends Database {
       };
     } catch (error) {
       console.error('An error occurred while fetching expenses:', error);
-      log.error('An error occurred while fetching expenses:', error);
+      log.error({
+        message: 'An error occurred while fetching expenses:',
+        error,
+        code: '',
+      });
 
       throw error;
     }
@@ -143,7 +151,11 @@ export class ExpenseRepository extends Database {
 
       return mapExpense(expense);
     } catch (error) {
-      log.error('An error occurred while saving expense:', error);
+      log.error({
+        message: 'An error occurred while saving expense:',
+        error,
+        code: '',
+      });
 
       throw error;
     }
@@ -162,7 +174,11 @@ export class ExpenseRepository extends Database {
 
       return mapExpense(deletedExpense);
     } catch (error) {
-      log.error('An error occurred while deleting expense:', error);
+      log.error({
+        message: 'An error occurred while deleting expense:',
+        error,
+        code: '',
+      });
 
       throw error;
     }

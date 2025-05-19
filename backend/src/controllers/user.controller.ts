@@ -3,6 +3,7 @@ import { UserService } from '../domain/services/user.service';
 import { Request, Response } from 'express';
 import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';
 import { RequestBodyType } from '../types/request-body.type';
+import { json } from 'stream/consumers';
 
 export class UserController {
   #userService: UserService;
@@ -16,7 +17,9 @@ export class UserController {
   ) => {
     const { name, email, password } = req.body;
 
-    log.info('Creating user with data:', { name, email, password });
+    log.info(
+      `Creating user with data: ${JSON.stringify({ name, email, password })}`
+    );
 
     const user = await this.#userService.create({
       name,

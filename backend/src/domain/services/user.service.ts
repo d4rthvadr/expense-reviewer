@@ -30,7 +30,9 @@ export class UserService {
 
     const user = await this.#userRepository.save(userModel);
 
-    log.info('User created:', { n: user.name, e: user.email });
+    log.info(
+      `User created: ${JSON.stringify({ n: user.name, e: user.email })}`
+    );
 
     return this.#toUserCreatedDto(user);
   }

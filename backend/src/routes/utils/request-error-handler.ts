@@ -8,8 +8,7 @@ export const requestErrorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  console.error('Error occurred:', error);
-  log.error('Error occurred:', error);
+  log.error({ message: 'Error occurred:', code: '', error });
   if (error instanceof ApplicationException) {
     const { status, error: errorData } = error.toJSON();
     res.status(status);

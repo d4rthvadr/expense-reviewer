@@ -24,6 +24,7 @@ const truncateMessage = (str: string, maxLength: number = 200): string => {
   }
   return str;
 };
+
 const logData = (
   payload:
     | string

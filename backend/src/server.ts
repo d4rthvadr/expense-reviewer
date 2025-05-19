@@ -31,7 +31,11 @@ connectToDb()
     log.info('Database connection established.');
   })
   .catch((error) => {
-    log.error('Error establishing database connection:', error);
+    log.error({
+      message: 'Error establishing database connection:',
+      error,
+      code: '',
+    });
     db.$disconnect();
     process.exit(1);
   });

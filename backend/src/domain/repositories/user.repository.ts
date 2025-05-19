@@ -17,7 +17,11 @@ export class UserRepository extends Database {
 
       return mapUser(user);
     } catch (error) {
-      log.error('An error occurred while finding user:', error);
+      log.error({
+        message: 'An error occurred while finding user:',
+        error,
+        code: 'USER_FIND_ERROR',
+      });
 
       throw error;
     }
@@ -43,7 +47,11 @@ export class UserRepository extends Database {
 
       return mapUser(user);
     } catch (error) {
-      log.error('An error occurred while saving user:', error);
+      log.error({
+        message: 'An error occurred while saving user:',
+        error,
+        code: 'USER_SAVE_ERROR',
+      });
 
       throw error;
     }
