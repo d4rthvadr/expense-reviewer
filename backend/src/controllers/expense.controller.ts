@@ -19,7 +19,6 @@ interface findFilters {
 const parseQueryOptions = (
   req: RequestQueryType<PaginatedInputDto<findFilters>>
 ) => {
-  console.log('req.query', req.query);
   let {
     sortBy = 'createdAt',
     sortDir = 'desc',
@@ -27,13 +26,6 @@ const parseQueryOptions = (
     limit = 10,
     ...filters
   } = req.query;
-
-  if (typeof limit === 'string') {
-    limit = parseInt(limit);
-  }
-  if (typeof offset === 'string') {
-    offset = parseInt(offset);
-  }
 
   return { sort: { sortBy, sortDir }, offset, limit, filters };
 };
