@@ -3,6 +3,8 @@ import { Database } from '../../db/database';
 import { Expense as ExpenseEntity } from '../../../generated/prisma';
 import { log } from '../../libs/logger';
 import { mapExpense } from './helpers/map-expense';
+import { ExpenseItemFactory } from '../../domain/factories/expense-item.factory';
+import { ExpenseItemModel } from '../../domain/models/expense-item.model';
 
 interface listExpenseDto {
   filters: Record<string, unknown>;
@@ -26,12 +28,11 @@ export interface ExpenseEntityFull extends ExpenseEntity {
   expenseItem: ExpenseItemEntity[];
 }
 
-const createExpenseItem = (item: ExpenseEntityFull['expenseItem'][number]) => ({
+const createExpenseItem = (item: ExpenseItemModel) => ({
   id: item.id,
   name: item.name,
   amount: item.amount,
   description: item.description,
-  userId: item.userId,
   qty: item.qty,
 });
 export class ExpenseRepository extends Database {
@@ -127,21 +128,28 @@ export class ExpenseRepository extends Database {
           userId: data.userId,
           expenseItem: {
             createMany: {
-              data: data.items.map(createExpenseItem),
+              data: data.items.map((item) =>
+                createExpenseItem(ExpenseItemFactory.createExpenseItem(item))
+              ),
               skipDuplicates: true,
             },
           },
         },
         update: {
+          name: data.name,
           type: data.type,
           total_amount: 0,
           userId: data.userId,
           expenseItem: {
-            upsert: data.items.map((item) => ({
-              where: { id: item.id },
-              create: createExpenseItem(item),
-              update: createExpenseItem(item),
-            })),
+            deleteMany: {
+              expenseId: data.id,
+            },
+            createMany: {
+              data: data.items.map((item) =>
+                createExpenseItem(ExpenseItemFactory.createExpenseItem(item))
+              ),
+              skipDuplicates: true,
+            },
           },
         },
         include: {
@@ -151,6 +159,7 @@ export class ExpenseRepository extends Database {
 
       return mapExpense(expense);
     } catch (error) {
+      console.error('An error occurred while saving expense:', error);
       log.error({
         message: 'An error occurred while saving expense:',
         error,

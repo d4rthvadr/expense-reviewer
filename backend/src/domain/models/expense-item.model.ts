@@ -5,15 +5,15 @@ interface ExpenseItemDataInput {
   name: string;
   description?: string;
   amount: number;
-  qty: number;
+  qty?: number;
 }
 
-export class ExpenseItem {
+export class ExpenseItemModel {
   readonly #id: string;
   #name: string;
   #description?: string;
   #amount: number;
-  #qty: number;
+  #qty?: number;
 
   constructor(data: ExpenseItemDataInput) {
     const { id = uuidv4(), name, description, amount, qty } = data;
@@ -52,7 +52,7 @@ export class ExpenseItem {
     this.#amount = value;
   }
 
-  get qty(): number {
+  get qty(): number | undefined {
     return this.#qty;
   }
 
