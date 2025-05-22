@@ -92,7 +92,6 @@ export class ExpenseService {
     log.info(`Deleting expense with id: ${expenseId}`);
 
     const expense: ExpenseModel = await this.findById(expenseId);
-    console.log('[peek] 1.1', expense);
 
     await this.#expenseRepository.delete(expenseId);
 

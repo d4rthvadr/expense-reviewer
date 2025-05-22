@@ -42,6 +42,4 @@ const logger = winston.createLogger({
   transports,
 });
 
-logger.debug('Logger initialized', { mode, env: process.env.NODE_ENV, level });
-
 export { logger };
