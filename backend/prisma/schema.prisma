@@ -25,6 +25,7 @@ model User {
   lastLogin DateTime?
   updatedAt DateTime  @updatedAt
   Budget    Budget[]
+  Expense   Expense[]
 }
 
 model Category {
@@ -33,7 +34,7 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  ExpenseCategory ExpenseCategory[]
+  expenseCategory ExpenseCategory[]
 }
 
 model Expense {
@@ -42,11 +43,13 @@ model Expense {
   type         String
   total_amount Float
   createdAt    DateTime @default(now())
+  userId       String?
   updatedAt    DateTime @updatedAt
 
-  ExpenseCategory ExpenseCategory[]
+  expenseCategory ExpenseCategory[]
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  ExpenseItem ExpenseItem[]
+  expenseItem ExpenseItem[]
 }
 
 model ExpenseItem {
@@ -59,7 +62,7 @@ model ExpenseItem {
   updatedAt   DateTime @updatedAt
 
   expenseId String
-  expense   Expense @relation(fields: [expenseId], references: [id])
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
 }
 
 model ExpenseCategory {
