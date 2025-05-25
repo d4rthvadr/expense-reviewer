@@ -1,6 +1,6 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import OpenAi from 'openai';
-import { AgentWrapper } from '../interfaces/agent-wrapper.interface';
+import { AgentWrapper } from '../../../domain/interfaces/agent-wrapper.interface';
 
 class OpenAiAgentWrapper implements AgentWrapper {
   #openai: OpenAi;

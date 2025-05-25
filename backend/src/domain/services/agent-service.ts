@@ -1,5 +1,5 @@
-import { buildPrompt } from './prompt-builder';
-import { AgentWrapper } from './agent-wrapper';
+import { buildPrompt } from '../../infra/language-models/prompt-builder';
+import { AgentWrapper } from '../interfaces/agent-wrapper.interface';
 
 export class AgentService {
   #agentWrapper: AgentWrapper;
