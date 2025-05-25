@@ -8,7 +8,6 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import { log } from './libs/logger';
 import { getRedisInstance } from './db/ioredis-singleton';
-import { expenseReviewQueueService } from './infra/bullmq/expense-review.queue';
 
 getRedisInstance().ping((err) => {
   if (err) {
@@ -34,24 +33,6 @@ app.use('/api/expenses', expenseRoutes);
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-// testing bullmq
-expenseReviewQueueService
-  .addJob(
-    {
-      expenseId: '123',
-      userId: '456',
-    },
-    {
-      delay: 20 * 1000, // Delay in milliseconds
-    }
-  )
-  .then(() => {
-    console.log('Job added to queue successfully');
-  })
-  .catch((error: Error) => {
-    console.error('Error adding job to queue:', error);
-  });
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);
