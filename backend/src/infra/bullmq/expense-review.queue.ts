@@ -30,26 +30,31 @@ class ExpenseReviewQueueService extends Worker {
     this.#queue = queue;
 
     this.on('completed', (job) => {
-      console.log(
+      log.info(
         `Job ${job.id} has been successfully processed by QueueService!`
       );
     });
 
     this.on('failed', (job, err) => {
-      console.error(`Job ${job?.id} failed in QueueService with error:`, err);
+      log.error({
+        message: `Job ${job?.id} failed in QueueService with error:`,
+        error: err,
+        code: '',
+      });
     });
   }
 
   async handleJob(job: Job) {
     // Implement your job-specific logic here
-    console.log('Handling job:', job.id, job.data);
 
     log.info(
       `Processing job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`
     );
 
     try {
-      console.log('Processing job in QueueService:', job.id, job.data);
+      log.info({
+        message: `Processing job in QueueService |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
+      });
       // Add your job processing logic here
     } catch (error) {
       log.error({
@@ -79,6 +84,8 @@ const expenseReviewQueue = new Queue(QUEUE_NAME, {
 });
 
 // Create a new instance of QueueService
-export const expenseReviewQueueService = new ExpenseReviewQueueService(
+const expenseReviewQueueService = new ExpenseReviewQueueService(
   expenseReviewQueue
 );
+
+export { expenseReviewQueueService, QUEUE_NAME };
