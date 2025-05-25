@@ -1,7 +1,5 @@
 import OpenAI from 'openai';
 import { AgentController } from '../../controllers/agent.controller';
-import { AgentService } from '../../infra/openai/agent-service';
-import { OpenAiAgentWrapper } from '../../infra/openai/agent-wrapper';
 import { createOpenAiFactory } from '../../libs/open-ai';
 import { UserController } from '../../controllers/user.controller';
 import { UserService } from '../../domain/services/user.service';
@@ -9,6 +7,8 @@ import { UserRepository } from '../../domain/repositories/user.repository';
 import { ExpenseController } from '../../controllers/expense.controller';
 import { ExpenseService } from '../../domain/services/expense.service';
 import { ExpenseRepository } from '../../domain/repositories/expense.repository';
+import { AgentService } from '../../domain/services/agent-service';
+import { OpenAiAgentWrapper } from '../../infra/language-models/openai/openai-agent-wrapper';
 
 class DependencyInjectionContainer {
   // clients

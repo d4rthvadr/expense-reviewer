@@ -1,5 +1,5 @@
+import { AgentService } from '../domain/services/agent-service';
 import { Request, Response } from 'express';
-import { AgentService } from '../infra/openai/agent-service';
 
 export class AgentController {
   #agentService: AgentService;
