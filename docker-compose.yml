@@ -35,6 +35,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # ollama:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ollama
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   entrypoint: ["sh", "/start-ollama.sh"]
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #     - ./start-ollama.sh:/start-ollama.sh
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:11434"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
 volumes:
   pgdata:
+  # ollama_data:
