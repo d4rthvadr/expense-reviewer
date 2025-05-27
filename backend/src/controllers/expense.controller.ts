@@ -1,34 +1,17 @@
 import { Response, Request } from 'express';
 import { RequestBodyType } from '../types/request-body.type';
-import { ExpenseService } from '../domain/services/expense.service';
+import { ExpenseService } from '@domain/services/expense.service';
 import { CreateExpenseRequestDto } from './dtos/request/create-expense-request.dto';
-import { log } from '../libs/logger';
+import { log } from '@libs/logger';
 import { ExpenseResponseDto } from './dtos/response/expense-response.dto';
 import { PaginatedInputDto } from './dtos/request/paginated-input-request.dto';
 import { UpdateExpenseRequestDto } from './dtos/request/update-expense-request.dto';
+import {
+  FindFilters,
+  parseQueryOptions,
+  RequestQueryType,
+} from './utils/parse-query-options';
 
-export type RequestQueryType<T> = Request<unknown, unknown, unknown, T>;
-
-interface findFilters {
-  expenseId?: string;
-  type?: string;
-  category?: string;
-  createdAt?: string;
-}
-
-const parseQueryOptions = (
-  req: RequestQueryType<PaginatedInputDto<findFilters>>
-) => {
-  let {
-    sortBy = 'createdAt',
-    sortDir = 'desc',
-    offset = 0,
-    limit = 10,
-    ...filters
-  } = req.query;
-
-  return { sort: { sortBy, sortDir }, offset, limit, filters };
-};
 export class ExpenseController {
   #expenseService: ExpenseService;
   constructor(expenseService: ExpenseService) {
@@ -36,7 +19,7 @@ export class ExpenseController {
   }
 
   find = async (
-    req: RequestQueryType<PaginatedInputDto<findFilters>>,
+    req: RequestQueryType<PaginatedInputDto<FindFilters>>,
     res: Response
   ) => {
     const query = parseQueryOptions(req);
@@ -83,7 +66,6 @@ export class ExpenseController {
     const expenseId: string = req.params.expenseId;
     log.info(`Updating expense with id ${expenseId}`);
 
-    req.body;
     const updatedExpenseDto: ExpenseResponseDto =
       await this.#expenseService.update(expenseId, req.body);
 

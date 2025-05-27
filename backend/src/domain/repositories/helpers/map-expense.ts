@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import { ExpenseModel } from '../../../domain/models/expense.model';
 import { convertNullToUndefined } from './utils';
 import { ExpenseEntityFull, ExpenseItemEntity } from '../expense.repository';

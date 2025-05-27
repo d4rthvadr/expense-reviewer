@@ -1,11 +1,13 @@
-import { log } from '../../libs/logger';
-import { ApplicationException } from '../../domain/exceptions/application.exception';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { log } from '@libs/logger';
+import { ApplicationException } from '@domain/exceptions/application.exception';
 import { NextFunction, Response, Request } from 'express';
 
 export const requestErrorHandler = (
   error: Error | ApplicationException,
   _req: Request,
   res: Response,
+  // eslint-disable-next-line no-unused-vars
   _next: NextFunction
 ) => {
   log.error({ message: 'Error occurred:', code: '', error });

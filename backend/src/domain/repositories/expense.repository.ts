@@ -6,7 +6,7 @@ import { mapExpense } from './helpers/map-expense';
 import { ExpenseItemFactory } from '../../domain/factories/expense-item.factory';
 import { ExpenseItemModel } from '../../domain/models/expense-item.model';
 
-interface listExpenseDto {
+interface ListExpenseDto {
   filters: Record<string, unknown>;
   sort: {
     sortBy: string;
@@ -64,13 +64,14 @@ export class ExpenseRepository extends Database {
   }
 
   async find(
-    data: listExpenseDto
+    data: ListExpenseDto
   ): Promise<{ data: ExpenseModel[]; total: number }> {
     log.info(`Finding expenses with filters: ${JSON.stringify(data)}`);
-    let { filters, limit, offset } = data;
+    let { offset } = data;
+    const { filters, limit } = data;
 
     if (offset > 0) {
-      offset = offset * limit;
+      offset = offset * data.limit;
     }
 
     try {
@@ -103,7 +104,6 @@ export class ExpenseRepository extends Database {
         total,
       };
     } catch (error) {
-      console.error('An error occurred while fetching expenses:', error);
       log.error({
         message: 'An error occurred while fetching expenses:',
         error,

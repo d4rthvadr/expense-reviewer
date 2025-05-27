@@ -7,16 +7,8 @@ import { ExpenseModel } from '../../domain/models/expense.model';
 import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception';
 import { PaginatedResultDto } from '../../controllers/dtos/response/paginated-response.dto';
 import { UpdateExpenseDto } from './dtos/update-expense.dto';
+import { QueryParams } from './interfaces/query-params';
 
-interface QueryParams {
-  filters: Record<string, unknown>;
-  sort: {
-    sortBy: string;
-    sortDir: string;
-  };
-  offset: number;
-  limit: number;
-}
 export class ExpenseService {
   #expenseRepository: ExpenseRepository;
   constructor(expenseRepository: ExpenseRepository) {

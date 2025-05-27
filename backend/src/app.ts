@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { agentRoutes, expenseRoutes, userRoutes } from './routes';
+import { agentRoutes, budgetRoutes, expenseRoutes, userRoutes } from './routes';
 import { requestErrorHandler } from './routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
 import swaggerUi from 'swagger-ui-express';
@@ -30,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/agents', agentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/budgets', budgetRoutes);
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
