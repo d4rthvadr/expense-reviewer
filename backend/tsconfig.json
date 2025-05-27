@@ -8,6 +8,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "baseUrl": "./src",
+    "paths": {
+      "@domain/*": ["domain/*"],
+      "@infra/*": ["infra/*"],
+      "@controllers/*": ["controllers/*"],
+      "@libs/*": ["libs/*"],
+      "@middlewares/*": ["middlewares/*"],
+      "@routes/*": ["routes/*"]
+    },
+    "declaration": true,
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/**/*"]
