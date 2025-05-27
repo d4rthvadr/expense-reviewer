@@ -1,4 +1,5 @@
-import { AgentService } from '../domain/services/agent-service';
+import { log } from '../libs/logger';
+import { AgentService } from '../domain/services/agent.service';
 import { Request, Response } from 'express';
 
 export class AgentController {
@@ -15,15 +16,13 @@ export class AgentController {
     }
 
     try {
-      const response = await this.#agentService.extractTableData(text);
+      const agentResponse = await this.#agentService.extractTableData(text);
 
-      console.log('peek: ', response);
-      res.send({ table: [] });
+      res.send({ data: agentResponse });
     } catch (error) {
-      console.error('Error processing text:', error);
+      log.error({ message: 'Error processing text:', error, code: '' });
       res.status(500).send({
         error: { message: 'Failed to process text', data: null },
-        error2: error,
       });
     }
   };

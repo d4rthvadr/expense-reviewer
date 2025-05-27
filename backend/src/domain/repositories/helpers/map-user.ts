@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import { UserModel } from '../../models/user.model';
 import { User as UserEntity } from '../../../../generated/prisma';
 import { convertNullToUndefined } from './utils';
