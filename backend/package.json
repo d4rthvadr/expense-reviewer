@@ -7,8 +7,9 @@
     "start": "node dist/server.js",
     "lint:fix": "eslint 'src/**/*.{js,ts}' --fix",
     "format": "prettier --write 'src/**/*.{js,ts,json,md}'",
-    "dev": "nodemon src/server.ts",
-    "db:migrate": "npx prisma migrate dev --name",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "db:deploy": "npx prisma migrate deploy",
+    "db:migration": "npx prisma migrate dev --create-only",
     "db:gen": "npx prisma generate",
     "prepare": "cd .. && husky install"
   },
@@ -29,6 +30,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
+    "ollama": "^0.5.15",
     "openai": "^4.94.0",
     "prisma": "^6.6.0",
     "swagger-jsdoc": "^6.2.8",
@@ -46,6 +48,7 @@
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
   }
