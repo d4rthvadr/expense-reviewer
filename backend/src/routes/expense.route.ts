@@ -2,10 +2,11 @@ import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
 import { dependencyInjectionContainer } from './utils/di-container';
 import {
+  paginationQueryParamsValidators,
+  validateRequest,
   updateExpenseValidators,
   createExpenseValidators,
-} from '../middlewares/utils/expense-validators';
-import { validateRequest } from '../middlewares/utils/validate-request';
+} from '@middlewares/utils/validators/';
 
 const route = Express.Router();
 
@@ -135,7 +136,12 @@ route.post(
 route.get('/:expenseId', asyncHandler(expenseController.findOne));
 
 // /api/expenses
-route.get('/', asyncHandler(expenseController.find));
+route.get(
+  '/',
+  paginationQueryParamsValidators,
+  validateRequest,
+  asyncHandler(expenseController.find)
+);
 
 // /api/expenses/:id
 route.put(

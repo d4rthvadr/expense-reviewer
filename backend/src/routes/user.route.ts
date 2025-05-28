@@ -2,7 +2,7 @@ import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
 import { dependencyInjectionContainer } from './utils/di-container';
 import { body } from 'express-validator';
-import { validateRequest } from '../middlewares/utils/validate-request';
+import { validateRequest } from '@middlewares/utils/validators';
 
 const route = Express.Router();
 

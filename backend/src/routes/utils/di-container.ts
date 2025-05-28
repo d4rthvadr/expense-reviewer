@@ -12,43 +12,51 @@ import { OpenAiAgentWrapper } from '@infra/language-models/openai-agent-wrapper'
 import { BudgetService } from '@domain/services/budget.service';
 import { BudgetRepository } from '@domain/repositories/budget.repository';
 import { BudgetController } from '@controllers/budget.controller';
+import { OllamaWrapper } from '@infra/language-models/ollama-wrapper';
 
 class DependencyInjectionContainer {
   // clients
   #openAiClient: OpenAI;
   // wrappers
-  #agentWrapper: OpenAiAgentWrapper | null = null;
+  #openAiWrapper: OpenAiAgentWrapper | null = null;
+  #ollamaWrapper: OllamaWrapper | null = null;
   // services
   #agentService: AgentService | null = null;
   #userService: UserService | null = null;
   #expenseService: ExpenseService | null = null;
-  #budgetService: BudgetService | null = null; // Placeholder for future budget service
+  #budgetService: BudgetService | null = null;
   // repositories
   #userRepository: UserRepository | null = null;
   #expenseRepository: ExpenseRepository | null = null;
-  #budgetRepository: BudgetRepository | null = null; // Placeholder for future budget repository
+  #budgetRepository: BudgetRepository | null = null;
   // controllers
   #agentController: AgentController | null = null;
   #userController: UserController | null = null;
   #expenseController: ExpenseController | null = null;
-  #budgetController: BudgetController | null = null; // Placeholder for future budget controller
+  #budgetController: BudgetController | null = null;
 
   constructor(openAiClient: OpenAI) {
     this.#openAiClient = openAiClient;
   }
 
   // wrappers
-  get agentWrapper() {
-    if (!this.#agentWrapper) {
-      this.#agentWrapper = new OpenAiAgentWrapper(this.#openAiClient);
+  get openAiWrapper() {
+    if (!this.#openAiWrapper) {
+      this.#openAiWrapper = new OpenAiAgentWrapper(this.#openAiClient);
     }
-    return this.#agentWrapper;
+    return this.#openAiWrapper;
+  }
+  get ollamaWrapper() {
+    if (!this.#ollamaWrapper) {
+      this.#ollamaWrapper = new OllamaWrapper();
+    }
+    return this.#ollamaWrapper;
   }
 
   // services
   get agentService() {
     if (!this.#agentService) {
-      this.#agentService = new AgentService(this.agentWrapper);
+      this.#agentService = new AgentService(this.openAiWrapper);
     }
     return this.#agentService;
   }
@@ -68,7 +76,7 @@ class DependencyInjectionContainer {
 
   get budgetService() {
     if (!this.#budgetService) {
-      this.#budgetService = new BudgetService(this.budgetRepository); // Placeholder for future budget service
+      this.#budgetService = new BudgetService(this.budgetRepository);
     }
     return this.#budgetService;
   }
@@ -97,7 +105,7 @@ class DependencyInjectionContainer {
 
   get budgetController() {
     if (!this.#budgetController) {
-      this.#budgetController = new BudgetController(this.budgetService); // Placeholder for future budget controller
+      this.#budgetController = new BudgetController(this.budgetService);
     }
     return this.#budgetController;
   }
@@ -120,8 +128,7 @@ class DependencyInjectionContainer {
     if (!this.#budgetRepository) {
       this.#budgetRepository = new BudgetRepository();
     }
-    return this.#budgetRepository; // Placeholder for future budget repository
-    // Replace with actual BudgetRepository when implemented
+    return this.#budgetRepository;
   }
 }
 
