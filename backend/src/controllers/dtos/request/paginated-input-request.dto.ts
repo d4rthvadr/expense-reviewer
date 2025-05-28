@@ -1,6 +1,6 @@
 type SortDir = 'desc' | 'asc';
 
-export type PaginatedInputDto<Filters = {}> = {
+export type PaginatedInputDto<Filters = object> = {
   filters: Filters;
   sortDir?: SortDir;
   sortBy?: string;

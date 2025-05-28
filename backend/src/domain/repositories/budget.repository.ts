@@ -40,12 +40,7 @@ export class BudgetRepository extends Database {
     data: ListBudgetDto
   ): Promise<{ data: BudgetModel[]; total: number }> {
     log.info(`Finding budgets with filters: ${JSON.stringify(data)}`);
-    let { offset } = data;
-    const { filters, limit } = data;
-
-    if (offset > 0) {
-      offset = offset * data.limit;
-    }
+    const { filters, limit, offset } = data;
 
     try {
       const [records, total]: [BudgetEntity[], number] =
@@ -53,7 +48,7 @@ export class BudgetRepository extends Database {
           this.budget.findMany({
             where: filters,
             take: limit,
-            skip: offset,
+            skip: offset * limit,
             orderBy: {
               [data.sort.sortBy]: data.sort.sortDir,
             },
@@ -93,7 +88,8 @@ export class BudgetRepository extends Database {
         create: {
           id: data.id,
           name: data.name,
-          amount: 0,
+          description: data.description,
+          amount: data.amount,
           category: data.category as unknown as Category, // TODO: Fix this
           userId: data.userId,
         },

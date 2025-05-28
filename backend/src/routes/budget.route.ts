@@ -2,9 +2,12 @@ import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
 import { dependencyInjectionContainer } from './utils/di-container';
 
-import { validateRequest } from '../middlewares/utils/validate-request';
-import { createBudgetValidators } from '@middlewares/utils/budget-validators';
-import { updateExpenseValidators } from '@middlewares/utils/expense-validators';
+import { validateRequest } from '../middlewares/utils/validators/validate-request';
+import {
+  createBudgetValidators,
+  paginationQueryParamsValidators,
+  updateBudgetValidators,
+} from '@middlewares/utils/validators';
 
 const route = Express.Router();
 
@@ -22,12 +25,17 @@ route.post(
 route.get('/:budgetId', asyncHandler(budgetController.findOne));
 
 // /api/budgets
-route.get('/', asyncHandler(budgetController.find));
+route.get(
+  '/',
+  paginationQueryParamsValidators,
+  validateRequest,
+  asyncHandler(budgetController.find)
+);
 
 // /api/budgets/:id
 route.put(
   '/:budgetId',
-  updateExpenseValidators,
+  updateBudgetValidators,
   validateRequest,
   asyncHandler(budgetController.update)
 );

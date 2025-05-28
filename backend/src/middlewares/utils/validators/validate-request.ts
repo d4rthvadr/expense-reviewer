@@ -1,4 +1,4 @@
-import { normalizeError } from '../../domain/exceptions/utils/normalize-error';
+import { normalizeError } from '@domain/exceptions/utils/normalize-error';
 import type { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 

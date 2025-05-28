@@ -10,16 +10,26 @@ export interface FindFilters {
   createdAt?: string;
 }
 
+const toNumberOrDefault = <T>(value: T, defaultValue: number): number => {
+  const num = Number(value);
+  return isNaN(num) ? defaultValue : num;
+};
+
 export const parseQueryOptions = (
   req: RequestQueryType<PaginatedInputDto<FindFilters>>
 ) => {
   const {
     sortBy = 'createdAt',
     sortDir = 'desc',
-    offset = 0,
-    limit = 10,
+    limit,
+    offset,
     ...filters
   } = req.query;
 
-  return { sort: { sortBy, sortDir }, offset, limit, filters };
+  return {
+    sort: { sortBy, sortDir },
+    offset: toNumberOrDefault(offset, 0),
+    limit: toNumberOrDefault(limit, 10),
+    filters,
+  };
 };
