@@ -18,7 +18,7 @@ The motivation behind this project is to:
 
 - Node.js (v20 or later)
 - npm or yarn
-- Docker (optional, for containerized deployment)
+- Docker Desktop or OrbStack. ( I am using orbstack)
 - PostgreSQL (for database)
 
 ### Installation Steps
@@ -26,7 +26,7 @@ The motivation behind this project is to:
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/d4rthvadr/expense-reviewer.git
    cd expense-reviewer
    ```
 
@@ -37,7 +37,14 @@ The motivation behind this project is to:
    npm install
    ```
 
-3. Set up environment variables:
+3. Bring up docker-compose file to start redis and postgres ( in root dir).
+
+   ```shell
+   docker-compose up -d
+
+   ```
+
+4. Set up environment variables:
    Create a `.env` file in the `backend` directory with the following content:
 
    ```env
@@ -46,7 +53,7 @@ The motivation behind this project is to:
    PORT=3000
    ```
 
-4. Set up the database:
+5. Set up the database:
    Run the following commands to initialize the database:
 
    ```bash
@@ -54,7 +61,7 @@ The motivation behind this project is to:
    npx prisma generate
    ```
 
-5. Start the server:
+6. Start the server:
    ```bash
    npm run start
    ```
@@ -65,9 +72,10 @@ The motivation behind this project is to:
 - **Node.js**: JavaScript runtime for building the backend.
 - **Express.js**: Web framework for creating RESTful APIs.
 - **Prisma**: ORM for database management.
+- **Redis**: Caching and background queue management.
 - **PostgreSQL**: Relational database for storing data.
 - **OpenAI API**: For analyzing expenses and generating recommendations.
-- **Docker**: For containerized deployment.
+- **Docker**: For containerized application and deployment.
 - **TypeScript**: For type-safe development.
 - **Winston**: For logging.
 
@@ -82,6 +90,8 @@ expense-reviewer/
 │   ├── Dockerfile              # Dockerfile for backend
 │   ├── package.json            # Node.js dependencies
 │   ├── README.md               # Backend-specific documentation
+│   ├── .eslintrc.js            # ESLint configuration
+│   ├── .prettierrc             # Prettier configuration
 │   ├── tsconfig.json           # TypeScript configuration
 │   ├── docs/                   # API and project documentation
 │   │   ├── api.md
@@ -93,6 +103,9 @@ expense-reviewer/
 │   │   ├── migrations/         # Database migrations
 │   └── src/                    # Source code
 │       ├── app.ts              # Express app setup
+│       ├── db/                 # Database-related modules
+│       ├── docs/               # Project and API documentation
+│       ├── app.ts              # Express app setup
 │       ├── server.ts           # Server entry point
 │       ├── controllers/        # API controllers
 │       ├── domain/             # Domain models and business logic
@@ -101,7 +114,116 @@ expense-reviewer/
 │       ├── middlewares/        # Express middlewares
 │       ├── routes/             # API routes
 │       └── types/              # TypeScript type definitions
+├── docker-compose.yml          # Docker Compose file for project services
+├── Dockerfile.ollama           # Dockerfile for Ollama integration
+├── init-scripts/               # Initialization scripts (e.g., database setup)
 └── client/                     # Placeholder for frontend (if applicable)
+```
+
+## Usage
+
+### Sample Usage
+
+#### 1. Create an Expense
+
+```bash
+curl -X POST http://localhost:3000/api/expenses \
+   -H "Content-Type: application/json" \
+   -d '{
+      "userId": "1",
+      "amount": 45.99,
+      "categoryId": "2",
+      "description": "Groceries at SuperMart",
+      "date": "2024-06-10"
+   }'
+```
+
+**Sample Response:**
+
+```json
+{
+  "id": "101",
+  "userId": "1",
+  "amount": 45.99,
+  "categoryId": "2",
+  "description": "Groceries at SuperMart",
+  "date": "2024-06-10T00:00:00.000Z",
+  "createdAt": "2024-06-10T12:34:56.000Z"
+}
+```
+
+#### 2. Update an Expense
+
+```bash
+curl -X PUT http://localhost:3000/api/expenses/101 \
+   -H "Content-Type: application/json" \
+   -d '{
+      "amount": 50.00,
+      "description": "Groceries and snacks"
+   }'
+```
+
+**Sample Response:**
+
+```json
+{
+  "id": "101",
+  "userId": "1",
+  "amount": 50.0,
+  "categoryId": "2",
+  "description": "Groceries and snacks",
+  "date": "2024-06-10T00:00:00.000Z",
+  "updatedAt": "2024-06-10T13:00:00.000Z"
+}
+```
+
+#### 3. Create a Budget
+
+```bash
+curl -X POST http://localhost:3000/api/budgets \
+   -H "Content-Type: application/json" \
+   -d '{
+      "userId": "1",
+      "categoryId": "2",
+      "amount": 300.00,
+      "month": "2024-06"
+   }'
+```
+
+**Sample Response:**
+
+```json
+{
+  "id": "201",
+  "userId": "1",
+  "categoryId": "2",
+  "amount": 300.0,
+  "month": "2024-06",
+  "createdAt": "2024-06-10T12:40:00.000Z"
+}
+```
+
+#### 4. Update a Budget
+
+```bash
+curl -X PUT http://localhost:3000/api/budgets/201 \
+   -H "Content-Type: application/json" \
+   -d '{
+      "amount": 350.00
+   }'
+```
+
+**Sample Response:**
+
+```json
+{
+  "id": "201",
+  "userId": "1",
+  "categoryId": "2",
+  "amount": 350.0,
+  "month": "2024-06",
+  "updatedAt": "2024-06-10T13:10:00.000Z"
+}
 ```
 
 ## Additional Content
