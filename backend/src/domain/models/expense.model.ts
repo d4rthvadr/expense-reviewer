@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+import { Category } from './enum/category.enum';
 
 export interface ExpenseItem {
   id?: string;
   name: string;
   description?: string;
+  category: Category;
   amount: number;
   userId?: string;
   qty?: number;

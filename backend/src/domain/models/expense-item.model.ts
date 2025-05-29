@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+import { Category } from './enum/category.enum';
 
 interface ExpenseItemDataInput {
   id?: string;
   name: string;
   description?: string;
+  category: Category;
   amount: number;
   qty?: number;
 }
@@ -12,14 +14,16 @@ export class ExpenseItemModel {
   readonly #id: string;
   #name: string;
   #description?: string;
+  #category: Category;
   #amount: number;
   #qty?: number;
 
   constructor(data: ExpenseItemDataInput) {
-    const { id = uuidv4(), name, description, amount, qty } = data;
+    const { id = uuidv4(), name, description, amount, category, qty } = data;
     this.#id = id;
     this.#name = name;
     this.#description = description;
+    this.#category = category;
     this.#amount = amount;
     this.#qty = qty;
   }
@@ -58,5 +62,12 @@ export class ExpenseItemModel {
 
   set qty(value: number) {
     this.#qty = value;
+  }
+
+  get category(): Category {
+    return this.#category;
+  }
+  set category(value: Category) {
+    this.#category = value;
   }
 }

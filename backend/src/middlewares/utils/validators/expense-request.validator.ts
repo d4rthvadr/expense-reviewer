@@ -1,3 +1,4 @@
+import { Category } from '@domain/models/enum/category.enum';
 import { body, param } from 'express-validator';
 
 export const createExpenseValidators = [
@@ -26,6 +27,15 @@ export const createExpenseValidators = [
     .withMessage('Item amount must be a number')
     .notEmpty()
     .withMessage('Item amount is required'),
+  body('items.*.category')
+    .isString()
+    .withMessage('Item category must be a string')
+    .isIn(Object.values(Category))
+    .withMessage(
+      `Category must be a valid category (${Object.values(Category).join(', ')})`
+    )
+    .notEmpty()
+    .withMessage('Item category is required'),
   body('items.*.qty')
     .optional()
     .isNumeric()

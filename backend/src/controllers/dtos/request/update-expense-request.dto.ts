@@ -1,8 +1,3 @@
-import { ExpenseItem } from './create-expense-request.dto';
+import { CreateExpenseDto } from '@domain/services/dtos/create-expense.dto';
 
-export interface UpdateExpenseRequestDto {
-  id: string;
-  name?: string;
-  type: string;
-  items: ExpenseItem[];
-}
+export type UpdateExpenseRequestDto = CreateExpenseDto;
