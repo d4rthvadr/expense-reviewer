@@ -28,7 +28,6 @@ export class ExpenseController {
       ...query,
       filters: {
         ...query.filters,
-        // userId,
       },
     });
 

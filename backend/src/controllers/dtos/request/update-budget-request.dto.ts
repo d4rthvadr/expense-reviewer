@@ -1,8 +1,3 @@
-import { Category } from '@domain/models/enum/category.enum';
+import { CreateBudgetRequestDto } from './create-budget-request.dto';
 
-export interface UpdateBudgetRequestDto {
-  name?: string;
-  amount: number;
-  description?: string;
-  category: Category;
-}
+export type UpdateBudgetRequestDto = CreateBudgetRequestDto;

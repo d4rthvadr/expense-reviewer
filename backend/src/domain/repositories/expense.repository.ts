@@ -1,6 +1,6 @@
 import { ExpenseModel } from 'domain/models/expense.model';
 import { Database } from '../../db/database';
-import { Expense as ExpenseEntity } from '../../../generated/prisma';
+import { Category, Expense as ExpenseEntity } from '../../../generated/prisma';
 import { log } from '../../libs/logger';
 import { mapExpense } from './helpers/map-expense';
 import { ExpenseItemFactory } from '../../domain/factories/expense-item.factory';
@@ -19,6 +19,7 @@ export interface ExpenseItemEntity {
   id?: string;
   name: string;
   amount: number;
+  category: string;
   userId?: string | null;
   description?: string | null;
   qty?: number | null;
@@ -32,6 +33,7 @@ const createExpenseItem = (item: ExpenseItemModel) => ({
   id: item.id,
   name: item.name,
   amount: item.amount,
+  category: item.category as unknown as Category,
   description: item.description,
   qty: item.qty,
 });
@@ -67,12 +69,7 @@ export class ExpenseRepository extends Database {
     data: ListExpenseDto
   ): Promise<{ data: ExpenseModel[]; total: number }> {
     log.info(`Finding expenses with filters: ${JSON.stringify(data)}`);
-    let { offset } = data;
-    const { filters, limit } = data;
-
-    if (offset > 0) {
-      offset = offset * data.limit;
-    }
+    const { filters, limit, offset } = data;
 
     try {
       const [records, total]: [ExpenseEntityFull[], number] =
@@ -80,7 +77,7 @@ export class ExpenseRepository extends Database {
           this.expense.findMany({
             where: filters,
             take: limit,
-            skip: offset,
+            skip: offset * limit,
             include: {
               expenseItem: true,
             },
@@ -159,7 +156,6 @@ export class ExpenseRepository extends Database {
 
       return mapExpense(expense);
     } catch (error) {
-      console.error('An error occurred while saving expense:', error);
       log.error({
         message: 'An error occurred while saving expense:',
         error,
