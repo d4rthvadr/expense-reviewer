@@ -6,20 +6,6 @@ import { requestErrorHandler } from './routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
-import { log } from './libs/logger';
-import { getRedisInstance } from './db/ioredis-singleton';
-
-getRedisInstance().ping((err) => {
-  if (err) {
-    log.error({
-      message: '[peek] Error connecting to Redis:',
-      code: '',
-      error: err,
-    });
-  } else {
-    log.info('Connected to Redis:');
-  }
-});
 
 const app = express();
 app.use(cors());
