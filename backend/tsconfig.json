@@ -10,6 +10,7 @@
     "baseUrl": "./src",
     "paths": {
       "@domain/*": ["domain/*"],
+      "@db/*": ["db/*"],
       "@infra/*": ["infra/*"],
       "@controllers/*": ["controllers/*"],
       "@libs/*": ["libs/*"],
