@@ -1,5 +1,6 @@
 import { Category } from '@domain/enum/category.enum';
 import { body, param } from 'express-validator';
+import { Currency } from '../../../../generated/prisma';
 
 export const createBudgetValidators = [
   body('name')
@@ -13,6 +14,14 @@ export const createBudgetValidators = [
     .withMessage('Amount must be a number')
     .notEmpty()
     .withMessage('Amount is required'),
+  body('currency')
+    .optional()
+    .isIn(Object.values(Currency))
+    .withMessage(
+      `Currency must be a valid currency. (${Object.values(Currency).join(', ')})`
+    )
+    .notEmpty()
+    .withMessage('Currency is required'),
   body('category')
     .isString()
     .withMessage('Category must be a string')
