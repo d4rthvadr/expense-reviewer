@@ -1,10 +1,10 @@
 import { ExpenseModel } from 'domain/models/expense.model';
 import { Database } from '../../db/database';
 import { Category, Expense as ExpenseEntity } from '../../../generated/prisma';
-import { log } from '../../libs/logger';
+import { log } from '@libs/logger';
 import { mapExpense } from './helpers/map-expense';
-import { ExpenseItemFactory } from '../../domain/factories/expense-item.factory';
-import { ExpenseItemModel } from '../../domain/models/expense-item.model';
+import { ExpenseItemFactory } from '@domain/factories/expense-item.factory';
+import { ExpenseItemModel } from '@domain/models/expense-item.model';
 
 interface ListExpenseDto {
   filters: Record<string, unknown>;

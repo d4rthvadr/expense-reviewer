@@ -2,7 +2,7 @@
 import { BudgetModel } from '../../models/budget.model';
 import { Budget as BudgetEntity } from '../../../../generated/prisma';
 import { convertNullToUndefined } from './utils';
-import { Category } from '../../../domain/models/enum/category.enum';
+import { Category } from '@domain/enum/category.enum';
 
 export function mapBudget(entity: BudgetEntity): BudgetModel;
 export function mapBudget(entity: null): null;
