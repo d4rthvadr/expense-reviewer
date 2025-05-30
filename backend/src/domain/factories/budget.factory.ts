@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { BudgetModel } from '@domain/models/budget.model';
 
 interface BudgetCreateDataDto {
@@ -7,6 +8,7 @@ interface BudgetCreateDataDto {
   amount: number;
   description?: string;
   category: Category;
+  currency?: Currency;
 }
 export class BudgetFactory {
   /**
@@ -15,12 +17,13 @@ export class BudgetFactory {
    * @returns A new BudgetModel instance.
    */
   static createBudget(data: BudgetCreateDataDto): BudgetModel {
-    const { name, category, amount, description, userId } = data;
+    const { name, category, amount, description, currency, userId } = data;
 
     return new BudgetModel({
       name,
       amount,
       category,
+      currency,
       description,
       userId,
     });

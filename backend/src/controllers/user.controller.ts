@@ -14,17 +14,11 @@ export class UserController {
     req: RequestBodyType<CreateUserRequestDto>,
     res: Response
   ) => {
-    const { name, email, password } = req.body;
-
     log.info(
-      `Creating user with data: ${JSON.stringify({ name, email, password })}`
+      `Creating user with data: ${JSON.stringify({ name: req.body.name, email: req.body.email })}`
     );
 
-    const user = await this.#userService.create({
-      name,
-      email,
-      password,
-    });
+    const user = await this.#userService.create(req.body);
 
     return res.status(201).json(user);
   };

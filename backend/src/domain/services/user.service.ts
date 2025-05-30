@@ -25,7 +25,6 @@ export class UserService {
   }
 
   async create(data: CreateUserDto): Promise<UserResponseDto> {
-    log.info(`Creating user with data: | meta: ${JSON.stringify({ data })}`);
     const userModel = UserFactory.createUser(data);
 
     const user = await this.#userRepository.save(userModel);

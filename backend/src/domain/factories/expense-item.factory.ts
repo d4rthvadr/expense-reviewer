@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { ExpenseItemModel } from '@domain/models/expense-item.model';
 
 interface ExpenseItemCreateDataDto {
@@ -6,6 +7,7 @@ interface ExpenseItemCreateDataDto {
   amount: number;
   description?: string;
   category: Category;
+  currency?: Currency;
   qty?: number;
 }
 export class ExpenseItemFactory {
@@ -15,12 +17,13 @@ export class ExpenseItemFactory {
    * @returns A new ExpenseModel instance.
    */
   static createExpenseItem(data: ExpenseItemCreateDataDto): ExpenseItemModel {
-    const { name, amount, description, category, qty } = data;
+    const { name, amount, description, category, currency, qty } = data;
 
     const user: ExpenseItemModel = new ExpenseItemModel({
       name,
       amount,
       qty,
+      currency,
       category,
       description,
     });

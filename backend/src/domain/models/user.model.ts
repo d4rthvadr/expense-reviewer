@@ -1,9 +1,11 @@
+import { Currency } from '@domain/enum/currency.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UserDataInput {
   id?: string;
   name?: string;
   email: string;
+  currency?: Currency;
   password: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -13,6 +15,7 @@ export class UserModel {
   readonly #id: string;
   #name?: string;
   #email: string;
+  #currency?: Currency;
   #password: string;
   #createdAt: Date;
   #updatedAt: Date;
@@ -23,12 +26,14 @@ export class UserModel {
       name,
       email,
       password,
+      currency,
       createdAt = new Date(),
       updatedAt = new Date(),
     } = data;
     this.#id = id;
     this.#name = name;
     this.#email = email;
+    this.#currency = currency;
     this.#password = password;
     this.#createdAt = createdAt;
     this.#updatedAt = updatedAt;
@@ -77,6 +82,24 @@ export class UserModel {
    */
   set email(value: string) {
     this.#email = value;
+  }
+
+  /**
+   * Gets the user's preferred currency.
+   *
+   * @returns The user's preferred currency as a `Currency` enum value, or `undefined` if not set.
+   */
+  get currency(): Currency | undefined {
+    return this.#currency;
+  }
+
+  /**
+   * Sets the user's preferred currency.
+   *
+   * @param value - The currency to be set for the user, as a `Currency` enum value.
+   */
+  set currency(value: Currency | undefined) {
+    this.#currency = value;
   }
 
   /**

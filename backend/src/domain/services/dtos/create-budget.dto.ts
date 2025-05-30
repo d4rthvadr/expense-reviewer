@@ -1,4 +1,5 @@
-import { Category } from '@domain/models/enum/category.enum';
+import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 
 export interface CreateBudgetDto {
   name?: string;
@@ -6,4 +7,5 @@ export interface CreateBudgetDto {
   amount: number;
   description?: string;
   category: Category;
+  currency?: Currency;
 }

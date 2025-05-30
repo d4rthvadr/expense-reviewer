@@ -1,28 +1,23 @@
 /* eslint-disable no-unused-vars */
 
 import { ExpenseModel } from '@domain/models/expense.model';
-import { convertNullToUndefined } from './utils';
+import { convertNullToUndefined, convertToFamilyType } from './utils';
 import { ExpenseEntityFull, ExpenseItemEntity } from '../expense.repository';
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 
 const mapExpenseItem = (item: ExpenseItemEntity) => ({
   id: item.id,
   description: convertNullToUndefined(item.description),
   name: item.name,
-  category: convertToCategoryType(item.category),
+  category: convertToFamilyType(item.category, Category),
+  currency: convertToFamilyType(
+    convertNullToUndefined(item.currency),
+    Currency
+  ),
   amount: item.amount,
   qty: convertNullToUndefined(item.qty),
 });
-
-const convertToCategoryType = (category: string): Category => {
-  if (!Object.values(Category).includes(category as Category)) {
-    throw new Error(
-      `Invalid category type: ${category}. Valid categories are: ${Object.values(Category).join(', ')}`
-    );
-  }
-
-  return Category[category as keyof typeof Category];
-};
 
 export function mapExpense(entity: ExpenseEntityFull): ExpenseModel;
 export function mapExpense(entity: null): null;
@@ -40,6 +35,10 @@ export function mapExpense(
     id: entity.id,
     name: convertNullToUndefined(entity.name),
     type: entity.type,
+    currency: convertToFamilyType(
+      convertNullToUndefined(entity.currency),
+      Currency
+    ),
     items: entity.expenseItem.map(mapExpenseItem),
     createdAt: entity.createdAt,
     userId: convertNullToUndefined(entity.userId),

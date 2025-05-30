@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 interface BudgetDataInput {
@@ -7,6 +8,7 @@ interface BudgetDataInput {
   amount: number;
   userId?: string;
   category: Category;
+  currency?: Currency;
   description?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -18,6 +20,7 @@ export class BudgetModel {
   #amount: number;
   #userId?: string;
   #category: Category;
+  #currency?: Currency;
   #description?: string;
   #createdAt: Date;
   #updatedAt: Date;
@@ -30,6 +33,7 @@ export class BudgetModel {
       userId,
       description,
       category,
+      currency = Currency.USD,
       createdAt = new Date(),
       updatedAt = new Date(),
     } = data;
@@ -38,6 +42,7 @@ export class BudgetModel {
     this.#amount = amount;
     this.#userId = userId;
     this.#category = category;
+    this.#currency = currency;
     this.#description = description;
     this.#createdAt = createdAt;
     this.#updatedAt = updatedAt;
@@ -149,6 +154,27 @@ export class BudgetModel {
       return;
     }
     this.#category = value;
+  }
+
+  /**
+   * Gets the currency of the budget.
+   *
+   * @returns {Currency} The currency of the budget.
+   */
+  get currency(): Currency | undefined {
+    return this.#currency;
+  }
+
+  /**
+   * Sets the currency of the budget.
+   *
+   * @param value - The currency to set for the budget.
+   */
+  set currency(value: Currency | undefined) {
+    if (!value) {
+      return;
+    }
+    this.#currency = value;
   }
 
   /**
