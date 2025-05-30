@@ -1,5 +1,5 @@
-import { Category } from '@domain/models/enum/category.enum';
-import { ExpenseItemModel } from '../../domain/models/expense-item.model';
+import { Category } from '@domain/enum/category.enum';
+import { ExpenseItemModel } from '@domain/models/expense-item.model';
 
 interface ExpenseItemCreateDataDto {
   name: string;
@@ -10,9 +10,9 @@ interface ExpenseItemCreateDataDto {
 }
 export class ExpenseItemFactory {
   /**
-   * Creates a new UserModel instance from the provided data.
-   * @param data - The data to create the user model.
-   * @returns A new UserModel instance.
+   * Creates a new ExpenseModel instance from the provided data.
+   * @param data - The data to create the expense model.
+   * @returns A new ExpenseModel instance.
    */
   static createExpenseItem(data: ExpenseItemCreateDataDto): ExpenseItemModel {
     const { name, amount, description, category, qty } = data;

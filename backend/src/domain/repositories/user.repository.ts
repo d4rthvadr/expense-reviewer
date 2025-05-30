@@ -1,8 +1,8 @@
 import { mapUser } from './helpers/map-user';
 import { User as UserEntity } from '../../../generated/prisma';
-import { UserModel } from '../../domain/models/user.model';
+import { UserModel } from '@domain/models/user.model';
 import { Database } from '../../db/database';
-import { log } from '../../libs/logger';
+import { log } from '@libs/logger';
 
 export class UserRepository extends Database {
   constructor() {
@@ -34,6 +34,7 @@ export class UserRepository extends Database {
           id: data.id,
         },
         create: {
+          id: data.id,
           name: data.name,
           email: data.email,
           password: data.password,

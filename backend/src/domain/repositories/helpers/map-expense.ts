@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 
-import { ExpenseModel } from '../../../domain/models/expense.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 import { convertNullToUndefined } from './utils';
 import { ExpenseEntityFull, ExpenseItemEntity } from '../expense.repository';
-import { Category } from '@domain/models/enum/category.enum';
+import { Category } from '@domain/enum/category.enum';
 
 const mapExpenseItem = (item: ExpenseItemEntity) => ({
   id: item.id,

@@ -1,4 +1,4 @@
-import { ExpenseItem } from '../../../domain/models/expense.model';
+import { ExpenseItem } from '../@domain/models/expense.model';
 
 export interface ExpenseResponseDto {
   id: string;

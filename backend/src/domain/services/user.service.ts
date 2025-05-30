@@ -1,10 +1,10 @@
-import { UserRepository } from '../../domain/repositories/user.repository';
+import { UserRepository } from '@domain/repositories/user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { UserModel } from '../../domain/models/user.model';
-import { UserFactory } from '../../domain/factories/user.factory';
-import { log } from '../../libs/logger';
+import { UserModel } from '@domain/models/user.model';
+import { UserFactory } from '@domain/factories/user.factory';
+import { log } from '@libs/logger';
 import { UserResponseDto } from '../../controllers/dtos/response/user-response.dto';
-import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception';
+import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 
 export class UserService {
   #userRepository: UserRepository;

@@ -1,10 +1,10 @@
-import { ExpenseRepository } from '../../domain/repositories/expense.repository';
-import { log } from '../../libs/logger';
+import { ExpenseRepository } from '@domain/repositories/expense.repository';
+import { log } from '@libs/logger';
 import { CreateExpenseDto } from './dtos/create-expense.dto';
-import { ExpenseFactory } from '../../domain/factories/expense.factory';
+import { ExpenseFactory } from '@domain/factories/expense.factory';
 import { ExpenseResponseDto } from '../../controllers/dtos/response/expense-response.dto';
-import { ExpenseModel } from '../../domain/models/expense.model';
-import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception';
+import { ExpenseModel } from '@domain/models/expense.model';
+import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { PaginatedResultDto } from '../../controllers/dtos/response/paginated-response.dto';
 import { UpdateExpenseDto } from './dtos/update-expense.dto';
 import { QueryParams } from './interfaces/query-params';

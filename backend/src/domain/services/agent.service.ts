@@ -1,4 +1,4 @@
-import { log } from '../../libs/logger';
+import { log } from '@libs/logger';
 import { buildPrompt } from '../../infra/language-models/prompt-builder';
 import { AgentWrapper } from '../interfaces/agent-wrapper.interface';
 import ollama from 'ollama';

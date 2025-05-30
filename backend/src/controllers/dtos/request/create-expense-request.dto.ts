@@ -1,4 +1,4 @@
-import { Category } from '@domain/models/enum/category.enum';
+import { Category } from '@domain/enum/category.enum';
 
 export interface ExpenseItem {
   name: string;

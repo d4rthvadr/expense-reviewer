@@ -1,4 +1,4 @@
-import { ExpenseItem, ExpenseModel } from '../../domain/models/expense.model';
+import { ExpenseItem, ExpenseModel } from '@domain/models/expense.model';
 
 interface ExpenseCreateDataDto {
   name?: string;

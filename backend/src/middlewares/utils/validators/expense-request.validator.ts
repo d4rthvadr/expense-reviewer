@@ -1,4 +1,4 @@
-import { Category } from '@domain/models/enum/category.enum';
+import { Category } from '@domain/enum/category.enum';
 import { body, param } from 'express-validator';
 
 export const createExpenseValidators = [
