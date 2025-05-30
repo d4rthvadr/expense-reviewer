@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { body, param } from 'express-validator';
 
 export const createExpenseValidators = [
@@ -12,6 +13,14 @@ export const createExpenseValidators = [
     .withMessage('Type must be a string')
     .notEmpty()
     .withMessage('Type is required'),
+  body('currency')
+    .optional()
+    .isIn(Object.values(Currency))
+    .withMessage(
+      `Currency must be a valid currency. (${Object.values(Currency).join(', ')})`
+    )
+    .notEmpty()
+    .withMessage('Currency is required'),
   body('items')
     .isArray()
     .withMessage('Items must be an array')
@@ -28,14 +37,18 @@ export const createExpenseValidators = [
     .notEmpty()
     .withMessage('Item amount is required'),
   body('items.*.category')
-    .isString()
-    .withMessage('Item category must be a string')
     .isIn(Object.values(Category))
     .withMessage(
       `Category must be a valid category (${Object.values(Category).join(', ')})`
     )
     .notEmpty()
     .withMessage('Item category is required'),
+  body('items.*.currency')
+    .optional()
+    .isIn(Object.values(Currency))
+    .withMessage(
+      `Item currency must be one of the following: (${Object.values(Currency).join(', ')})`
+    ),
   body('items.*.qty')
     .optional()
     .isNumeric()

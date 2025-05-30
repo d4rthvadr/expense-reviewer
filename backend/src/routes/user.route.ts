@@ -1,8 +1,8 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
 import { dependencyInjectionContainer } from './utils/di-container';
-import { body } from 'express-validator';
 import { validateRequest } from '@middlewares/utils/validators';
+import { createUserRequestValidator } from '@middlewares/utils/validators/user-request.validator';
 
 const route = Express.Router();
 
@@ -29,6 +29,9 @@ const { userController } = dependencyInjectionContainer;
  *               password:
  *                 type: string
  *                 description: Password for the user
+ *               currency:
+ *                 type: string
+ *                 description: Preferred currency of the user (e.g., USD, EUR)
  *     responses:
  *       201:
  *         description: User created successfully
@@ -56,23 +59,7 @@ route.get('/:id', asyncHandler(userController.findOne));
 // /api/users
 route.post(
   '/',
-  [
-    body('name')
-      .trim()
-      .notEmpty()
-      .isLength({ min: 4 })
-      .withMessage('Name is required'),
-    body('email')
-      .trim()
-      .notEmpty()
-      .isEmail()
-      .withMessage('Email must be valid'),
-    body('password')
-      .trim()
-      .notEmpty()
-      .isLength({ min: 4, max: 20 })
-      .withMessage('Password is required'),
-  ],
+  createUserRequestValidator,
   validateRequest,
   asyncHandler(userController.create)
 );
