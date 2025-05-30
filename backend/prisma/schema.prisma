@@ -14,6 +14,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Currency {
+  USD
+  EUR
+  GHS
+}
+
 enum Category {
   FOOD
   TRANSPORT
@@ -33,7 +39,7 @@ enum Category {
 }
 
 model User {
-  id        String    @id @default(cuid())
+  id        String    @id
   name      String?
   email     String    @unique
   password  String
@@ -41,19 +47,21 @@ model User {
   status    String?
   type      String?
   lastLogin DateTime?
+  currency  Currency? @default(USD)
   updatedAt DateTime  @updatedAt
   Budget    Budget[]
   Expense   Expense[]
 }
 
 model Expense {
-  id           String   @id @default(cuid())
+  id           String    @id
   name         String
   type         String
   total_amount Float
-  createdAt    DateTime @default(now())
+  currency     Currency? @default(USD)
+  createdAt    DateTime  @default(now())
   userId       String?
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime  @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -61,28 +69,30 @@ model Expense {
 }
 
 model ExpenseItem {
-  id          String   @id @default(cuid())
+  id          String    @id
   name        String
   description String?
   qty         Int?
-  category    Category @default(OTHER)
+  category    Category  @default(OTHER)
   amount      Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  currency    Currency? @default(USD)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   expenseId String
   expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
 }
 
 model Budget {
-  id          String   @id @default(cuid())
+  id          String    @id
   name        String?
   userId      String?
   amount      Float
-  category    Category @default(OTHER)
+  currency    Currency? @default(USD)
+  category    Category  @default(OTHER)
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   user User? @relation(fields: [userId], references: [id])
 }
