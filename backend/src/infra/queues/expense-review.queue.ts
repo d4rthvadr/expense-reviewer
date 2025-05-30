@@ -31,7 +31,7 @@ class ExpenseReviewQueueService extends Worker {
 
     this.on('completed', (job) => {
       log.info(
-        `Job ${job.id} has been successfully processed by QueueService!`
+        `Job ${job.id} has been successfully processed by ${this.constructor.name}!`
       );
     });
 
