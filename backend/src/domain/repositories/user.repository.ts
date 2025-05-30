@@ -37,11 +37,13 @@ export class UserRepository extends Database {
           id: data.id,
           name: data.name,
           email: data.email,
+          currency: data.currency,
           password: data.password,
         },
         update: {
           name: data.name,
           email: data.email,
+          currency: data.currency,
           password: data.password,
         },
       });

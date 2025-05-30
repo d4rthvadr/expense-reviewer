@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExpenseItem {
@@ -16,6 +17,7 @@ interface ExpenseDataInput {
   name?: string;
   type: string;
   userId?: string;
+  currency?: Currency;
   items: ExpenseItem[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -27,6 +29,7 @@ export class ExpenseModel {
   #type: string;
   #items: ExpenseItem[];
   #userId?: string;
+  #currency?: Currency;
   #createdAt: Date;
   #updatedAt: Date;
 
@@ -37,6 +40,7 @@ export class ExpenseModel {
       type,
       items,
       userId,
+      currency = Currency.USD,
       createdAt = new Date(),
       updatedAt = new Date(),
     } = data;
@@ -44,6 +48,7 @@ export class ExpenseModel {
     this.#name = name;
     this.#type = type;
     this.#items = items;
+    this.#currency = currency;
     this.#userId = userId;
     this.#createdAt = createdAt;
     this.#updatedAt = updatedAt;
@@ -126,6 +131,26 @@ export class ExpenseModel {
     this.#userId = value;
   }
 
+  /**
+   * Gets the currency of the expense.
+   *
+   * @returns {Currency} The currency used for the expense.
+   */
+  get currency(): Currency | undefined {
+    return this.#currency;
+  }
+
+  /**
+   * Sets the currency of the expense.
+   *
+   * @param value - The currency to set for the expense.
+   */
+  set currency(value: Currency) {
+    if (!value) {
+      return;
+    }
+    this.#currency = value;
+  }
   /**
    * Gets the creation date of the expense.
    *

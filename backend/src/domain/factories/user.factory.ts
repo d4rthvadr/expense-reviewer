@@ -1,8 +1,10 @@
+import { Currency } from '@domain/enum/currency.enum';
 import { UserModel } from '@domain/models/user.model';
 
 interface UserCreateDto {
   name?: string;
   email: string;
+  currency?: Currency;
   password: string;
 }
 export class UserFactory {
@@ -12,12 +14,13 @@ export class UserFactory {
    * @returns A new UserModel instance.
    */
   static createUser(data: UserCreateDto): UserModel {
-    const { name, email, password } = data;
+    const { name, email, password, currency } = data;
 
     const user: UserModel = new UserModel({
       name,
       email,
       password,
+      currency,
     });
 
     return user;

@@ -63,6 +63,7 @@ export class BudgetService {
 
     budget.name = data.name;
     budget.description = data.description;
+    budget.currency = data.currency;
     budget.category = data.category;
     budget.amount = data.amount;
 
@@ -90,18 +91,23 @@ export class BudgetService {
       );
     }
   }
-  #toBudgetDto({
-    id,
-    name,
-    description,
-    category,
-    createdAt,
-    updatedAt,
-  }: BudgetModel): BudgetResponseDto {
+  #toBudgetDto(data: BudgetModel): BudgetResponseDto {
+    const {
+      id,
+      name,
+      description,
+      category,
+      currency,
+      amount,
+      createdAt,
+      updatedAt,
+    }: BudgetModel = data;
     return {
       id,
       name,
+      amount,
       category,
+      currency,
       description,
       createdAt,
       updatedAt,

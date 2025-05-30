@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ExpenseItemDataInput {
@@ -6,6 +7,7 @@ interface ExpenseItemDataInput {
   name: string;
   description?: string;
   category: Category;
+  currency?: Currency;
   amount: number;
   qty?: number;
 }
@@ -15,15 +17,25 @@ export class ExpenseItemModel {
   #name: string;
   #description?: string;
   #category: Category;
+  #currency?: Currency;
   #amount: number;
   #qty?: number;
 
   constructor(data: ExpenseItemDataInput) {
-    const { id = uuidv4(), name, description, amount, category, qty } = data;
+    const {
+      id = uuidv4(),
+      name,
+      description,
+      amount,
+      category,
+      currency = Currency.USD,
+      qty,
+    } = data;
     this.#id = id;
     this.#name = name;
     this.#description = description;
     this.#category = category;
+    this.#currency = currency;
     this.#amount = amount;
     this.#qty = qty;
   }
@@ -62,6 +74,13 @@ export class ExpenseItemModel {
 
   set qty(value: number) {
     this.#qty = value;
+  }
+
+  get currency(): Currency | undefined {
+    return this.#currency;
+  }
+  set currency(value: Currency | undefined) {
+    this.#currency = value;
   }
 
   get category(): Category {

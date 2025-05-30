@@ -1,6 +1,10 @@
 import { ExpenseModel } from 'domain/models/expense.model';
 import { Database } from '../../db/database';
-import { Category, Expense as ExpenseEntity } from '../../../generated/prisma';
+import {
+  Category,
+  Currency,
+  Expense as ExpenseEntity,
+} from '../../../generated/prisma';
 import { log } from '@libs/logger';
 import { mapExpense } from './helpers/map-expense';
 import { ExpenseItemFactory } from '@domain/factories/expense-item.factory';
@@ -20,6 +24,7 @@ export interface ExpenseItemEntity {
   name: string;
   amount: number;
   category: string;
+  currency?: Currency | null;
   userId?: string | null;
   description?: string | null;
   qty?: number | null;
@@ -122,6 +127,7 @@ export class ExpenseRepository extends Database {
           name: data.name!, // TODO: Fix this
           type: data.type,
           total_amount: 0,
+          currency: data.currency,
           userId: data.userId,
           expenseItem: {
             createMany: {
@@ -136,6 +142,7 @@ export class ExpenseRepository extends Database {
           name: data.name,
           type: data.type,
           total_amount: 0,
+          currency: data.currency,
           userId: data.userId,
           expenseItem: {
             deleteMany: {

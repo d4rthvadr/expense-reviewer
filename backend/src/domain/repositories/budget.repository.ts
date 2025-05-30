@@ -91,6 +91,7 @@ export class BudgetRepository extends Database {
           description: data.description,
           amount: data.amount,
           category: data.category as unknown as Category, // TODO: Fix this
+          currency: data.currency,
           userId: data.userId,
         },
         update: {
@@ -98,6 +99,7 @@ export class BudgetRepository extends Database {
           amount: data.amount,
           userId: data.userId,
           category: data.category as unknown as Category, // TODO: Fix this
+          currency: data.currency,
           description: data.description,
         },
       });
