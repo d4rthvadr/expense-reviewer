@@ -4,6 +4,7 @@ import { UserModel } from '../../models/user.model';
 import { User as UserEntity } from '../../../../generated/prisma';
 import { convertNullToUndefined, convertToFamilyType } from './utils';
 import { Currency } from '@domain/enum/currency.enum';
+import { UserStatus } from '@domain/enum/user-status.enum';
 
 export function mapUser(entity: UserEntity): UserModel;
 export function mapUser(entity: null): null;
@@ -19,6 +20,10 @@ export function mapUser(entity: UserEntity | null): UserModel | null {
     currency: convertToFamilyType(
       convertNullToUndefined(entity.currency),
       Currency
+    ),
+    status: convertToFamilyType(
+      convertNullToUndefined(entity.status),
+      UserStatus
     ),
     email: entity.email,
     createdAt: entity.createdAt,

@@ -1,9 +1,11 @@
 import { Currency } from '@domain/enum/currency.enum';
+import { UserStatus } from '@domain/enum/user-status.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UserDataInput {
   id?: string;
   name?: string;
+  status?: UserStatus;
   email: string;
   currency?: Currency;
   password: string;
@@ -15,6 +17,7 @@ export class UserModel {
   readonly #id: string;
   #name?: string;
   #email: string;
+  #status?: UserStatus;
   #currency?: Currency;
   #password: string;
   #createdAt: Date;
@@ -26,6 +29,7 @@ export class UserModel {
       name,
       email,
       password,
+      status = UserStatus.PENDING,
       currency,
       createdAt = new Date(),
       updatedAt = new Date(),
@@ -33,6 +37,7 @@ export class UserModel {
     this.#id = id;
     this.#name = name;
     this.#email = email;
+    this.#status = status;
     this.#currency = currency;
     this.#password = password;
     this.#createdAt = createdAt;
@@ -125,6 +130,23 @@ export class UserModel {
     this.#password = value;
   }
 
+  /**
+   * Gets the status of the user.
+   *
+   * @returns {string} The current status of the user.
+   */
+  get status(): UserStatus | undefined {
+    return this.#status;
+  }
+
+  /**
+   * Sets the status of the user.
+   *
+   * @param value - The new status to be set for the user.
+   */
+  set status(value: UserStatus) {
+    this.#status = value;
+  }
   /**
    * Gets the creation date of the user.
    *
