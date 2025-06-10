@@ -37,6 +37,7 @@ export function mapExpense(
     name: convertNullToUndefined(entity.name),
     type: entity.type,
     status: convertToFamilyType(entity.status, ExpenseStatus),
+    review: convertNullToUndefined(entity.review),
     currency: convertToFamilyType(
       convertNullToUndefined(entity.currency),
       Currency

@@ -19,6 +19,7 @@ interface ExpenseDataInput {
   type: string;
   userId?: string;
   status: ExpenseStatus;
+  review?: string;
   currency?: Currency;
   items: ExpenseItem[];
   createdAt?: Date;
@@ -30,6 +31,7 @@ export class ExpenseModel {
   #name?: string;
   #type: string;
   #status: ExpenseStatus;
+  #review?: string;
   #items: ExpenseItem[];
   #userId?: string;
   #currency?: Currency;
@@ -44,6 +46,7 @@ export class ExpenseModel {
       items,
       userId,
       status = ExpenseStatus.PENDING,
+      review,
       currency = Currency.USD,
       createdAt = new Date(),
       updatedAt = new Date(),
@@ -52,6 +55,7 @@ export class ExpenseModel {
     this.#name = name;
     this.#type = type;
     this.#items = items;
+    this.#review = review;
     this.#status = status;
     this.#currency = currency;
     this.#userId = userId;
@@ -177,6 +181,25 @@ export class ExpenseModel {
     }
     this.#status = value;
   }
+
+  /**
+   * Gets the review or notes associated with the expense.
+   *
+   * @returns {string | undefined} The review text, or `undefined` if not set.
+   */
+  get review(): string | undefined {
+    return this.#review;
+  }
+
+  /**
+   * Sets the review or notes for the expense.
+   *
+   * @param value - The review text to set, which can be a string or undefined.
+   */
+  set review(value: string | undefined) {
+    this.#review = value;
+  }
+
   /**
    * Gets the creation date of the expense.
    *

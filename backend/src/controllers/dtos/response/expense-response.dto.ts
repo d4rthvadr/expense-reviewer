@@ -7,6 +7,7 @@ export interface ExpenseResponseDto {
   name?: string;
   type: string;
   status: ExpenseStatus;
+  review?: string;
   currency?: Currency;
   items: ExpenseItem[];
   userId?: string;
