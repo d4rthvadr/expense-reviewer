@@ -54,16 +54,16 @@ The motivation behind this project is to:
    ```
 
 5. Set up the database:
-   Run the following commands to initialize the database:
+   Switch into backend directory and run the following commands to initialize the database:
 
    ```bash
    npx prisma migrate dev --name init
    npx prisma generate
    ```
 
-6. Start the server:
+6. Start the server in backend directory
    ```bash
-   npm run start
+   npm run dev
    ```
    The server will be available at `http://localhost:3000`.
 
