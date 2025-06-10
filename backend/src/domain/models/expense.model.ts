@@ -1,5 +1,6 @@
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExpenseItem {
@@ -17,6 +18,7 @@ interface ExpenseDataInput {
   name?: string;
   type: string;
   userId?: string;
+  status: ExpenseStatus;
   currency?: Currency;
   items: ExpenseItem[];
   createdAt?: Date;
@@ -27,6 +29,7 @@ export class ExpenseModel {
   readonly #id: string;
   #name?: string;
   #type: string;
+  #status: ExpenseStatus;
   #items: ExpenseItem[];
   #userId?: string;
   #currency?: Currency;
@@ -40,6 +43,7 @@ export class ExpenseModel {
       type,
       items,
       userId,
+      status = ExpenseStatus.PENDING,
       currency = Currency.USD,
       createdAt = new Date(),
       updatedAt = new Date(),
@@ -48,6 +52,7 @@ export class ExpenseModel {
     this.#name = name;
     this.#type = type;
     this.#items = items;
+    this.#status = status;
     this.#currency = currency;
     this.#userId = userId;
     this.#createdAt = createdAt;
@@ -150,6 +155,27 @@ export class ExpenseModel {
       return;
     }
     this.#currency = value;
+  }
+
+  /**
+   * Gets the status of the expense.
+   *
+   * @returns {ExpenseStatus} The current status of the expense.
+   */
+  get status(): ExpenseStatus {
+    return this.#status;
+  }
+
+  /**
+   * Sets the status of the expense.
+   *
+   * @param value - The status to set for the expense, as an `ExpenseStatus` enum value.
+   */
+  set status(value: ExpenseStatus) {
+    if (!value) {
+      return;
+    }
+    this.#status = value;
   }
   /**
    * Gets the creation date of the expense.

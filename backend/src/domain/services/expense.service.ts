@@ -71,6 +71,7 @@ export class ExpenseService {
 
     expense.name = data.name;
     expense.type = data.type;
+    expense.status = data.status;
     expense.items = data.items;
 
     const updatedExpense: ExpenseModel =
@@ -91,13 +92,23 @@ export class ExpenseService {
   }
 
   #toExpenseDto(data: ExpenseModel): ExpenseResponseDto {
-    const { id, name, type, userId, createdAt, currency, updatedAt, items } =
-      data;
+    const {
+      id,
+      name,
+      type,
+      userId,
+      status,
+      createdAt,
+      currency,
+      updatedAt,
+      items,
+    } = data;
     return {
       id,
       name,
       type,
       userId,
+      status,
       currency,
       createdAt,
       updatedAt,

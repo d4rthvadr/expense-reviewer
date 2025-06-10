@@ -5,6 +5,7 @@ import { convertNullToUndefined, convertToFamilyType } from './utils';
 import { ExpenseEntityFull, ExpenseItemEntity } from '../expense.repository';
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 
 const mapExpenseItem = (item: ExpenseItemEntity) => ({
   id: item.id,
@@ -35,6 +36,7 @@ export function mapExpense(
     id: entity.id,
     name: convertNullToUndefined(entity.name),
     type: entity.type,
+    status: convertToFamilyType(entity.status, ExpenseStatus),
     currency: convertToFamilyType(
       convertNullToUndefined(entity.currency),
       Currency

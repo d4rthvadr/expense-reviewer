@@ -129,6 +129,7 @@ export class ExpenseRepository extends Database {
           total_amount: 0,
           currency: data.currency,
           userId: data.userId,
+          status: data.status,
           expenseItem: {
             createMany: {
               data: data.items.map((item) =>
@@ -144,6 +145,7 @@ export class ExpenseRepository extends Database {
           total_amount: 0,
           currency: data.currency,
           userId: data.userId,
+          status: data.status,
           expenseItem: {
             deleteMany: {
               expenseId: data.id,

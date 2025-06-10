@@ -1,8 +1,10 @@
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 import { ExpenseItem, ExpenseModel } from '@domain/models/expense.model';
 
 interface ExpenseCreateDataDto {
   name?: string;
   type: string;
+  status: ExpenseStatus;
   userId?: string;
   items: ExpenseItem[];
 }
@@ -16,11 +18,12 @@ export class ExpenseFactory {
     data: ExpenseCreateDataDto,
     userId?: string
   ): ExpenseModel {
-    const { name, type, items } = data;
+    const { name, type, status, items } = data;
 
     const user: ExpenseModel = new ExpenseModel({
       name,
       type,
+      status,
       userId,
       items,
     });

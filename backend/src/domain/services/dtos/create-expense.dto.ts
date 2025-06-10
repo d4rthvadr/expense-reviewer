@@ -1,4 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 
 export interface ExpenseItem {
   name: string;
@@ -11,5 +12,6 @@ export interface ExpenseItem {
 export interface CreateExpenseDto {
   name?: string;
   type: string;
+  status: ExpenseStatus;
   items: ExpenseItem[];
 }
