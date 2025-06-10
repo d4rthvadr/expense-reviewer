@@ -15,7 +15,6 @@ export const createExpenseValidators = [
     .notEmpty()
     .withMessage('Type is required'),
   body('status')
-    .optional()
     .isIn(Object.values(ExpenseStatus))
     .withMessage(
       `Status must be one of the following: (${Object.values(ExpenseStatus).join(', ')})`

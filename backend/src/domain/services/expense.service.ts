@@ -8,6 +8,7 @@ import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found
 import { PaginatedResultDto } from '../../controllers/dtos/response/paginated-response.dto';
 import { UpdateExpenseDto } from './dtos/update-expense.dto';
 import { QueryParams } from './interfaces/query-params';
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 
 export class ExpenseService {
   #expenseRepository: ExpenseRepository;
@@ -68,6 +69,11 @@ export class ExpenseService {
     log.info(`Updating expense with data | meta: ${JSON.stringify(data)}`);
 
     const expense: ExpenseModel = await this.findById(expenseId);
+
+    if (expense.status !== ExpenseStatus.PENDING) {
+      log.error(`Expense status is not PENDING: ${expense.status}`);
+      throw new Error('Expense status is not PENDING');
+    }
 
     expense.name = data.name;
     expense.type = data.type;
