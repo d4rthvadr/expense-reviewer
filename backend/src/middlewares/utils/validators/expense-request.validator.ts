@@ -1,5 +1,6 @@
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
+import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 import { body, param } from 'express-validator';
 
 export const createExpenseValidators = [
@@ -13,6 +14,14 @@ export const createExpenseValidators = [
     .withMessage('Type must be a string')
     .notEmpty()
     .withMessage('Type is required'),
+  body('status')
+    .optional()
+    .isIn(Object.values(ExpenseStatus))
+    .withMessage(
+      `Status must be one of the following: (${Object.values(ExpenseStatus).join(', ')})`
+    )
+    .notEmpty()
+    .withMessage('Status is required'),
   body('currency')
     .optional()
     .isIn(Object.values(Currency))
