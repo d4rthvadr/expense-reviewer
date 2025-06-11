@@ -53,9 +53,10 @@ class ExpenseReviewQueueService extends Worker {
 
     try {
       log.info({
-        message: `Processing job in QueueService |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
+        message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
       });
-      // Add your job processing logic here
+
+      // TODO: call LLM to review expense.
     } catch (error) {
       log.error({
         message: `Error processing job ${job.id}:`,
@@ -73,6 +74,7 @@ class ExpenseReviewQueueService extends Worker {
       ...this.defaultJobOptions,
       ...jobOpts,
     };
+    // TODO: create a unique jobId for deduplication
     await this.#queue.add('my-job', data, updatedJobOpts);
   }
 }

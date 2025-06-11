@@ -7,6 +7,8 @@ import {
   ProcessorNames,
 } from './processors';
 import { getRedisInstance } from '@infra/db/ioredis-singleton';
+import { dependencyInjectionContainer } from '@routes/utils/di-container';
+const { expenseService } = dependencyInjectionContainer;
 
 const connection = getRedisInstance();
 
@@ -21,7 +23,7 @@ type CronServiceProcessorMap = {
 };
 
 const cronServiceProcessors: CronServiceProcessorMap = {
-  expenseReviewProcessor: new ExpenseReviewProcessor(),
+  expenseReviewProcessor: new ExpenseReviewProcessor(expenseService),
 };
 
 class CronServiceQueue extends Worker {
