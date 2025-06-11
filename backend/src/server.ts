@@ -1,12 +1,12 @@
-import { db } from './db/database';
 import dotenv from 'dotenv';
 dotenv.config();
 
 import { app } from './app';
 import { Server } from 'http';
 import { log } from './libs/logger';
-import { getRedisInstance } from '@db/ioredis-singleton';
 import { startQueuesAndCrons } from './infra/queues/queues';
+import { getRedisInstance } from '@infra/db/ioredis-singleton';
+import { db } from '@infra/db/database';
 
 getRedisInstance().ping((err) => {
   if (err) {

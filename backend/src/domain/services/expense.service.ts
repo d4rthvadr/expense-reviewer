@@ -83,6 +83,11 @@ export class ExpenseService {
     const updatedExpense: ExpenseModel =
       await this.#expenseRepository.save(expense);
 
+    if (updatedExpense.status === ExpenseStatus.APPROVED) {
+      log.info(`Expense with id ${expenseId} has been approved`);
+      // TODO: push into review queue
+    }
+
     log.info(`Expense updated | meta: ${JSON.stringify(updatedExpense)}`);
     return this.#toExpenseDto(updatedExpense);
   }

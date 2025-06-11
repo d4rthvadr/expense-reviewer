@@ -1,8 +1,8 @@
 import { Budget as BudgetEntity, Category } from '../../../generated/prisma';
 import { BudgetModel } from '@domain/models/budget.model';
-import { Database } from '../../db/database';
 import { log } from '@libs/logger';
 import { mapBudget } from './helpers/map-budget';
+import { Database } from '@infra/db/database';
 
 // TODO: Make this interface generic and shared
 interface ListBudgetDto {

@@ -1,5 +1,3 @@
-import { ExpenseModel } from 'domain/models/expense.model';
-import { Database } from '../../db/database';
 import {
   Category,
   Currency,
@@ -9,6 +7,8 @@ import { log } from '@libs/logger';
 import { mapExpense } from './helpers/map-expense';
 import { ExpenseItemFactory } from '@domain/factories/expense-item.factory';
 import { ExpenseItemModel } from '@domain/models/expense-item.model';
+import { Database } from '@infra/db/database';
+import { ExpenseModel } from '@domain/models/expense.model';
 
 interface ListExpenseDto {
   filters: Record<string, unknown>;
@@ -177,7 +177,7 @@ export class ExpenseRepository extends Database {
     }
   }
 
-  async delete(id: string): Promise<ExpenseModel> {
+  async delete(id: string): Promise<ExpenseModel | null> {
     try {
       const deletedExpense = await this.expense.delete({
         where: {

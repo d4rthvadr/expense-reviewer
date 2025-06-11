@@ -1,6 +1,6 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@libs/logger';
-import { getRedisInstance } from '../../db/ioredis-singleton';
+import { getRedisInstance } from '@infra/db/ioredis-singleton';
 
 const connection = getRedisInstance();
 
