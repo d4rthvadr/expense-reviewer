@@ -154,7 +154,7 @@ export class ExpenseModel {
    *
    * @param value - The currency to set for the expense.
    */
-  set currency(value: Currency) {
+  set currency(value: Currency | undefined) {
     if (!value) {
       return;
     }
