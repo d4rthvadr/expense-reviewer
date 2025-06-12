@@ -7,6 +7,7 @@ export interface ExpenseItem {
   id?: string;
   name: string;
   description?: string;
+  currency?: Currency;
   category: Category;
   amount: number;
   userId?: string;

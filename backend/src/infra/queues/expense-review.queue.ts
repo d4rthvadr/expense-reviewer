@@ -1,13 +1,30 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@libs/logger';
 import { getRedisInstance } from '@infra/db/ioredis-singleton';
+import { agentService, AgentService } from '@domain/services/agent.service';
+import { Currency } from '../../../generated/prisma';
+import { buildPrompt } from '@infra/language-models/prompt-builder';
+import { expenseService } from '@domain/services/expense.service';
 
 const connection = getRedisInstance();
 
 const QUEUE_NAME = 'expense-review-queue';
 
+export interface BudgetPerCategory {
+  category: string;
+  currency?: Currency;
+  budget: number;
+}
+
+export type ExpenseReviewJobData = {
+  expenseId: string;
+  userId: string | undefined;
+  budgetPerCategory?: BudgetPerCategory[];
+};
+
 class ExpenseReviewQueueService extends Worker {
   #queue: Queue;
+  #agentService: AgentService;
 
   defaultJobOptions: JobsOptions = {
     attempts: 3,
@@ -18,7 +35,7 @@ class ExpenseReviewQueueService extends Worker {
     removeOnComplete: true,
     removeOnFail: true,
   };
-  constructor(queue: Queue) {
+  constructor(queue: Queue, agentService: AgentService) {
     super(
       QUEUE_NAME,
       async (job: Job) => {
@@ -28,6 +45,7 @@ class ExpenseReviewQueueService extends Worker {
     );
 
     this.#queue = queue;
+    this.#agentService = agentService;
 
     this.on('completed', (job) => {
       log.info(
@@ -44,19 +62,26 @@ class ExpenseReviewQueueService extends Worker {
     });
   }
 
-  async handleJob(job: Job) {
-    // Implement your job-specific logic here
-
-    log.info(
-      `Processing job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`
-    );
-
+  async handleJob(job: Job<ExpenseReviewJobData>) {
     try {
       log.info({
         message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
       });
 
-      // TODO: call LLM to review expense.
+      const { expenseId, budgetPerCategory = [] } = job.data;
+
+      const expense = await expenseService.findById(expenseId);
+
+      const { items: expenseItems } = expense;
+
+      const promptText = buildPrompt.reviewUserExpense(
+        expenseItems,
+        budgetPerCategory
+      );
+
+      const review = await this.#agentService.extractTableData(promptText);
+
+      await expenseService.updatePendingExpensesReview(expenseId, review);
     } catch (error) {
       log.error({
         message: `Error processing job ${job.id}:`,
@@ -67,7 +92,7 @@ class ExpenseReviewQueueService extends Worker {
     }
   }
 
-  async addJob(data: any, jobOpts?: JobsOptions) {
+  async addJob(data: ExpenseReviewJobData, jobOpts?: JobsOptions) {
     log.info(`Adding job to queue with data: ${JSON.stringify(data)}`);
 
     const updatedJobOpts = {
@@ -87,7 +112,8 @@ const expenseReviewQueue = new Queue(QUEUE_NAME, {
 
 // Create a new instance of QueueService
 const expenseReviewQueueService = new ExpenseReviewQueueService(
-  expenseReviewQueue
+  expenseReviewQueue,
+  agentService
 );
 
 export { expenseReviewQueueService, QUEUE_NAME };

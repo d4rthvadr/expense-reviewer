@@ -15,6 +15,5 @@ export const startQueuesAndCrons = async () => {
         `Error adding job to the expense review cron queue | meta:  ${JSON.stringify(error)}`
       );
     });
-
   // queues
 };

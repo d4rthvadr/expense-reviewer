@@ -9,12 +9,19 @@ import { PaginatedResultDto } from '../../controllers/dtos/response/paginated-re
 import { UpdateExpenseDto } from './dtos/update-expense.dto';
 import { QueryParams } from './interfaces/query-params';
 import { ExpenseStatus } from '@domain/enum/expense-status.enum';
-import { expenseReviewQueueService } from '@infra/queues/expense-review.queue';
+import {
+  ExpenseReviewJobData,
+  expenseReviewQueueService,
+} from '@infra/queues/expense-review.queue';
 import { addDays, startOfMonth } from 'date-fns';
+import { budgetService } from '@domain/services/budget.service';
+import { buildFindQuery } from './utils';
+
+type ExpenseReviewPayload = ExpenseReviewJobData;
 
 const DAYS_PASSED_TO_REVIEW = 3; // Number of days after which expenses should be reviewed
 
-export class ExpenseService {
+class ExpenseService {
   #expenseRepository: ExpenseRepository;
   constructor(expenseRepository: ExpenseRepository) {
     this.#expenseRepository = expenseRepository;
@@ -122,7 +129,8 @@ export class ExpenseService {
 
     if (expense.status !== ExpenseStatus.PENDING) {
       log.error(`Expense status is not PENDING: ${expense.status}`);
-      throw new Error('Expense status is not PENDING');
+      // TODO: Handle this case appropriately, e.g., throw an error or return a specific response
+      // throw new Error('Expense status is not PENDING');
     }
 
     expense.name = data.name;
@@ -135,11 +143,11 @@ export class ExpenseService {
     const updatedExpense: ExpenseModel =
       await this.#expenseRepository.save(expense);
 
-    await this.#processExpenseApproval(
+    await this.#processExpenseApproval({
       expenseId,
-      updatedExpense.status,
-      expense.userId
-    );
+      status: updatedExpense.status,
+      userId: expense.userId,
+    });
 
     log.info(`Expense updated | meta: ${JSON.stringify(updatedExpense)}`);
     return this.#toExpenseDto(updatedExpense);
@@ -155,37 +163,27 @@ export class ExpenseService {
    * @returns A promise that resolves when the processing is complete.
    */
   async #processExpenseApproval(
-    expenseId: string,
-    status: ExpenseStatus,
-    userId: string | undefined
+    data: ExpenseReviewPayload & { status: ExpenseStatus }
   ) {
+    const { expenseId, status } = data;
     if (status !== ExpenseStatus.APPROVED) {
       log.info(
         `Expense with id ${expenseId} not approved with status: ${status}`
       );
       return;
     }
-    await this.pushPendingExpenseToReviewQueue({ expenseId, userId });
-  }
 
-  #buildReviewExpenseFindQuery({
-    filters,
-    limit = 10,
-    offset = 0,
-  }: {
-    filters: QueryParams['filters'];
-    limit?: number;
-    offset?: number;
-  }): QueryParams {
-    return {
-      filters,
-      sort: {
-        sortBy: 'createdAt',
-        sortDir: 'desc',
-      },
-      limit,
-      offset,
-    };
+    const budgets = (
+      (await budgetService.getUserBudgets(data.userId)) || []
+    ).map((budget) => ({
+      category: budget.category,
+      budget: budget.amount,
+      currency: budget.currency,
+    }));
+    await this.pushPendingExpenseToReviewQueue({
+      ...data,
+      budgetPerCategory: budgets,
+    });
   }
 
   async fetchApprovedReviewedExpenses() {
@@ -201,7 +199,7 @@ export class ExpenseService {
     );
 
     const threshHoldDate = addDays(startOfNextMonth, DAYS_PASSED_TO_REVIEW);
-    const findQueryData = this.#buildReviewExpenseFindQuery({
+    const findQueryData = buildFindQuery({
       filters: {
         status: ExpenseStatus.PENDING,
         review: null, // Only fetch expenses that are not reviewed
@@ -229,13 +227,12 @@ export class ExpenseService {
   async pushPendingExpenseToReviewQueue({
     expenseId,
     userId,
-  }: {
-    expenseId: string;
-    userId: string | undefined;
-  }) {
-    const jobData = {
+    budgetPerCategory,
+  }: ExpenseReviewPayload) {
+    const jobData: ExpenseReviewJobData = {
       expenseId,
       userId,
+      budgetPerCategory,
     };
 
     log.info(
@@ -260,6 +257,29 @@ export class ExpenseService {
       log.error(`Error processing pending expenses review: ${error.message}`);
       throw error;
     }
+  }
+
+  async updatePendingExpensesReview(
+    expenseId: string,
+    review: string
+  ): Promise<void> {
+    log.info(`Updating pending expense review for id: ${expenseId}`);
+
+    const expense: ExpenseModel = await this.findById(expenseId);
+
+    if (expense.status !== ExpenseStatus.PENDING) {
+      log.warn(`Expense status is not PENDING: ${expense.status}`);
+      return;
+    }
+
+    expense.review = review;
+
+    const updatedExpense: ExpenseModel =
+      await this.#expenseRepository.save(expense);
+
+    log.info(
+      `Pending expense review updated | meta: ${JSON.stringify(updatedExpense)}`
+    );
   }
 
   /**
@@ -315,3 +335,6 @@ export class ExpenseService {
     };
   }
 }
+
+const expenseService = new ExpenseService(new ExpenseRepository());
+export { expenseService, ExpenseService };

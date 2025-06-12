@@ -7,6 +7,7 @@ import { log } from '@libs/logger';
 import { CreateBudgetDto } from './dtos/create-budget.dto';
 import { QueryParams } from './interfaces/query-params';
 import { PaginatedResultDto } from '@controllers/dtos/response/paginated-response.dto';
+import { buildFindQuery } from './utils';
 
 export class BudgetService {
   #budgetRepository: BudgetRepository;
@@ -72,6 +73,18 @@ export class BudgetService {
     return this.#toBudgetDto(updatedBudget);
   }
 
+  async getUserBudgets(userId?: string) {
+    log.info(`Fetching user budgets for userId: ${userId}`);
+
+    const budgetFindQuery = buildFindQuery({
+      filters: {
+        // userId, TODO: Uncomment when userId is available in budget model
+      },
+    });
+
+    return (await this.find(budgetFindQuery)).data;
+  }
+
   async delete(budgetId: string): Promise<void> {
     log.info(`Deleting budget with id: ${budgetId}`);
 
@@ -114,3 +127,5 @@ export class BudgetService {
     };
   }
 }
+
+export const budgetService = new BudgetService(new BudgetRepository());

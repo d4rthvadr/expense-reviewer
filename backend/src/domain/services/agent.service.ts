@@ -14,19 +14,19 @@ const parseResponse = (response: string): unknown => {
       code: '',
     });
   }
+
   return parsedResponse;
 };
 
 export class AgentService {
-  #agentWrapper: AgentWrapper;
+  #agentWrapper?: AgentWrapper;
 
-  constructor(agentWrapper: AgentWrapper) {
+  constructor(agentWrapper?: AgentWrapper) {
     this.#agentWrapper = agentWrapper;
   }
 
-  async extractTableData(text: string): Promise<unknown> {
-    const prompt: string = buildPrompt.extractTextFromInvoice(text);
-    log.info(`Extracting table data with prompt: ${prompt}`);
+  async extractTableData(prompt: string): Promise<string> {
+    log.info(`Executing prompt: ${prompt}`);
 
     const response = await ollama.chat({
       model: 'llama3',
@@ -36,17 +36,15 @@ export class AgentService {
       ],
     });
 
-    const parsedResponse = parseResponse(response.message.content);
-
-    if (typeof parsedResponse !== 'string') {
-      throw new Error('Response is not a string');
-    }
-
-    return parseResponse;
+    return response.message.content;
   }
 
   async extractTableData2(text: string): Promise<unknown> {
     const prompt: string = buildPrompt.extractTextFromInvoice(text);
+
+    if (!this.#agentWrapper) {
+      throw new Error('AgentWrapper is not initialized');
+    }
 
     const completion = await this.#agentWrapper.create([
       { role: 'user', content: prompt },
@@ -56,3 +54,5 @@ export class AgentService {
     return completion;
   }
 }
+
+export const agentService = new AgentService();

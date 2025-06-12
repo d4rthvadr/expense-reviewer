@@ -59,10 +59,9 @@ connectToDb()
     process.exit(1);
   });
 
-startQueuesAndCrons();
-
 server = app.listen(PORT, () => {
   log.info(`Server is running on http://localhost:${PORT}`);
+  startQueuesAndCrons();
 });
 
 process.on('SIGINT', shutdown);
