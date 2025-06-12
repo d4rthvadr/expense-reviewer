@@ -5,7 +5,7 @@ import { app } from './app';
 import { Server } from 'http';
 import { log } from './libs/logger';
 import { startQueuesAndCrons } from './infra/queues/queues';
-import { getRedisInstance } from '@infra/db/ioredis-singleton';
+import { getRedisInstance } from '@infra/db/cache';
 import { db } from '@infra/db/database';
 
 getRedisInstance().ping((err) => {

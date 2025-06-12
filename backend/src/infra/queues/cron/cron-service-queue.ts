@@ -6,9 +6,8 @@ import {
   NullDefaultProcessor,
   ProcessorNames,
 } from './processors';
-import { getRedisInstance } from '@infra/db/ioredis-singleton';
-import { dependencyInjectionContainer } from '@routes/utils/di-container';
-const { expenseService } = dependencyInjectionContainer;
+import { getRedisInstance } from '@infra/db/cache';
+import { expenseService } from '@domain/services/expense.service';
 
 const connection = getRedisInstance();
 

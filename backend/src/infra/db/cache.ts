@@ -1,4 +1,3 @@
-// ioredis-singleton.ts
 import IORedis from 'ioredis';
 
 let redisInstance: IORedis | null = null;
