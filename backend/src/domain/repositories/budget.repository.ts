@@ -136,3 +136,5 @@ export class BudgetRepository extends Database {
     }
   }
 }
+
+export const budgetRepository = new BudgetRepository();

@@ -2,7 +2,10 @@ import { BudgetResponseDto } from '@controllers/dtos/response/budget-response.dt
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { BudgetFactory } from '@domain/factories/budget.factory';
 import { BudgetModel } from '@domain/models/budget.model';
-import { BudgetRepository } from '@domain/repositories/budget.repository';
+import {
+  budgetRepository,
+  BudgetRepository,
+} from '@domain/repositories/budget.repository';
 import { log } from '@libs/logger';
 import { CreateBudgetDto } from './dtos/create-budget.dto';
 import { QueryParams } from './interfaces/query-params';
@@ -128,4 +131,4 @@ export class BudgetService {
   }
 }
 
-export const budgetService = new BudgetService(new BudgetRepository());
+export const budgetService = new BudgetService(budgetRepository);

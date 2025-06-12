@@ -1,5 +1,5 @@
 import { log } from '../libs/logger';
-import { AgentService } from '../domain/services/agent.service';
+import { agentService, AgentService } from '../domain/services/agent.service';
 import { Request, Response } from 'express';
 
 export class AgentController {
@@ -27,3 +27,5 @@ export class AgentController {
     }
   };
 }
+
+export const agentController = new AgentController(agentService);

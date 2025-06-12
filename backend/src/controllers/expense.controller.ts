@@ -1,6 +1,9 @@
 import { Response, Request } from 'express';
 import { RequestBodyType } from '../types/request-body.type';
-import { ExpenseService } from '@domain/services/expense.service';
+import {
+  expenseService,
+  ExpenseService,
+} from '@domain/services/expense.service';
 import { CreateExpenseRequestDto } from './dtos/request/create-expense-request.dto';
 import { log } from '@libs/logger';
 import { ExpenseResponseDto } from './dtos/response/expense-response.dto';
@@ -81,3 +84,5 @@ export class ExpenseController {
     res.status(204).send();
   };
 }
+
+export const expenseController = new ExpenseController(expenseService);

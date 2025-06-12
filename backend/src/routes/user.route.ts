@@ -1,12 +1,10 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
-import { dependencyInjectionContainer } from './utils/di-container';
 import { validateRequest } from '@middlewares/utils/validators';
 import { createUserRequestValidator } from '@middlewares/utils/validators/user-request.validator';
+import { userController } from '@controllers/user.controller';
 
 const route = Express.Router();
-
-const { userController } = dependencyInjectionContainer;
 
 /**
  * @swagger

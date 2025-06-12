@@ -1,16 +1,14 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
-import { dependencyInjectionContainer } from './utils/di-container';
 import {
   paginationQueryParamsValidators,
   validateRequest,
   updateExpenseValidators,
   createExpenseValidators,
 } from '@middlewares/utils/validators/';
+import { expenseController } from '@controllers/expense.controller';
 
 const route = Express.Router();
-
-const { expenseController } = dependencyInjectionContainer;
 
 /**
  * @swagger

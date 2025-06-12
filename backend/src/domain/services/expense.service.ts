@@ -204,7 +204,7 @@ class ExpenseService {
         status: ExpenseStatus.PENDING,
         review: null, // Only fetch expenses that are not reviewed
         createdAt: {
-          lte: threshHoldDate,
+          gte: threshHoldDate,
         },
       },
     });
@@ -246,6 +246,11 @@ class ExpenseService {
       log.info(`Processing pending expenses review`);
       const expenses: ExpenseModel[] =
         await this.fetchApprovedReviewedExpenses();
+
+      if (expenses.length === 0) {
+        log.info(`No pending expenses found for review`);
+        return;
+      }
 
       for (const expense of expenses) {
         await this.pushPendingExpenseToReviewQueue({

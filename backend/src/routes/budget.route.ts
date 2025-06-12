@@ -1,17 +1,14 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
-import { dependencyInjectionContainer } from './utils/di-container';
-
 import { validateRequest } from '../middlewares/utils/validators/validate-request';
 import {
   createBudgetValidators,
   paginationQueryParamsValidators,
   updateBudgetValidators,
 } from '@middlewares/utils/validators';
+import { budgetController } from '@controllers/budget.controller';
 
 const route = Express.Router();
-
-const { budgetController } = dependencyInjectionContainer;
 
 // /api/budgets
 route.post(

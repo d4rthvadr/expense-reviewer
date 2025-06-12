@@ -39,17 +39,9 @@ const reviewUserExpense = (
   items: ExpenseItem[],
   budgets: BudgetPerCategory[]
 ) => {
-  console.log('[peek] 1.1 buildPrompt.reviewUserExpense', {
-    items,
-    budgets,
-  });
   const itemsText = getItemInTextFormat(items);
   const budgetText = getBudgetInTextFormat(budgets);
 
-  console.log('[peek] 1.2 buildPrompt.reviewUserExpense', {
-    itemsText,
-    budgetText,
-  });
   const template = `You are an intelligent financial assistant helping a user review their expenses.
 Here is the user's **monthly budget by category**:
 

@@ -50,7 +50,6 @@ export class AgentService {
       { role: 'user', content: prompt },
     ]);
 
-    console.log('peek: ', completion);
     return completion;
   }
 }

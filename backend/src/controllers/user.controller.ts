@@ -1,5 +1,5 @@
 import { log } from '../libs/logger';
-import { UserService } from '../domain/services/user.service';
+import { userService, UserService } from '../domain/services/user.service';
 import { Request, Response } from 'express';
 import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';
 import { RequestBodyType } from '../types/request-body.type';
@@ -30,3 +30,5 @@ export class UserController {
     res.status(200).json(user);
   };
 }
+
+export const userController = new UserController(userService);

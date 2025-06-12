@@ -62,3 +62,6 @@ export class UserRepository extends Database {
     }
   }
 }
+
+const userRepository = new UserRepository();
+export { userRepository };

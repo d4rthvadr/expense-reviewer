@@ -1,7 +1,7 @@
 import { log } from '../libs/logger';
 import { Request, Response } from 'express';
 import { RequestBodyType } from '../types/request-body.type';
-import { BudgetService } from '@domain/services/budget.service';
+import { budgetService, BudgetService } from '@domain/services/budget.service';
 import { CreateBudgetRequestDto } from './dtos/request/create-budget-request.dto';
 import { BudgetResponseDto } from './dtos/response/budget-response.dto';
 import { UpdateBudgetRequestDto } from './dtos/request/update-budget-request.dto';
@@ -81,3 +81,5 @@ export class BudgetController {
     res.status(204).send();
   };
 }
+
+export const budgetController = new BudgetController(budgetService);

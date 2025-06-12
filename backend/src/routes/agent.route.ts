@@ -1,13 +1,10 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
-import { dependencyInjectionContainer } from './utils/di-container';
 import { body } from 'express-validator';
 import { validateRequest } from '@middlewares/utils/validators';
+import { agentController } from '@controllers/agent.controller';
 
 const route = Express.Router();
-
-const { agentController } = dependencyInjectionContainer;
-
 // /api/agents/process-text
 route.post(
   '/process-text',

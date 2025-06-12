@@ -1,6 +1,6 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@libs/logger';
-import { getRedisInstance } from '@infra/db/ioredis-singleton';
+import { getRedisInstance } from '@infra/db/cache';
 import { agentService, AgentService } from '@domain/services/agent.service';
 import { Currency } from '../../../generated/prisma';
 import { buildPrompt } from '@infra/language-models/prompt-builder';

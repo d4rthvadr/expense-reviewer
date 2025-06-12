@@ -1,4 +1,7 @@
-import { UserRepository } from '@domain/repositories/user.repository';
+import {
+  userRepository,
+  UserRepository,
+} from '@domain/repositories/user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserModel } from '@domain/models/user.model';
 import { UserFactory } from '@domain/factories/user.factory';
@@ -50,3 +53,5 @@ export class UserService {
     };
   }
 }
+
+export const userService = new UserService(userRepository);
