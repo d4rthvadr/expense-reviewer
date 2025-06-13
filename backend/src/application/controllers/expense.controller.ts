@@ -5,7 +5,7 @@ import {
   ExpenseService,
 } from '@domain/services/expense.service';
 import { CreateExpenseRequestDto } from './dtos/request/create-expense-request.dto';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { ExpenseResponseDto } from './dtos/response/expense-response.dto';
 import { PaginatedInputDto } from './dtos/request/paginated-input-request.dto';
 import { UpdateExpenseRequestDto } from './dtos/request/update-expense-request.dto';

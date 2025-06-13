@@ -3,7 +3,7 @@ import {
   Currency,
   Expense as ExpenseEntity,
 } from '../../../generated/prisma';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { mapExpense } from './helpers/map-expense';
 import { ExpenseItemFactory } from '@domain/factories/expense-item.factory';
 import { ExpenseItemModel } from '@domain/models/expense-item.model';

@@ -1,4 +1,4 @@
-import { log } from '../../libs/logger';
+import { log } from '@infra/logger';
 import { userService, UserService } from '../../domain/services/user.service';
 import { Request, Response } from 'express';
 import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';

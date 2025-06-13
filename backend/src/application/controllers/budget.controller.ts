@@ -1,4 +1,4 @@
-import { log } from '../../libs/logger';
+import { log } from '@infra/logger';
 import { Request, Response } from 'express';
 import { RequestBodyType } from '../../types/request-body.type';
 import { budgetService, BudgetService } from '@domain/services/budget.service';

@@ -1,5 +1,5 @@
 import { ExpenseRepository } from '@domain/repositories/expense.repository';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { CreateExpenseDto } from './dtos/create-expense.dto';
 import { ExpenseFactory } from '@domain/factories/expense.factory';
 import { ExpenseResponseDto } from '../../application/controllers/dtos/response/expense-response.dto';

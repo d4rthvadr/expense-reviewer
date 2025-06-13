@@ -1,5 +1,5 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { getRedisInstance } from '@infra/db/cache';
 import { agentService, AgentService } from '@domain/services/agent.service';
 import { Currency } from '../../../generated/prisma';

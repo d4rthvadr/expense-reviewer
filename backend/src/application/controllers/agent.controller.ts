@@ -1,4 +1,4 @@
-import { log } from '../../libs/logger';
+import { log } from '@infra/logger';
 import {
   agentService,
   AgentService,

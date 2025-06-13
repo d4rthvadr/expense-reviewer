@@ -6,7 +6,7 @@ import {
   budgetRepository,
   BudgetRepository,
 } from '@domain/repositories/budget.repository';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { CreateBudgetDto } from './dtos/create-budget.dto';
 import { QueryParams } from './interfaces/query-params';
 import { PaginatedResultDto } from '@application/controllers/dtos/response/paginated-response.dto';

@@ -1,5 +1,5 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import {
   CronServiceProcessor,
   ExpenseReviewProcessor,

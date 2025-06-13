@@ -1,4 +1,4 @@
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { cronServiceQueue, CRON_NAME } from './cron/cron-service-queue';
 import './expense-review.queue';
 import { ProcessorNames } from './cron/processors';

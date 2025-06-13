@@ -1,6 +1,6 @@
 import { Budget as BudgetEntity, Category } from '../../../generated/prisma';
 import { BudgetModel } from '@domain/models/budget.model';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { mapBudget } from './helpers/map-budget';
 import { Database } from '@infra/db/database';
 

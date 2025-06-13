@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { ApplicationException } from '@domain/exceptions/application.exception';
 import { NextFunction, Response, Request } from 'express';
 

@@ -1,4 +1,4 @@
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { CronServiceProcessor } from './processor.interface';
 import { Job } from 'bullmq';
 import { ExpenseService } from '@domain/services/expense.service';

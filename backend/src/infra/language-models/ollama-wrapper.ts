@@ -1,5 +1,5 @@
 import { AgentWrapper } from '@domain/interfaces/agent-wrapper.interface';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import ollama, { Message } from 'ollama';
 
 const parseResponse = (response: string): unknown => {

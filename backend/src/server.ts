@@ -3,8 +3,8 @@ dotenv.config();
 
 import { app } from './app';
 import { Server } from 'http';
-import { log } from './libs/logger';
-import { startQueuesAndCrons } from './infra/queues/queues';
+import { log } from '@infra/logger';
+import { startQueuesAndCrons } from '@infra/queues/queues';
 import { getRedisInstance } from '@infra/db/cache';
 import { db } from '@infra/db/database';
 

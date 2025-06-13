@@ -1,7 +1,7 @@
 import { mapUser } from './helpers/map-user';
 import { User as UserEntity } from '../../../generated/prisma';
 import { UserModel } from '@domain/models/user.model';
-import { log } from '@libs/logger';
+import { log } from '@infra/logger';
 import { Database } from '@infra/db/database';
 
 export class UserRepository extends Database {
