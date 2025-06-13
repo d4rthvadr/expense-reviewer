@@ -11,11 +11,9 @@
     "paths": {
       "@domain/*": ["domain/*"],
       "@db/*": ["db/*"],
+      "@application/*": ["application/*"],
       "@infra/*": ["infra/*"],
-      "@controllers/*": ["controllers/*"],
-      "@libs/*": ["libs/*"],
-      "@middlewares/*": ["middlewares/*"],
-      "@routes/*": ["routes/*"]
+      "@libs/*": ["libs/*"]
     },
     "declaration": true,
     "typeRoots": ["./node_modules/@types"]

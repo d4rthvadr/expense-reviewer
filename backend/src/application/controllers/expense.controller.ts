@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { RequestBodyType } from '../types/request-body.type';
+import { RequestBodyType } from '../../types/request-body.type';
 import {
   expenseService,
   ExpenseService,

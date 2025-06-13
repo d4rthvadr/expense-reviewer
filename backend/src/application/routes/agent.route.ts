@@ -1,8 +1,8 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
 import { body } from 'express-validator';
-import { validateRequest } from '@middlewares/utils/validators';
-import { agentController } from '@controllers/agent.controller';
+import { agentController } from '@application/controllers/agent.controller';
+import { validateRequest } from '@application/middlewares/utils/validators';
 
 const route = Express.Router();
 // /api/agents/process-text

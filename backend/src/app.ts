@@ -1,8 +1,13 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { agentRoutes, budgetRoutes, expenseRoutes, userRoutes } from './routes';
-import { requestErrorHandler } from './routes/utils/request-error-handler';
+import {
+  agentRoutes,
+  budgetRoutes,
+  expenseRoutes,
+  userRoutes,
+} from './application/routes';
+import { requestErrorHandler } from './application/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';

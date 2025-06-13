@@ -1,4 +1,4 @@
-import { BudgetResponseDto } from '@controllers/dtos/response/budget-response.dto';
+import { BudgetResponseDto } from '@application/controllers/dtos/response/budget-response.dto';
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { BudgetFactory } from '@domain/factories/budget.factory';
 import { BudgetModel } from '@domain/models/budget.model';
@@ -9,7 +9,7 @@ import {
 import { log } from '@libs/logger';
 import { CreateBudgetDto } from './dtos/create-budget.dto';
 import { QueryParams } from './interfaces/query-params';
-import { PaginatedResultDto } from '@controllers/dtos/response/paginated-response.dto';
+import { PaginatedResultDto } from '@application/controllers/dtos/response/paginated-response.dto';
 import { buildFindQuery } from './utils';
 
 export class BudgetService {

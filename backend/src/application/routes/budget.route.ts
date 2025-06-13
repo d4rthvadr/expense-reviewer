@@ -5,8 +5,8 @@ import {
   createBudgetValidators,
   paginationQueryParamsValidators,
   updateBudgetValidators,
-} from '@middlewares/utils/validators';
-import { budgetController } from '@controllers/budget.controller';
+} from '@application/middlewares/utils/validators';
+import { budgetController } from '@application/controllers/budget.controller';
 
 const route = Express.Router();
 

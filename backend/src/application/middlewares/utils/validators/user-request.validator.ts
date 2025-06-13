@@ -1,5 +1,5 @@
+import { Currency } from '@domain/enum/currency.enum';
 import { body } from 'express-validator';
-import { Currency } from '../../../../generated/prisma';
 
 export const createUserRequestValidator = [
   body('name')

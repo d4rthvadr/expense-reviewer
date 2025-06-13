@@ -1,8 +1,8 @@
 import Express from 'express';
 import { asyncHandler } from './utils/async-handler';
-import { validateRequest } from '@middlewares/utils/validators';
-import { createUserRequestValidator } from '@middlewares/utils/validators/user-request.validator';
-import { userController } from '@controllers/user.controller';
+import { validateRequest } from '@application/middlewares/utils/validators';
+import { createUserRequestValidator } from '@application/middlewares/utils/validators/user-request.validator';
+import { userController } from '@application/controllers/user.controller';
 
 const route = Express.Router();
 
