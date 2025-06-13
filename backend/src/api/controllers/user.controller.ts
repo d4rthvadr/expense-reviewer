@@ -2,7 +2,7 @@ import { log } from '@infra/logger';
 import { userService, UserService } from '../../domain/services/user.service';
 import { Request, Response } from 'express';
 import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';
-import { RequestBodyType } from '../../types/request-body.type';
+import { RequestBodyType } from '../types/request-body.type';
 
 export class UserController {
   #userService: UserService;

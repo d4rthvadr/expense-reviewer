@@ -5,8 +5,8 @@ import {
   validateRequest,
   updateExpenseValidators,
   createExpenseValidators,
-} from '@application/middlewares/utils/validators/';
-import { expenseController } from '@application/controllers/expense.controller';
+} from '@api/middlewares/utils/validators/';
+import { expenseController } from '@api/controllers/expense.controller';
 
 const route = Express.Router();
 

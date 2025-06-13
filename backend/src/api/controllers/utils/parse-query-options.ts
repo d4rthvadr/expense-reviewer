@@ -1,4 +1,4 @@
-import { PaginatedInputDto } from '@application/controllers/dtos/request/paginated-input-request.dto';
+import { PaginatedInputDto } from '@api/controllers/dtos/request/paginated-input-request.dto';
 import { Request } from 'express';
 
 export type RequestQueryType<T> = Request<unknown, unknown, unknown, T>;

@@ -6,7 +6,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UserModel } from '@domain/models/user.model';
 import { UserFactory } from '@domain/factories/user.factory';
 import { log } from '@infra/logger';
-import { UserResponseDto } from '../../application/controllers/dtos/response/user-response.dto';
+import { UserResponseDto } from '../../api/controllers/dtos/response/user-response.dto';
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 
 export class UserService {
