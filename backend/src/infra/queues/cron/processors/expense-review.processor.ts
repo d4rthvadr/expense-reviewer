@@ -13,8 +13,6 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
       message: `Processing expense review job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`,
     });
 
-    log.info(`Processing expense review job with ID: ${job.id}`);
-
     await this.#expenseService.processPendingExpensesReview();
   }
 }

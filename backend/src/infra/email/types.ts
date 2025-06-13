@@ -2,14 +2,14 @@
 enum TemplateNames {
   BASE = 'base',
   WELCOME = 'welcome',
-  EXPENSE_REVIEW = 'expense_review',
+  EXPENSE_REVIEWED = 'expense_reviewed',
 }
 
 type TemplatePayload = {
   [TemplateNames.WELCOME]: {
     name: string;
   };
-  [TemplateNames.EXPENSE_REVIEW]: {
+  [TemplateNames.EXPENSE_REVIEWED]: {
     name: string;
     month: string;
     reviewComment: string;

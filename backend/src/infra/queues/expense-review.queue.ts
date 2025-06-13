@@ -49,13 +49,13 @@ class ExpenseReviewQueueService extends Worker {
 
     this.on('completed', (job) => {
       log.info(
-        `Job ${job.id} has been successfully processed by ${this.constructor.name}!`
+        `Job ${job.name}:${job.id} has been successfully processed by ${this.constructor.name}.`
       );
     });
 
     this.on('failed', (job, err) => {
       log.error({
-        message: `Job ${job?.id} failed in QueueService with error:`,
+        message: `Job ${job?.name}:${job?.id} failed in ${this.constructor.name} with error.`,
         error: err,
         code: '',
       });
@@ -84,7 +84,7 @@ class ExpenseReviewQueueService extends Worker {
       await expenseService.updatePendingExpensesReview(expenseId, review);
     } catch (error) {
       log.error({
-        message: `Error processing job ${job.id}:`,
+        message: `Error processing job ${job.name}:${job.id}`,
         error,
         code: '',
       });
@@ -92,15 +92,11 @@ class ExpenseReviewQueueService extends Worker {
     }
   }
 
-  async addJob(data: ExpenseReviewJobData, jobOpts?: JobsOptions) {
+  async addJob(data: ExpenseReviewJobData) {
     log.info(`Adding job to queue with data: ${JSON.stringify(data)}`);
 
-    const updatedJobOpts = {
-      ...this.defaultJobOptions,
-      ...jobOpts,
-    };
-    // TODO: create a unique jobId for deduplication
-    await this.#queue.add('my-job', data, updatedJobOpts);
+    const jobName = `expense-review-${data.expenseId}-${data.userId}`;
+    await this.#queue.add(jobName, data, this.defaultJobOptions);
   }
 }
 

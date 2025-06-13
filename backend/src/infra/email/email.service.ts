@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { mailtrapConfig } from '@config/email.config';
 import { TemplateService } from './template.service';
-import { TemplateNames, TemplateWithPayload } from './template.types';
+import { TemplateNames, TemplateWithPayload } from './types';
 
 export class EmailService {
   #transporter: Transporter;

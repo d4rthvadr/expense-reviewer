@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
 import { mailtrapConfig } from '@config/email.config';
-import { TemplateNames, TemplateWithPayload } from './template.types';
+import { TemplateNames, TemplateWithPayload } from './types';
 
 export class TemplateService<T extends TemplateNames> {
   #templatesDir: string;
@@ -14,12 +14,12 @@ export class TemplateService<T extends TemplateNames> {
   #resolveTemplateDirectory(templatesDir: string): string {
     const resolvedPath = this.#getTemplateResolvedPath(templatesDir);
 
-    this.validateTemplateDirectory(resolvedPath);
+    this.#validateTemplateDirectory(resolvedPath);
 
     return resolvedPath;
   }
 
-  private validateTemplateDirectory(resolvedPath: string) {
+  #validateTemplateDirectory(resolvedPath: string) {
     if (!mailtrapConfig.templateDir?.trim()) {
       throw new Error('Template directory is not configured in mailtrapConfig');
     }
@@ -33,7 +33,7 @@ export class TemplateService<T extends TemplateNames> {
     return path.join(__dirname, templateDir);
   }
 
-  loadTemplate(templateName: T) {
+  #loadTemplate(templateName: T) {
     const baseTemplatePath = path.join(
       this.#templatesDir,
       `${templateName}.hbs`
@@ -44,13 +44,13 @@ export class TemplateService<T extends TemplateNames> {
 
   renderTemplate(templateName: T, data: TemplateWithPayload<T>): string {
     // load the base template and the specific child template
-    const layoutTemplate = this.loadTemplate(TemplateNames.BASE as T);
-    const childTemplate = this.loadTemplate(templateName);
+    const baseTemplate = this.#loadTemplate(TemplateNames.BASE as T);
+    const childTemplate = this.#loadTemplate(templateName);
 
     // Render the child template with data
     const childHtmlContent = childTemplate(data);
 
     // Insert the rendered content into the base template
-    return layoutTemplate({ ...data, content: childHtmlContent });
+    return baseTemplate({ ...data, content: childHtmlContent });
   }
 }
