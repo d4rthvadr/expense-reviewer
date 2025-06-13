@@ -1,6 +1,6 @@
 import { Category } from '@domain/enum/category.enum';
+import { Currency } from '@domain/enum/currency.enum';
 import { body, param } from 'express-validator';
-import { Currency } from '../../../../generated/prisma';
 
 export const createBudgetValidators = [
   body('name')
