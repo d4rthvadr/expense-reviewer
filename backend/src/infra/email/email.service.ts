@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { mailtrapConfig } from '@config/email.config';
 import { TemplateService } from './template.service';
-import { TemplateNames, TemplateWithPayload } from './types';
+import { TemplateNames, TemplateWithPayloadArgs } from './types';
 
 export class EmailService {
   #transporter: Transporter;
@@ -13,7 +13,7 @@ export class EmailService {
       port: 2525,
       auth: {
         user: mailtrapConfig.apiKey,
-        pass: mailtrapConfig.pass || '',
+        pass: mailtrapConfig.pass,
       },
     });
 
@@ -24,7 +24,7 @@ export class EmailService {
     to: string;
     subject: string;
     templateName: T;
-    templateArgs: TemplateWithPayload<T>;
+    templateArgs: TemplateWithPayloadArgs<T>;
   }): Promise<void> {
     const { to, subject, templateName, templateArgs } = emailOpts;
     const htmlContent = this.#templateService.renderTemplate(

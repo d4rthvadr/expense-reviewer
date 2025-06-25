@@ -1,4 +1,3 @@
-// config/mailtrap.config.ts
 export const mailtrapConfig = {
   apiKey: process.env.MAILTRAP_API_KEY || '',
   domain: process.env.MAILTRAP_DOMAIN || '',
