@@ -5,7 +5,7 @@ enum TemplateNames {
   EXPENSE_REVIEWED = 'expense_reviewed',
 }
 
-type TemplatePayload = {
+type TemplatePayloadArgs = {
   [TemplateNames.WELCOME]: {
     name: string;
   };
@@ -22,6 +22,7 @@ type TemplatePayload = {
   };
 };
 
-type TemplateWithPayload<T extends keyof TemplatePayload> = TemplatePayload[T];
+type TemplateWithPayloadArgs<T extends keyof TemplatePayloadArgs> =
+  TemplatePayloadArgs[T];
 
-export { TemplatePayload, TemplateNames, TemplateWithPayload };
+export { TemplatePayloadArgs, TemplateNames, TemplateWithPayloadArgs };

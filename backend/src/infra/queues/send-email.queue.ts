@@ -1,7 +1,7 @@
 import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@infra/logger';
 import { getRedisInstance } from '@infra/db/cache';
-import { TemplateNames, TemplateWithPayload } from '@infra/email/types';
+import { TemplateNames, TemplateWithPayloadArgs } from '@infra/email/types';
 import { emailService } from '@infra/email/email.service';
 
 const connection = getRedisInstance();
@@ -11,7 +11,7 @@ const QUEUE_NAME = 'send-email-queue';
 export type SendEmailJobData = {
   templateId: TemplateNames;
   userEmail: string;
-  data: TemplateWithPayload<TemplateNames>;
+  data: TemplateWithPayloadArgs<TemplateNames>;
 };
 
 class SendEmailQueueService extends Worker {

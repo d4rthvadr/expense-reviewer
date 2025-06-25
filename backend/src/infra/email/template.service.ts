@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
 import { mailtrapConfig } from '@config/email.config';
-import { TemplateNames, TemplateWithPayload } from './types';
+import { TemplateNames, TemplateWithPayloadArgs } from './types';
 
 export class TemplateService<T extends TemplateNames> {
   #templatesDir: string;
@@ -42,7 +42,7 @@ export class TemplateService<T extends TemplateNames> {
     return Handlebars.compile(baseTemplateContent);
   }
 
-  renderTemplate(templateName: T, data: TemplateWithPayload<T>): string {
+  renderTemplate(templateName: T, data: TemplateWithPayloadArgs<T>): string {
     // load the base template and the specific child template
     const baseTemplate = this.#loadTemplate(TemplateNames.BASE as T);
     const childTemplate = this.#loadTemplate(templateName);
