@@ -14,6 +14,7 @@ import {
 import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { logout } from "@/actions/auth";
 
 const Navbar = () => {
   const { setTheme } = useTheme();
@@ -70,7 +71,10 @@ const Navbar = () => {
               <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={async () => await logout()}
+            >
               <LogOut className="h-[1.2rem] w-[1.2rem] mr-2" />
               Logout
             </DropdownMenuItem>
