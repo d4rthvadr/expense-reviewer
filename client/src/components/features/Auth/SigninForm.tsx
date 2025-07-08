@@ -16,9 +16,8 @@ import { useFormStatus } from "react-dom";
 
 const SignInForm = () => {
   const [state, signInAction] = useActionState(login, undefined);
-  const { pending, data } = useFormStatus();
+  const { pending } = useFormStatus();
 
-  console.log("SignInForm state:", { state, pending, data });
   return (
     <Card className="w-full max-w-sm mx-auto">
       <CardHeader>
