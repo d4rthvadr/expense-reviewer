@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "@/components/navbar";
-import BreadCrumb from "@/components/breadcrumb";
+import { AuthStoreProvider } from "@/stores/providers/authStore-provider";
 
 export default function DashboardLayout({
   children,
@@ -8,12 +8,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="">
+    <AuthStoreProvider>
       <Navbar />
-      <main className="p-4">
-        <BreadCrumb />
-        {children}
-      </main>
-    </div>
+      <main className="p-4">{children}</main>
+    </AuthStoreProvider>
   );
 }
