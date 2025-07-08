@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
+import ExpenseStatusBadge from "../ExpenseStatusBadge";
 
 export type ExpenseColumns = {
   id: string;
@@ -13,6 +14,7 @@ export type ExpenseColumns = {
   createdOn: string;
   description: string;
   totalAmount: string;
+  status: string;
   type: string;
   currency: string;
 };
@@ -41,15 +43,23 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
     },
   },
   {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const { status } = row.original;
+      return <ExpenseStatusBadge status={status} />;
+    },
+  },
+  {
     accessorKey: "totalAmount",
     header: "Total Amount",
     cell: ({ row }) => {
-      const { totalAmount, currency } = row.original;
+      const { totalAmount = 0, currency } = row.original;
       return formatCurrency(totalAmount, currency);
     },
   },
   {
-    accessorKey: "createdOn",
+    accessorKey: "createdAt",
     header: "Created On",
   },
   {

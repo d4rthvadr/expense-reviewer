@@ -19,7 +19,6 @@ export default function getClient() {
   const client = {
     // Define your client methods here
     get: async (url: string) => {
-      console.log("Fetching URL:", buildRequestUrl(url));
       const response = await fetch(buildRequestUrl(url));
       return parseResponse(response);
     },
