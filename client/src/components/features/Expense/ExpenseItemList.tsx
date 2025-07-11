@@ -40,7 +40,7 @@ import {
   ExpenseItem,
 } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -57,7 +57,7 @@ const formSchema = z.object({
 const ExpenseItemList = () => {
   const expense = useExpenseStore((state) => state.expense);
   const updateExpense = useExpenseStore((state) => state.updateExpense);
-  const sheetTriggerRef = useRef<HTMLButtonElement>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const expenseItems = expense?.items || [];
 
@@ -83,11 +83,7 @@ const ExpenseItemList = () => {
   };
 
   const onSheetClose = () => {
-    // console.log("called onSheetClose");
-    // if (sheetTriggerRef.current) {
-    //   sheetTriggerRef.current.click();
-    //   console.log("Sheet closed, resetting form");
-    // }
+    setIsSheetOpen(false);
     form.reset();
   };
 
@@ -127,17 +123,14 @@ const ExpenseItemList = () => {
       </div>
 
       <div className="flex flex-col gap-2 mt-2">
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           {expenseItems.length === 0 ? (
             <Card>
               <CardHeader>
-                {/* <CardTitle>{expenseItem.name}</CardTitle> */}
                 <CardDescription className="text-lg">
                   No item found for this expense.
                 </CardDescription>
-                <CardAction></CardAction>
               </CardHeader>
-              <CardContent></CardContent>
             </Card>
           ) : null}
           {expenseItems.map((expenseItem) => (
@@ -145,19 +138,28 @@ const ExpenseItemList = () => {
               <CardHeader>
                 <CardTitle>{expenseItem.name}</CardTitle>
                 <CardDescription className="text-lg">
-                  {expenseItem.description}
+                  {expenseItem.description || "No description provided"}
                 </CardDescription>
                 <CardAction>
-                  <SheetTrigger asChild>
+                  <div className="flex gap-2 w-full">
                     <Button
-                      ref={sheetTriggerRef}
-                      onClick={() => setFormItem(expenseItem)}
-                      className="w-full"
+                      onClick={() => {
+                        setFormItem(expenseItem);
+                        setIsSheetOpen(true);
+                      }}
+                      className="flex-1"
                       variant="outline"
                     >
-                      Edit Item
+                      Edit
                     </Button>
-                  </SheetTrigger>
+                    <Button
+                      onClick={() => {}}
+                      className="flex-1"
+                      variant="destructive"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </CardAction>
               </CardHeader>
               <CardContent>
