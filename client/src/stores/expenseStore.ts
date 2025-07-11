@@ -6,6 +6,7 @@ import {
 import { normalizeExpense } from "@/components/features/Expense/expense.utils";
 import { Expense, ExpenseItem } from "@/constants/expense";
 import { create } from "zustand";
+import { toast } from "sonner";
 
 type ExpenseActions = {
   getExpenseById: (expenseId: string) => Promise<void>;
@@ -57,6 +58,7 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
     if (!success) {
       // Handle error case
       // TODO: Replace with proper notification
+      toast.error("Failed to create expense");
       set(() => ({ isSubmitting: false }));
       return;
     }
@@ -65,6 +67,7 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
       window.history.pushState(null, "", `/dashboard/expenses/${data.id}`);
     }
 
+    toast.success("Expense created successfully");
     callback?.();
 
     set(() => ({ expense: data, isSubmitting: false }));
@@ -83,10 +86,12 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
     if (!success) {
       // Handle error case
       // TODO: Replace with proper notification
+      toast.error("Failed to update expense");
       set(() => ({ isSubmitting: false }));
       return;
     }
 
+    toast.success("Expense updated successfully");
     callback?.();
 
     console.log("Update expense response:", { data, success, callback });
