@@ -10,18 +10,7 @@ export type AuthState = {
   isLoading: boolean;
 };
 
-type LoginCredentials = {
-  email: string;
-  password: string;
-};
-
-export type AuthActions = {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => void;
-  checkAuth: () => Promise<void>;
-};
-
-export type AuthStore = AuthState & AuthActions;
+export type AuthStore = AuthState;
 
 export const defaultAuthState: AuthState = {
   user: null,
@@ -30,19 +19,7 @@ export const defaultAuthState: AuthState = {
 };
 
 export const createAuthStore = (initialState: AuthState = defaultAuthState) => {
-  return createStore<AuthStore>()((set) => ({
+  return createStore<AuthStore>()(() => ({
     ...initialState,
-    login: async (_credentials) => {
-      // default no-op implementation
-      return;
-    },
-    logout: () => {
-      // default no-op implementation
-      return;
-    },
-    checkAuth: async () => {
-      // default no-op implementation
-      return;
-    },
   }));
 };

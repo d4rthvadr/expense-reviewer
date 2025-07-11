@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field } from "./types";
+import { ControllerRenderProps } from "react-hook-form";
 
 const SelectComponent = ({
   placeholder = "Select an option",
@@ -14,11 +14,11 @@ const SelectComponent = ({
   field,
 }: {
   placeholder?: string;
-  field: Field;
+  field: ControllerRenderProps<any, any>;
   options: string[];
 }) => {
   return (
-    <Select {...field}>
+    <Select onValueChange={field.onChange} defaultValue={field.value}>
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

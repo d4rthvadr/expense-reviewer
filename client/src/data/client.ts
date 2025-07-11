@@ -1,11 +1,12 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const parseResponse = (response: Response) => {
+const parseResponse = <T>(response: Response) => {
   if (!response.ok) {
     console.error("client error", response);
+    console.log("err message", response.statusText);
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  return response.json();
+  return response.json() as Promise<T>;
 };
 
 const buildRequestUrl = (endpoint: string) => {
@@ -15,38 +16,41 @@ const buildRequestUrl = (endpoint: string) => {
   return `${BASE_URL}${endpoint}`;
 };
 
-export default function getClient() {
+function getClient() {
   const client = {
-    // Define your client methods here
-    get: async (url: string) => {
-      const response = await fetch(buildRequestUrl(url));
-      return parseResponse(response);
+    get: async <T = unknown>(endpoint: string) => {
+      const response = await fetch(buildRequestUrl(endpoint));
+      return parseResponse<T>(response);
     },
-    post: async <T>(url: string, data: T) => {
-      const response = await fetch(buildRequestUrl(url), {
+    post: async <T>(endpoint: string, data: T) => {
+      console.log("post data", { data, endpoint });
+      const response = await fetch(buildRequestUrl(endpoint), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        // body: JSON.stringify(data),
+        body: data instanceof FormData ? data : JSON.stringify(data),
       });
-      return parseResponse(response);
+      return parseResponse<T>(response);
     },
-    put: async <T>(url: string, data: T) => {
-      const response = await fetch(buildRequestUrl(url), {
+    put: async <T>(endpoint: string, data: T) => {
+      const response = await fetch(buildRequestUrl(endpoint), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: data instanceof FormData ? data : JSON.stringify(data),
       });
-      return parseResponse(response);
+      return parseResponse<T>(response);
     },
-    delete: async (url: string) => {
-      const response = await fetch(buildRequestUrl(url), {
+    delete: async <T>(endpoint: string) => {
+      const response = await fetch(buildRequestUrl(endpoint), {
         method: "DELETE",
       });
-      return parseResponse(response);
+      return parseResponse<T>(response);
     },
   };
 
   return client;
 }
+
+export const client = getClient();

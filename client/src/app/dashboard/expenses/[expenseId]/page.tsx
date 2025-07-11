@@ -1,11 +1,47 @@
-import React from "react";
+"use client";
+import React, { useRef } from "react";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import ExpenseDetails from "@/components/features/Expense/ExpenseDetails";
 import ExpenseItemList from "@/components/features/Expense/ExpenseItemList";
 import ExpenseEditForm from "@/components/features/Expense/ExpenseEditForm";
+import { useGetExpense } from "@/app/hooks/useGetExpense";
 
-const ExpenseItemPage = () => {
+interface ExpenseItemPageProps {
+  params: Promise<{
+    expenseId: string;
+  }>;
+}
+
+const ExpenseItemPage = ({ params }: ExpenseItemPageProps) => {
+  const { expenseId } = React.use(params);
+  const isExpenseNew = expenseId === "create";
+  const { loading, expense } = useGetExpense(expenseId, isExpenseNew);
+  const isNotExpenseValid = !expense && !isExpenseNew;
+  const sheetTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleEditExpense = () => {
+    sheetTriggerRef.current?.click();
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+      </div>
+    );
+  }
+
+  if (isNotExpenseValid) {
+    return (
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Expense Item Not Found</h1>
+        <p className="text-red-500">
+          The requested expense item does not exist.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Expense Item</h1>
@@ -19,13 +55,19 @@ const ExpenseItemPage = () => {
               <h1 className="text-xl font-semibold">Details</h1>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button>Edit </Button>
+                  <Button
+                    ref={sheetTriggerRef}
+                    className={expense ? "" : "hidden"}
+                    variant="outline"
+                  >
+                    {isExpenseNew && !expense ? "Create" : "Edit"}
+                  </Button>
                 </SheetTrigger>
-                <ExpenseEditForm />
+                <ExpenseEditForm onClose={() => handleEditExpense()} />
               </Sheet>
             </div>
 
-            <ExpenseDetails />
+            <ExpenseDetails onEditExpense={handleEditExpense} />
           </div>
         </div>
 

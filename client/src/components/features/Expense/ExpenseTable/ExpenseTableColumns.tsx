@@ -7,15 +7,15 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
 import ExpenseStatusBadge from "../ExpenseStatusBadge";
+import { ExpenseStatus } from "@/constants/expense";
 
 export type ExpenseColumns = {
   id: string;
   name: string;
-  createdOn: string;
-  description: string;
-  totalAmount: string;
-  status: string;
-  type: string;
+  createdAt: Date;
+  totalAmount: number;
+  status?: ExpenseStatus | undefined;
+  type?: string;
   currency: string;
 };
 

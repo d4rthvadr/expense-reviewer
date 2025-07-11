@@ -1,4 +1,4 @@
-const ExpenseStatusBadge = ({ status }: { status: string }) => {
+const ExpenseStatusBadge = ({ status }: { status?: string }) => {
   return (
     <span
       className={`
@@ -7,7 +7,7 @@ const ExpenseStatusBadge = ({ status }: { status: string }) => {
         ${status === "PENDING" ? "bg-yellow-100 text-yellow-800" : ""}
         ${status === "REJECTED" ? "bg-red-100 text-red-800" : ""}
         ${
-          !["APPROVED", "PENDING", "REJECTED"].includes(status)
+          !["APPROVED", "PENDING", "REJECTED"].includes(status!)
             ? "bg-gray-100 text-gray-800"
             : ""
         }

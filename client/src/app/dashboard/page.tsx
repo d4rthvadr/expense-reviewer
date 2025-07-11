@@ -2,7 +2,6 @@ import AppAreaChart from "@/components/apparea-chat";
 import AppBarChart from "@/components/appbar-chart";
 import AppPieChart from "@/components/apppie-chart";
 import CardList from "@/components/card-list";
-import ExpenseRecentList from "@/components/features/Expense/ExpenseRecentList";
 import React from "react";
 
 export default function Dashboard() {
@@ -25,7 +24,6 @@ export default function Dashboard() {
             <CardList title="Latest Transactions" />
           </div>
         </div>
-        <ExpenseRecentList />
       </main>
     </div>
   );

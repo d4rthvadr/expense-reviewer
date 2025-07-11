@@ -52,12 +52,17 @@ const DataTable = <TData, TValue>({
     },
   });
 
+  if (!table) {
+    console.error("Table is not initialized properly.");
+    return null;
+  }
+
   return (
     <React.Fragment>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table?.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
@@ -73,8 +78,8 @@ const DataTable = <TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
+            {table?.getRowModel().rows?.length
+              ? table?.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

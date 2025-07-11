@@ -1,3 +1,5 @@
+import { Currency } from "./currency.enum";
+
 export enum ExpenseStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
@@ -22,6 +24,30 @@ export enum ExpenseCategory {
   OTHER = "OTHER",
 }
 
-export const ExpenseStatusValues: string[] = Object.values(ExpenseStatus);
+export type ExpenseItem = {
+  id?: string;
+  name: string;
+  description?: string;
+  currency?: Currency;
+  category: ExpenseCategory;
+  amount: number;
+  qty: number;
+};
 
-export const ExpenseCategoryValues: string[] = Object.values(ExpenseCategory);
+export type Expense = {
+  id: string;
+  currency: string;
+  name: string;
+  totalAmount: number;
+  review?: string;
+  type?: string;
+  status?: ExpenseStatus;
+  items: ExpenseItem[];
+  createdAt: Date;
+};
+
+export const ExpenseStatusValues: ExpenseStatus[] =
+  Object.values(ExpenseStatus);
+
+export const ExpenseCategoryValues: ExpenseCategory[] =
+  Object.values(ExpenseCategory);
