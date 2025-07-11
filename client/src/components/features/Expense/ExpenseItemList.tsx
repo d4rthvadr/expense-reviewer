@@ -6,7 +6,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,13 +33,13 @@ import {
 import { Input } from "@/components/ui/input";
 import SelectComponent from "@/components/form/SelectComponent";
 import {
-  Expense,
   ExpenseCategoryValues,
   ExpenseCategory,
   ExpenseItem,
 } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { AlertDialogComponent } from "@/components/AlertDialog";
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -58,6 +57,7 @@ const ExpenseItemList = () => {
   const expense = useExpenseStore((state) => state.expense);
   const updateExpense = useExpenseStore((state) => state.updateExpense);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const expenseItems = expense?.items || [];
 
@@ -122,183 +122,195 @@ const ExpenseItemList = () => {
         <h1 className="text-xl font-semibold">Items</h1>
       </div>
 
+      <AlertDialogComponent
+        isOpen={isDialogOpen}
+        onAction={() => {
+          console.log("Alert dialog action performed");
+          setIsDialogOpen(false);
+        }}
+        isActionInProgress={false}
+        onCancel={() => setIsDialogOpen(false)}
+        title="Are you absolutely sure?"
+        description="This action will permanently delete the item."
+        actionText="Continue"
+        cancelText="Cancel"
+      />
+
       <div className="flex flex-col gap-2 mt-2">
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          {expenseItems.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardDescription className="text-lg">
-                  No item found for this expense.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ) : null}
-          {expenseItems.map((expenseItem) => (
-            <Card key={expenseItem.id}>
-              <CardHeader>
-                <CardTitle>{expenseItem.name}</CardTitle>
-                <CardDescription className="text-lg">
-                  {expenseItem.description || "No description provided"}
-                </CardDescription>
-                <CardAction>
-                  <div className="flex gap-2 w-full">
-                    <Button
-                      onClick={() => {
-                        setFormItem(expenseItem);
-                        setIsSheetOpen(true);
-                      }}
-                      className="flex-1"
-                      variant="outline"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => {}}
-                      className="flex-1"
-                      variant="destructive"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </CardAction>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <span className="text-card-foreground">Category: </span>
-                  <span className="font-semibold">{expenseItem.category}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-card-foreground">Amount: </span>
-                  <span className="font-semibold">${expenseItem.amount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-card-foreground">Qty: </span>
-                  <span className="font-semibold">{expenseItem.qty}</span>
-                </div>
-                <p className="text-sm mt-2 text-gray-500">
-                  Added on {expenseItem.date}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-full">
+            <p>
+              {expenseItems.length === 0
+                ? "No item found for this expense."
+                : "Add additional items to this expense."}
+            </p>
+            <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
+              Add item
+            </Button>
+          </CardContent>
+        </Card>
 
-          {expense && (
-            <SheetTrigger asChild>
-              <Button>Add item</Button>
-            </SheetTrigger>
-          )}
-          <SheetContent onCloseAutoFocus={onSheetClose}>
-            <SheetHeader>
-              <SheetTitle>Edit Expense Item</SheetTitle>
-              <SheetDescription className="mt-3">
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-6"
+        {expenseItems.map((expenseItem) => (
+          <Card key={expenseItem.id}>
+            <CardHeader>
+              <CardTitle>{expenseItem.name}</CardTitle>
+              <CardDescription className="text-lg">
+                {expenseItem.description || "No description provided"}
+              </CardDescription>
+              <CardAction>
+                <div className="flex gap-2 w-full">
+                  <Button
+                    onClick={() => {
+                      setFormItem(expenseItem);
+                      setIsSheetOpen(true);
+                    }}
+                    className="flex-1"
+                    variant="outline"
                   >
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="eg: milk" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This is the name of the expense item.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Input placeholder="eg: milk" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This is the description of the expense item.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="qty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantity</FormLabel>
-                          <FormControl>
-                            <Input type="text" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            The quantity of the expense item.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Amount</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            The amount of the expense item.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <FormControl>
-                            <SelectComponent
-                              field={field}
-                              placeholder="Select category"
-                              options={ExpenseCategoryValues}
-                            />
-                          </FormControl>
-
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      variant={"default"}
-                    >
-                      Submit
-                    </Button>
-                  </form>
-                </Form>
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsDialogOpen(true);
+                      // Here you can handle the delete action
+                      // For example, you can call a function to delete the item
+                    }}
+                    className="flex-1"
+                    variant="destructive"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <span className="text-card-foreground">Category: </span>
+                <span className="font-semibold">{expenseItem.category}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-card-foreground">Amount: </span>
+                <span className="font-semibold">${expenseItem.amount}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-card-foreground">Qty: </span>
+                <span className="font-semibold">{expenseItem.qty}</span>
+              </div>
+              <p className="text-sm mt-2 text-gray-500">
+                Added on {expenseItem.date}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent onCloseAutoFocus={onSheetClose}>
+          <SheetHeader>
+            <SheetTitle>Edit Expense Item</SheetTitle>
+            <SheetDescription className="mt-3">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="eg: milk" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          This is the name of the expense item.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input placeholder="eg: milk" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          This is the description of the expense item.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="qty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input type="text" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          The quantity of the expense item.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          The amount of the expense item.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <SelectComponent
+                            field={field}
+                            placeholder="Select category"
+                            options={ExpenseCategoryValues}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" variant={"default"}>
+                    Submit
+                  </Button>
+                </form>
+              </Form>
+            </SheetDescription>
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

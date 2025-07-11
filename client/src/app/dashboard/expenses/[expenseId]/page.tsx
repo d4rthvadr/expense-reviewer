@@ -74,12 +74,14 @@ const ExpenseItemPage = ({ params }: ExpenseItemPageProps) => {
             </div>
           </div>
 
-          <div className="w-full xl:w-1/3 space-y-6">
-            {/* INFORMATION CONTAINER */}
-            <div className="bg-primary-foreground p-4 rounded-lg">
-              <ExpenseItemList />
+          {expense && (
+            <div className="w-full xl:w-1/3 space-y-6">
+              {/* INFORMATION CONTAINER */}
+              <div className="bg-primary-foreground p-4 rounded-lg">
+                <ExpenseItemList />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>
