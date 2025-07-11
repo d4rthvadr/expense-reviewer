@@ -1,14 +1,6 @@
 "use client";
 import React from "react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
@@ -38,10 +30,10 @@ const chartData = [
   { month: "June", desktop: 214, mobile: 140 },
 ];
 
-const AppAreaChart = () => {
+const TotalVisitorsChart = () => {
   return (
     <div className="">
-      <h1 className="text-lg font-medium mb-6">Total Vistors</h1>
+      <h1 className="text-lg font-medium mb-6">Total Visitors</h1>
       <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
         <AreaChart accessibilityLayer data={chartData}>
           <CartesianGrid vertical={false} />
@@ -103,5 +95,5 @@ const AppAreaChart = () => {
   );
 };
 
-AppAreaChart.displayName = "AppAreaChart";
-export default AppAreaChart;
+TotalVisitorsChart.displayName = "TotalVisitorsChart";
+export default TotalVisitorsChart;

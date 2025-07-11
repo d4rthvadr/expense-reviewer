@@ -39,7 +39,7 @@ import {
 } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
 import { useState } from "react";
-import { AlertDialogComponent } from "@/components/AlertDialog";
+import { AlertDialogComponent } from "@/components/alert-dialog-component";
 
 const formSchema = z.object({
   id: z.string().optional(),

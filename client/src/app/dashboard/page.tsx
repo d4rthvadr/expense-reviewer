@@ -1,5 +1,5 @@
-import AppAreaChart from "@/components/apparea-chat";
-import AppBarChart from "@/components/appbar-chart";
+import TotalVisitorsChart from "@/components/total-visitors-chart";
+import TotalExpensesChart from "@/components/total-expenses-chart";
 import AppPieChart from "@/components/apppie-chart";
 import CardList from "@/components/card-list";
 import React from "react";
@@ -12,13 +12,13 @@ export default function Dashboard() {
       <main>
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
           <div className="bg-primary-foreground p-4 rounded-lg lg:col-span-2 xl:col-span-1 2xl:col-span-1">
-            <AppBarChart />
+            <TotalExpensesChart />
           </div>
           <div className="bg-primary-foreground p-4 rounded-lg">
             <AppPieChart />
           </div>
           <div className="bg-primary-foreground p-4 rounded-lg lg:col-span-2 xl:col-span-1 2xl:col-span-1">
-            <AppAreaChart />
+            <TotalVisitorsChart />
           </div>
           <div className="bg-primary-foreground p-4 rounded-lg">
             <CardList title="Latest Transactions" />
