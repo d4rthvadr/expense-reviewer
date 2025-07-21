@@ -1,7 +1,7 @@
 import { ExpenseStatus } from "@/constants/expense";
 import ExpenseStatusBadge from "./ExpenseStatusBadge";
 import { formatCurrency } from "@/lib/money.util";
-import { useGetExpense } from "@/app/hooks";
+import { useGetExpense } from "@/hooks";
 import { Button } from "@/components/ui/button";
 
 const ExpenseDetails = ({ onEditExpense }: { onEditExpense: () => void }) => {

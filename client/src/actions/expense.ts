@@ -106,3 +106,21 @@ export async function updateExpense(
     };
   }
 }
+
+export async function deleteExpense(
+  expenseId: string
+): Promise<TExpenseResponse> {
+  try {
+    const response = await client.delete<TExpenseResponse["data"]>(
+      `/expenses/${expenseId}`
+    );
+    return { success: true, data: response };
+  } catch (error) {
+    console.error("Error deleting expense:", error);
+    return {
+      data: null,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ExpenseDetails from "@/components/features/Expense/ExpenseDetails";
 import ExpenseItemList from "@/components/features/Expense/ExpenseItemList";
 import ExpenseEditForm from "@/components/features/Expense/ExpenseEditForm";
-import { useGetExpense } from "@/app/hooks/useGetExpense";
+import { useGetExpense } from "@/hooks/useGetExpense";
 import { Toaster } from "@/components/ui/sonner";
 
 interface ExpenseItemPageProps {

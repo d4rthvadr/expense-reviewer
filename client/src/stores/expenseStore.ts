@@ -4,13 +4,12 @@ import {
   updateExpense,
 } from "@/actions/expense";
 import { normalizeExpense } from "@/components/features/Expense/expense.utils";
-import { Expense, ExpenseItem } from "@/constants/expense";
+import { Expense } from "@/constants/expense";
 import { create } from "zustand";
 import { toast } from "sonner";
 
 type ExpenseActions = {
   getExpenseById: (expenseId: string) => Promise<void>;
-  setExpenseItem: (expenseItem: ExpenseItem, callback?: () => void) => void;
   createExpense: (expense: Expense, callback?: () => void) => void;
   updateExpense: (
     expense: Expense,
@@ -97,40 +96,5 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
     console.log("Update expense response:", { data, success, callback });
 
     set(() => ({ expense: data, isSubmitting: false }));
-  },
-
-  setExpenseItem: async (expenseItem: ExpenseItem, callback?: () => void) => {
-    if (callback) {
-      await callback();
-    }
-    // Update the expense item in the store
-    set((state) => {
-      if (!state.expense) return state;
-
-      const expenseItems = state.expense.items || [];
-
-      const existingItem = expenseItems.find(
-        (item) => item.id === expenseItem.id
-      );
-
-      if (!existingItem) {
-        // If the item does not exist, add it to the items array
-        return {
-          expense: {
-            ...state.expense,
-            items: [...expenseItems, expenseItem],
-          },
-        };
-      }
-
-      return {
-        expense: {
-          ...state.expense,
-          items: expenseItems.map((item) =>
-            item.id === expenseItem.id ? { ...item, ...expenseItem } : item
-          ),
-        },
-      };
-    });
   },
 }));

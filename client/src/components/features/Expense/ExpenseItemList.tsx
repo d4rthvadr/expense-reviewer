@@ -36,6 +36,7 @@ import {
   ExpenseCategoryValues,
   ExpenseCategory,
   ExpenseItem,
+  Expense,
 } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
 import { useState } from "react";
@@ -54,17 +55,18 @@ const formSchema = z.object({
 });
 
 const ExpenseItemList = () => {
-  const expense = useExpenseStore((state) => state.expense);
-  const updateExpense = useExpenseStore((state) => state.updateExpense);
+  const { expense, updateExpense, isSubmitting } = useExpenseStore();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expenseItemId, setExpenseItemId] = useState<string | undefined>(
+    undefined
+  );
 
   const expenseItems = expense?.items || [];
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: "",
       name: "",
       category: ExpenseCategoryValues[0],
       description: "",
@@ -86,6 +88,23 @@ const ExpenseItemList = () => {
     setIsSheetOpen(false);
     form.reset();
   };
+
+  async function deleteExpenseItem(expenseItemId: string | undefined) {
+    if (!expenseItemId) {
+      console.error("Expense item ID is undefined");
+      return;
+    }
+
+    const updatedItems = expenseItems.filter(
+      (item) => item.id !== expenseItemId
+    );
+    const updatedExpense = {
+      ...expense,
+      items: updatedItems,
+    };
+
+    await updateExpense(updatedExpense as Expense, expense?.id || "");
+  }
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     if (!expense) {
@@ -124,11 +143,12 @@ const ExpenseItemList = () => {
 
       <AlertDialogComponent
         isOpen={isDialogOpen}
-        onAction={() => {
+        onAction={async () => {
           console.log("Alert dialog action performed");
+          await deleteExpenseItem(expenseItemId);
           setIsDialogOpen(false);
         }}
-        isActionInProgress={false}
+        isActionInProgress={isSubmitting}
         onCancel={() => setIsDialogOpen(false)}
         title="Are you absolutely sure?"
         description="This action will permanently delete the item."
@@ -170,10 +190,9 @@ const ExpenseItemList = () => {
                     Edit
                   </Button>
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsDialogOpen(true);
-                      // Here you can handle the delete action
-                      // For example, you can call a function to delete the item
+                      setExpenseItemId(expenseItem.id);
                     }}
                     className="flex-1"
                     variant="destructive"
