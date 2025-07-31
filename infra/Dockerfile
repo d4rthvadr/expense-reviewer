@@ -13,6 +13,6 @@ COPY package*.json ./
 RUN npm ci 
 
 EXPOSE 3000
-ENV NODE_ENV=production
+ENV NODE_ENV=prod
 
 CMD ["npm", "run", "start"]
