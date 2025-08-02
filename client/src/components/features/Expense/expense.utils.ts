@@ -10,7 +10,8 @@ export const normalizeExpense = (expense: Expense | null): Expense | null => {
     type: expense.type || "Normal",
     totalAmount: expense.totalAmount || 0,
     status: expense.status,
-    items: expense.items?.map(normalizeExpenseItem).filter(Boolean) || [],
+    items:
+      expense.items?.map(normalizeExpenseItem).filter((item) => !!item) || [],
     createdAt: expense.createdAt || new Date(),
   };
 };

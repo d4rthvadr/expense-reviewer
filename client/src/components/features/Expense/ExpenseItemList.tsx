@@ -216,7 +216,7 @@ const ExpenseItemList = () => {
                 <span className="font-semibold">{expenseItem.qty}</span>
               </div>
               <p className="text-sm mt-2 text-gray-500">
-                Added on {expenseItem.date}
+                {/* Added on {expenseItem.date} */}
               </p>
             </CardContent>
           </Card>
