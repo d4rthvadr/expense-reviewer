@@ -2,6 +2,7 @@
 
 import { Expense } from "@/constants/expense";
 import { client } from "@/data/client";
+import { revalidatePath } from "next/cache";
 
 type ResponseWithError = {
   error?: string;
@@ -76,6 +77,13 @@ export async function createExpense(
       "/expenses",
       expense
     );
+
+    // Revalidate the expenses pages
+    revalidatePath("/dashboard/expenses");
+    if (response?.id) {
+      revalidatePath(`/dashboard/expenses/${response.id}`, "page");
+    }
+
     return { success: true, data: response };
   } catch (error) {
     console.error("Error creating expense:", error);
@@ -96,6 +104,11 @@ export async function updateExpense(
       `/expenses/${expenseId}`,
       expense
     );
+
+    // Revalidate the expenses pages
+    revalidatePath("/dashboard/expenses");
+    revalidatePath(`/dashboard/expenses/${expenseId}`, "page");
+
     return { success: true, data: response };
   } catch (error) {
     console.error("Error updating expense:", error);
@@ -114,6 +127,9 @@ export async function deleteExpense(
     const response = await client.delete<TExpenseResponse["data"]>(
       `/expenses/${expenseId}`
     );
+
+    // Revalidate the expenses pages
+    revalidatePath("/dashboard/expenses");
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting expense:", error);

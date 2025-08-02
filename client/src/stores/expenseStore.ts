@@ -7,7 +7,6 @@ import { normalizeExpense } from "@/components/features/Expense/expense.utils";
 import { Expense } from "@/constants/expense";
 import { create } from "zustand";
 import { toast } from "sonner";
-import { revalidatePath } from "next/cache";
 
 type ExpenseActions = {
   getExpenseById: (expenseId: string) => Promise<void>;
@@ -67,10 +66,6 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
       window.history.pushState(null, "", `/dashboard/expenses/${data.id}`);
     }
 
-    // Invalidate  paths
-    revalidatePath("/dashboard/expenses");
-    revalidatePath(`/dashboard/expenses/${data!.id}`, "page");
-
     toast.success("Expense created successfully");
     callback?.();
 
@@ -94,10 +89,6 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
       set(() => ({ isSubmitting: false }));
       return;
     }
-
-    // Invalidate  paths
-    revalidatePath("/dashboard/expenses");
-    revalidatePath(`/dashboard/expenses/${expenseId}`, "page");
 
     toast.success("Expense updated successfully");
     callback?.();
