@@ -14,7 +14,8 @@ const SelectComponent = ({
   field,
 }: {
   placeholder?: string;
-  field: ControllerRenderProps<any, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  field: ControllerRenderProps<any, any>; // TODO: Replace 'any' with your form type
   options: string[];
 }) => {
   return (

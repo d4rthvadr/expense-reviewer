@@ -1,5 +1,5 @@
 import React from "react";
-
+import Image from "next/image";
 type TransactionItem = {
   id: number;
   image: string;
@@ -57,7 +57,7 @@ const CardList = ({ title }: { title: string }) => {
             className="flex items-center justify-between p-4 border-b"
           >
             <div className="flex items-center">
-              <img
+              <Image
                 src={transaction.image}
                 alt={transaction.name}
                 className="w-12 h-12 rounded-full mr-4"
