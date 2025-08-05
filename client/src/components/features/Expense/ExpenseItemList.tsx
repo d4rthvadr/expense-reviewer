@@ -272,7 +272,13 @@ const ExpenseItemList = () => {
                       <FormItem>
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
-                          <Input type="text" {...field} />
+                          <Input
+                            type="text"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
                         </FormControl>
                         <FormDescription>
                           The quantity of the expense item.
