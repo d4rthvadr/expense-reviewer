@@ -21,7 +21,7 @@ const Navbar = () => {
 
   return (
     <nav className="p-4 flex items-center justify-between sticky top-0 bg-background z-10">
-      <Link href="/" className="text-lg font-bold">
+      <Link href="/dashboard" className="text-lg font-bold">
         ER
       </Link>
 

@@ -79,9 +79,9 @@ export async function createExpense(
     );
 
     // Revalidate the expenses pages
-    revalidatePath("/dashboard/expenses");
+    revalidatePath("/expenses");
     if (response?.id) {
-      revalidatePath(`/dashboard/expenses/${response.id}`, "page");
+      revalidatePath(`/expenses/${response.id}`, "page");
     }
 
     return { success: true, data: response };
@@ -106,8 +106,8 @@ export async function updateExpense(
     );
 
     // Revalidate the expenses pages
-    revalidatePath("/dashboard/expenses");
-    revalidatePath(`/dashboard/expenses/${expenseId}`, "page");
+    revalidatePath("/expenses");
+    revalidatePath(`/expenses/${expenseId}`, "page");
 
     return { success: true, data: response };
   } catch (error) {
@@ -129,7 +129,7 @@ export async function deleteExpense(
     );
 
     // Revalidate the expenses pages
-    revalidatePath("/dashboard/expenses");
+    revalidatePath("/expenses");
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting expense:", error);
