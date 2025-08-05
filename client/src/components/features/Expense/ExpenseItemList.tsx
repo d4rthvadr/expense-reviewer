@@ -289,7 +289,7 @@ const ExpenseItemList = () => {
                         <FormLabel>Amount</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
+                            type="text"
                             {...field}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
