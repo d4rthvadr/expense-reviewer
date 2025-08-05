@@ -6,6 +6,7 @@ interface ExpenseCreateDataDto {
   type: string;
   status: ExpenseStatus;
   userId?: string;
+  createdAt: string;
   items: ExpenseItem[];
 }
 export class ExpenseFactory {
@@ -18,7 +19,7 @@ export class ExpenseFactory {
     data: ExpenseCreateDataDto,
     userId?: string
   ): ExpenseModel {
-    const { name, type, status, items } = data;
+    const { name, type, status, items, createdAt } = data;
 
     const user: ExpenseModel = new ExpenseModel({
       name,
@@ -26,6 +27,7 @@ export class ExpenseFactory {
       status,
       userId,
       items,
+      createdAt: createdAt ? new Date(createdAt) : new Date(),
     });
 
     return user;

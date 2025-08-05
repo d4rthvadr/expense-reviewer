@@ -8,5 +8,6 @@ export interface UpdateExpenseDto {
   currency?: Currency;
   review?: string;
   status: ExpenseStatus;
+  createdAt: string; // ISO 8601 date string
   items: ExpenseItem[];
 }

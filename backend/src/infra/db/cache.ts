@@ -8,7 +8,7 @@ export function getRedisInstance(): IORedis {
   if (!redisInstance) {
     redisInstance = new IORedis(redisConfig.host, {
       family: 4, // Force IPv4
-      connectTimeout: 10000,
+      connectTimeout: 10000, // 10 seconds timeout
       lazyConnect: true,
       maxRetriesPerRequest: null,
       enableReadyCheck: false,

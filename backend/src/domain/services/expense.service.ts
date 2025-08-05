@@ -138,6 +138,7 @@ class ExpenseService {
     expense.review = data.review;
     expense.type = data.type;
     expense.status = data.status;
+    expense.createdAt = new Date(data.createdAt);
     expense.items = data.items;
 
     const updatedExpense: ExpenseModel =

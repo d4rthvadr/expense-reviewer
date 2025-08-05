@@ -29,6 +29,11 @@ export const createExpenseValidators = [
     )
     .notEmpty()
     .withMessage('Currency is required'),
+  body('createdAt')
+    .isISO8601()
+    .withMessage('CreatedAt must be a valid ISO 8601 date string')
+    .notEmpty()
+    .withMessage('CreatedAt is required'),
   body('items')
     .isArray()
     .withMessage('Items must be an array')

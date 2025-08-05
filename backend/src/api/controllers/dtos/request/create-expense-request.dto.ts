@@ -16,4 +16,5 @@ export interface CreateExpenseRequestDto {
   type: string;
   status: ExpenseStatus;
   items: ExpenseItem[];
+  createdAt: string; // ISO 8601 date string
 }

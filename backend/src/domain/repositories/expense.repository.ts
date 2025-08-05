@@ -131,6 +131,7 @@ export class ExpenseRepository extends Database {
           userId: data.userId,
           status: data.status,
           review: data.review,
+          createdAt: data.createdAt,
           expenseItem: {
             createMany: {
               data: data.items.map((item) =>
@@ -148,6 +149,7 @@ export class ExpenseRepository extends Database {
           userId: data.userId,
           status: data.status,
           review: data.review,
+          createdAt: data.createdAt,
           expenseItem: {
             deleteMany: {
               expenseId: data.id,

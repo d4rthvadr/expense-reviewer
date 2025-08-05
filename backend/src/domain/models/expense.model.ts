@@ -210,6 +210,14 @@ export class ExpenseModel {
     return this.#createdAt;
   }
 
+  set createdAt(value: Date) {
+    if (!value) {
+      return;
+    }
+    this.#createdAt = value;
+    this.#updatedAt = new Date(); // Update the updatedAt timestamp whenever createdAt is set
+  }
+
   /**
    * Gets the date and time when the expense was last updated.
    *
