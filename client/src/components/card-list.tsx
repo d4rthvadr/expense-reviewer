@@ -60,6 +60,8 @@ const CardList = ({ title }: { title: string }) => {
               <Image
                 src={transaction.image}
                 alt={transaction.name}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full mr-4"
               />
               <div>

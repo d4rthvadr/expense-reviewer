@@ -43,7 +43,7 @@ export type Expense = {
   type?: string;
   status?: ExpenseStatus;
   items: ExpenseItem[];
-  createdAt: Date;
+  createdAt: string;
 };
 
 export const ExpenseStatusValues: ExpenseStatus[] =

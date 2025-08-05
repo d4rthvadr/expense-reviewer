@@ -24,6 +24,7 @@ const ExpenseDetails = ({ onEditExpense }: { onEditExpense: () => void }) => {
   const {
     id: expenseId,
     currency,
+    createdAt,
     name,
     totalAmount = 0,
     type = "General",
@@ -54,7 +55,7 @@ const ExpenseDetails = ({ onEditExpense }: { onEditExpense: () => void }) => {
       </div>
       <div className="flex item-center gap-2">
         <span className="font-bold">Created On:</span>
-        <span>{"some-date"}</span>
+        <span>{createdAt}</span>
       </div>
     </div>
   );

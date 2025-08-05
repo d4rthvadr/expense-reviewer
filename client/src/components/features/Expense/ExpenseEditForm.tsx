@@ -32,6 +32,7 @@ import { Currency } from "@/constants/currency.enum";
 import React from "react";
 import { useCreateExpense, useGetExpense } from "@/hooks";
 import { useUpdateExpense } from "@/hooks/useUpdateExpense";
+import { DatePicker } from "@/components/ui/date-picker";
 
 // Schema
 const formSchema = z.object({
@@ -42,6 +43,7 @@ const formSchema = z.object({
     .max(100),
   type: z.string(),
   // currency: z.string(),
+  createdAt: z.date(),
   status: z.string(),
 });
 
@@ -63,6 +65,7 @@ const ExpenseEditForm = ({ onClose }: { onClose: () => void }) => {
     type,
     status,
     currency,
+    createdAt = new Date().toISOString(),
     items = [],
   } = expense || {};
 
@@ -75,6 +78,7 @@ const ExpenseEditForm = ({ onClose }: { onClose: () => void }) => {
       id: expenseId,
       name: name,
       status: status,
+      createdAt: new Date(createdAt),
       type: type,
     },
   });
@@ -87,11 +91,9 @@ const ExpenseEditForm = ({ onClose }: { onClose: () => void }) => {
       type: data.type,
       totalAmount: 0, // Assuming totalAmount is not part of the form
       items,
-      createdAt: new Date(),
+      createdAt: data.createdAt.toISOString(), // Use the selected date from the form
       status: data.status as ExpenseStatus,
     };
-
-    console.log("isCreateMode:", { isCreateMode, expense });
 
     if (isCreateMode) {
       await createExpense(expenseData, onClose);
@@ -149,6 +151,27 @@ const ExpenseEditForm = ({ onClose }: { onClose: () => void }) => {
                       />
                     </FormControl>
 
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="createdAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Created Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        date={field.value}
+                        onSetDate={(date) => {
+                          field.onChange(date);
+                        }}
+                        showLabel={false}
+                        placeholder="Select expense date"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -12,7 +12,10 @@ export const normalizeExpense = (expense: Expense | null): Expense | null => {
     status: expense.status,
     items:
       expense.items?.map(normalizeExpenseItem).filter((item) => !!item) || [],
-    createdAt: expense.createdAt || new Date(),
+    createdAt:
+      typeof expense.createdAt === "object"
+        ? new Date(expense.createdAt).toISOString()
+        : expense.createdAt,
   };
 };
 

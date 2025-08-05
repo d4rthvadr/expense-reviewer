@@ -12,7 +12,7 @@ import { ExpenseItem, ExpenseStatus } from "@/constants/expense";
 export type ExpenseColumns = {
   id: string;
   name: string;
-  createdAt: Date;
+  createdAt: string;
   totalAmount: number;
   items: ExpenseItem[];
   status?: ExpenseStatus | undefined;
