@@ -6,6 +6,7 @@ import {
   budgetRoutes,
   expenseRoutes,
   userRoutes,
+  analyticsRoutes,
 } from './api/routes';
 import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
@@ -22,6 +23,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
