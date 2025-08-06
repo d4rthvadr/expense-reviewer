@@ -1,0 +1,31 @@
+export enum Category {
+  FOOD = "FOOD",
+  TRANSPORT = "TRANSPORT",
+  UTILITIES = "UTILITIES",
+  ENTERTAINMENT = "ENTERTAINMENT",
+  HEALTH = "HEALTH",
+  EDUCATION = "EDUCATION",
+  SHOPPING = "SHOPPING",
+  MISCELLANEOUS = "MISCELLANEOUS",
+  PERSONAL_AND_LIFESTYLE = "PERSONAL_AND_LIFESTYLE",
+  TRAVEL = "TRAVEL",
+  GIFTS_OR_DONATIONS = "GIFTS_OR_DONATIONS",
+  HOUSING = "HOUSING",
+  SAVINGS_OR_INVESTMENTS = "SAVINGS_OR_INVESTMENTS",
+  INSURANCE = "INSURANCE",
+  OTHER = "OTHER",
+}
+
+export const CategoryValues = Object.values(Category);
+
+export interface Budget {
+  id: string;
+  name?: string;
+  amount: number;
+  userId?: string;
+  category: Category;
+  currency?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}

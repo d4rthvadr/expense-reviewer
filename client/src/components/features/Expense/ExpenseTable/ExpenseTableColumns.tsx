@@ -55,7 +55,7 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
     accessorKey: "totalAmount",
     header: "Total Amount",
     cell: ({ row }) => {
-      const { totalAmount = 0, currency } = row.original;
+      const { totalAmount = 0, currency = "USD" } = row.original;
       return formatCurrency(totalAmount, currency);
     },
   },
