@@ -15,9 +15,22 @@ export interface ExpenseAnalyticsData {
   expenseCount: number;
 }
 
+export interface BudgetData {
+  category: string;
+  budgetAmount: number;
+  currency: string;
+  createdAt: string;
+}
+
 type AnalyticsResponse = {
   success: boolean;
   data: ExpenseAnalyticsData[];
+  message: string;
+} & { error?: string };
+
+type BudgetResponse = {
+  success: boolean;
+  data: BudgetData[];
   message: string;
 } & { error?: string };
 
@@ -54,6 +67,40 @@ export async function getExpensesOverTime(
       success: false,
       data: [],
       message: "Failed to fetch analytics data",
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Fetches budget data from the server.
+ *
+ * @param userId - Optional user ID filter
+ * @returns {Promise<BudgetResponse>} A promise that resolves to budget data and any error information.
+ */
+export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
+  try {
+    const searchParams = new URLSearchParams();
+
+    if (userId) {
+      searchParams.append("userId", userId);
+    }
+
+    console.log("Fetching budget data with filters:", searchParams.toString());
+
+    const response = await client.get<BudgetResponse>(
+      `/analytics/budgets${
+        searchParams.toString() ? `?${searchParams.toString()}` : ""
+      }`
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching budget data:", error);
+    return {
+      success: false,
+      data: [],
+      message: "Failed to fetch budget data",
       error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
