@@ -1,5 +1,9 @@
 import express from 'express';
 import { analyticsController } from '../controllers/analytics.controller';
+import {
+  getExpensesOverTimeValidators,
+  validateRequest,
+} from '../middlewares/utils/validators';
 
 const router = express.Router();
 
@@ -64,6 +68,11 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get('/expenses-over-time', analyticsController.getExpensesOverTime);
+router.get(
+  '/expenses-over-time',
+  getExpensesOverTimeValidators,
+  validateRequest,
+  analyticsController.getExpensesOverTime
+);
 
 export default router;

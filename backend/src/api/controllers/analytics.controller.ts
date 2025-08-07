@@ -12,36 +12,9 @@ export class AnalyticsController {
       const { dateFrom, dateTo, groupBy, userId } =
         req.query as Partial<AnalyticsRequestDto>;
 
-      // Validate required parameters
-      if (!dateFrom || !dateTo || !groupBy) {
-        res.status(400).json({
-          success: false,
-          message:
-            'Missing required parameters: dateFrom, dateTo, and groupBy are required',
-        });
-        return;
-      }
-
-      // Validate groupBy parameter
-      if (!['day', 'week', 'month'].includes(groupBy)) {
-        res.status(400).json({
-          success: false,
-          message: 'groupBy must be one of: day, week, month',
-        });
-        return;
-      }
-
-      // Parse and validate dates
-      const parsedDateFrom = new Date(dateFrom);
-      const parsedDateTo = new Date(dateTo);
-
-      if (isNaN(parsedDateFrom.getTime()) || isNaN(parsedDateTo.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid date format. Please use ISO date strings.',
-        });
-        return;
-      }
+      // Parse dates (validation already handled by middleware)
+      const parsedDateFrom = new Date(dateFrom!);
+      const parsedDateTo = new Date(dateTo!);
 
       const data = await analyticsService.getExpensesOverTime(
         parsedDateFrom,
@@ -58,7 +31,6 @@ export class AnalyticsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.log('Error in analytics controller:', error);
       log.error({
         message: 'Error in analytics controller',
         error,
