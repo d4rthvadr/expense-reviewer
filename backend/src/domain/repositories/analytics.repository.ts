@@ -1,0 +1,155 @@
+import { Database, db } from '@infra/db/database';
+import { log } from '@infra/logger';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+
+// Configure Day.js plugins
+dayjs.extend(isoWeek);
+
+export interface ExpenseAnalyticsData {
+  period: string;
+  totalAmount: number;
+  expenseCount: number;
+}
+
+export interface AnalyticsFilters {
+  dateFrom: Date;
+  dateTo: Date;
+  groupBy: 'day' | 'week' | 'month';
+  userId?: string; // Will be used later when you add it to ExpenseItem
+}
+
+// Interface for raw SQL results
+interface RawAnalyticsResult {
+  period_date: Date;
+  total_amount: number;
+  expense_count: bigint; // PostgreSQL COUNT returns bigint
+}
+
+export class AnalyticsRepository {
+  constructor(private db: Database) {}
+
+  async getTotalExpensesOverTime(
+    filters: AnalyticsFilters
+  ): Promise<ExpenseAnalyticsData[]> {
+    const { dateFrom, dateTo, groupBy, userId } = filters;
+
+    try {
+      // Use SQL aggregation for efficient database-level processing
+      const sqlResults = await this.getAggregatedDataFromDB(
+        dateFrom,
+        dateTo,
+        groupBy,
+        userId
+      );
+
+      log.info(
+        `Processed ${sqlResults.length} aggregated periods for analytics`
+      );
+
+      // Format periods using Day.js to maintain exact current behavior
+      const formattedResults: ExpenseAnalyticsData[] = sqlResults.map(
+        (row) => ({
+          period: this.getPeriodKey(row.period_date, groupBy), // Reuse existing Day.js logic
+          totalAmount: Math.round(row.total_amount * 100) / 100, // Round to 2 decimal places
+          expenseCount: Number(row.expense_count), // Convert bigint to number
+        })
+      );
+
+      // Sort by period to maintain current sorting behavior
+      return formattedResults.sort((a, b) => a.period.localeCompare(b.period));
+    } catch (error) {
+      log.error({
+        message: 'Error fetching expense items analytics',
+        error,
+        code: 'ANALYTICS_FETCH_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  private async getAggregatedDataFromDB(
+    dateFrom: Date,
+    dateTo: Date,
+    groupBy: 'day' | 'week' | 'month',
+    userId?: string
+  ): Promise<RawAnalyticsResult[]> {
+    const params: unknown[] = [dateFrom, dateTo];
+    let query: string;
+
+    if (userId) {
+      // Query with userId filtering through Expense table JOIN
+      const truncateFunction = this.getSQLTruncateFunction(groupBy, true);
+
+      query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(ei.amount) as total_amount,
+          COUNT(*) as expense_count
+        FROM "ExpenseItem" ei
+        JOIN "Expense" e ON ei."expenseId" = e.id
+        WHERE ei."createdAt" >= $1 AND ei."createdAt" <= $2 AND e."userId" = $3
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+      params.push(userId);
+    } else {
+      // Simple query without userId filtering
+      const truncateFunction = this.getSQLTruncateFunction(groupBy, false);
+
+      query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(amount) as total_amount,
+          COUNT(*) as expense_count
+        FROM "ExpenseItem" 
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+    }
+
+    // Execute the raw SQL query with parameterized arguments
+    const results = await this.db.$queryRawUnsafe<RawAnalyticsResult[]>(
+      query,
+      ...params
+    );
+
+    return results;
+  }
+
+  private getSQLTruncateFunction(
+    groupBy: 'day' | 'week' | 'month',
+    useAlias = false
+  ): string {
+    const column = useAlias ? 'ei."createdAt"' : '"createdAt"';
+
+    switch (groupBy) {
+      case 'day':
+        return `DATE_TRUNC('day', ${column})`;
+      case 'week':
+        return `DATE_TRUNC('week', ${column})`; // PostgreSQL week
+      case 'month':
+        return `DATE_TRUNC('month', ${column})`;
+      default:
+        return `DATE_TRUNC('day', ${column})`;
+    }
+  }
+
+  private getPeriodKey(date: Date, groupBy: 'day' | 'week' | 'month'): string {
+    const d = dayjs(date);
+
+    switch (groupBy) {
+      case 'day':
+        return d.format('YYYY-MM-DD');
+      case 'week':
+        return `${d.isoWeekYear()}-W${d.isoWeek().toString().padStart(2, '0')}`;
+      case 'month':
+        return d.format('YYYY-MM');
+      default:
+        return d.format('YYYY-MM-DD');
+    }
+  }
+}
+
+export const analyticsRepository = new AnalyticsRepository(db);
