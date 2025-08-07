@@ -1,3 +1,4 @@
+import { Currency } from '@domain/enum/currency.enum';
 import { Database, db } from '@infra/db/database';
 import { log } from '@infra/logger';
 import dayjs from 'dayjs';
@@ -10,6 +11,13 @@ export interface ExpenseAnalyticsData {
   period: string;
   totalAmount: number;
   expenseCount: number;
+}
+
+export interface BudgetData {
+  category: string;
+  budgetAmount: number;
+  currency: string;
+  createdAt: Date;
 }
 
 export interface AnalyticsFilters {
@@ -36,7 +44,7 @@ export class AnalyticsRepository {
 
     try {
       // Use SQL aggregation for efficient database-level processing
-      const sqlResults = await this.getAggregatedDataFromDB(
+      const sqlResults = await this.getExpenseAggregatedDataFromDB(
         dateFrom,
         dateTo,
         groupBy,
@@ -48,16 +56,13 @@ export class AnalyticsRepository {
       );
 
       // Format periods using Day.js to maintain exact current behavior
-      const formattedResults: ExpenseAnalyticsData[] = sqlResults.map(
-        (row) => ({
+      return sqlResults
+        .map((row) => ({
           period: this.getPeriodKey(row.period_date, groupBy), // Reuse existing Day.js logic
           totalAmount: Math.round(row.total_amount * 100) / 100, // Round to 2 decimal places
           expenseCount: Number(row.expense_count), // Convert bigint to number
-        })
-      );
-
-      // Sort by period to maintain current sorting behavior
-      return formattedResults.sort((a, b) => a.period.localeCompare(b.period));
+        }))
+        .sort((a, b) => a.period.localeCompare(b.period)); // Sort by period to maintain current sorting behavior
     } catch (error) {
       log.error({
         message: 'Error fetching expense items analytics',
@@ -68,7 +73,7 @@ export class AnalyticsRepository {
     }
   }
 
-  private async getAggregatedDataFromDB(
+  private async getExpenseAggregatedDataFromDB(
     dateFrom: Date,
     dateTo: Date,
     groupBy: 'day' | 'week' | 'month',
@@ -79,7 +84,7 @@ export class AnalyticsRepository {
 
     if (userId) {
       // Query with userId filtering through Expense table JOIN
-      const truncateFunction = this.getSQLTruncateFunction(groupBy, true);
+      const truncateFunction = this.getSQLDateTruncateFunction(groupBy, true);
 
       query = `
         SELECT 
@@ -95,7 +100,7 @@ export class AnalyticsRepository {
       params.push(userId);
     } else {
       // Simple query without userId filtering
-      const truncateFunction = this.getSQLTruncateFunction(groupBy, false);
+      const truncateFunction = this.getSQLDateTruncateFunction(groupBy, false);
 
       query = `
         SELECT 
@@ -118,7 +123,7 @@ export class AnalyticsRepository {
     return results;
   }
 
-  private getSQLTruncateFunction(
+  private getSQLDateTruncateFunction(
     groupBy: 'day' | 'week' | 'month',
     useAlias = false
   ): string {
@@ -148,6 +153,41 @@ export class AnalyticsRepository {
         return d.format('YYYY-MM');
       default:
         return d.format('YYYY-MM-DD');
+    }
+  }
+
+  async getBudgets(userId?: string): Promise<BudgetData[]> {
+    try {
+      log.info('Fetching budget data with latest budget per category');
+
+      // Use DISTINCT ON to get latest budget per category
+      const budgets = await this.db.budget.findMany({
+        where: userId ? { userId } : undefined,
+        distinct: ['category'],
+        orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
+        select: {
+          category: true,
+          amount: true,
+          currency: true,
+          createdAt: true,
+        },
+      });
+
+      log.info(`Retrieved ${budgets.length} unique budget categories`);
+
+      return budgets.map((budget) => ({
+        category: budget.category,
+        budgetAmount: budget.amount,
+        currency: budget.currency || Currency.USD,
+        createdAt: budget.createdAt,
+      }));
+    } catch (error) {
+      log.error({
+        message: 'Error fetching budgets',
+        error,
+        code: 'BUDGET_FETCH_ERROR',
+      });
+      throw error;
     }
   }
 }

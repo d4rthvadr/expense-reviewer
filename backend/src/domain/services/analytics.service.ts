@@ -1,6 +1,7 @@
 import {
   AnalyticsRepository,
   ExpenseAnalyticsData,
+  BudgetData,
   AnalyticsFilters,
   analyticsRepository,
 } from '@domain/repositories/analytics.repository';
@@ -52,6 +53,27 @@ export class AnalyticsService {
         message: 'Error in analytics service',
         error,
         code: 'ANALYTICS_SERVICE_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  async getBudgets(userId?: string): Promise<BudgetData[]> {
+    try {
+      log.info('Retrieving budget data from analytics service');
+
+      const budgets = await this.analyticsRepository.getBudgets(userId);
+
+      log.info(
+        `Budget data retrieved successfully: ${budgets.length} categories`
+      );
+
+      return budgets;
+    } catch (error) {
+      log.error({
+        message: 'Error in budget service',
+        error,
+        code: 'BUDGET_SERVICE_ERROR',
       });
       throw error;
     }

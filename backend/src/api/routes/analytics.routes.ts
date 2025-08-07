@@ -75,4 +75,47 @@ router.get(
   analyticsController.getExpensesOverTime
 );
 
+/**
+ * @swagger
+ * /api/analytics/budgets:
+ *   get:
+ *     summary: Get budget allocations by category
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Optional user ID filter
+ *     responses:
+ *       200:
+ *         description: Budget data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                       budgetAmount:
+ *                         type: number
+ *                       currency:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/budgets', analyticsController.getBudgets);
+
 export default router;

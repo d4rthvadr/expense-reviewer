@@ -43,6 +43,33 @@ export class AnalyticsController {
       });
     }
   }
+
+  async getBudgets(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.query as { userId?: string };
+
+      const data = await analyticsService.getBudgets(userId);
+
+      const response = {
+        success: true,
+        data,
+        message: `Budget data retrieved for ${data.length} categories`,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      log.error({
+        message: 'Error in budget controller',
+        error,
+        code: 'BUDGET_CONTROLLER_ERROR',
+      });
+
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error while retrieving budget data',
+      });
+    }
+  }
 }
 
 export const analyticsController = new AnalyticsController();
