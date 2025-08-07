@@ -19,17 +19,11 @@ export interface AnalyticsFilters {
   userId?: string; // Will be used later when you add it to ExpenseItem
 }
 
-interface ExpenseItemData {
-  id: string;
-  amount: number;
-  createdAt: Date;
-}
-
-interface GroupedExpenseItems {
-  [period: string]: {
-    totalAmount: number;
-    count: number;
-  };
+// Interface for raw SQL results
+interface RawAnalyticsResult {
+  period_date: Date;
+  total_amount: number;
+  expense_count: bigint; // PostgreSQL COUNT returns bigint
 }
 
 export class AnalyticsRepository {
@@ -38,35 +32,32 @@ export class AnalyticsRepository {
   async getTotalExpensesOverTime(
     filters: AnalyticsFilters
   ): Promise<ExpenseAnalyticsData[]> {
-    const { dateFrom, dateTo, groupBy } = filters;
+    const { dateFrom, dateTo, groupBy, userId } = filters;
 
     try {
-      // Fetch expense items using Prisma
-
-      const expenseItems = await this.db.expenseItem.findMany({
-        where: {
-          createdAt: {
-            gte: dateFrom,
-            lte: dateTo,
-          },
-          // userId filtering removed - will be added later when you add userId to ExpenseItem
-        },
-        select: {
-          id: true,
-          amount: true,
-          createdAt: true,
-        },
-      });
-
-      log.info(
-        `Fetched ${expenseItems.length} expense items for analytics processing`
+      // Use SQL aggregation for efficient database-level processing
+      const sqlResults = await this.getAggregatedDataFromDB(
+        dateFrom,
+        dateTo,
+        groupBy,
+        userId
       );
 
-      // Group expense items by period
-      const grouped = this.groupExpenseItemsByPeriod(expenseItems, groupBy);
+      log.info(
+        `Processed ${sqlResults.length} aggregated periods for analytics`
+      );
 
-      // Convert to response format and sort
-      return this.formatGroupedData(grouped);
+      // Format periods using Day.js to maintain exact current behavior
+      const formattedResults: ExpenseAnalyticsData[] = sqlResults.map(
+        (row) => ({
+          period: this.getPeriodKey(row.period_date, groupBy), // Reuse existing Day.js logic
+          totalAmount: Math.round(row.total_amount * 100) / 100, // Round to 2 decimal places
+          expenseCount: Number(row.expense_count), // Convert bigint to number
+        })
+      );
+
+      // Sort by period to maintain current sorting behavior
+      return formattedResults.sort((a, b) => a.period.localeCompare(b.period));
     } catch (error) {
       log.error({
         message: 'Error fetching expense items analytics',
@@ -77,26 +68,72 @@ export class AnalyticsRepository {
     }
   }
 
-  private groupExpenseItemsByPeriod(
-    expenseItems: ExpenseItemData[],
-    groupBy: 'day' | 'week' | 'month'
-  ): GroupedExpenseItems {
-    const grouped = expenseItems.reduce<GroupedExpenseItems>(
-      (acc, expenseItem) => {
-        const periodKey = this.getPeriodKey(expenseItem.createdAt, groupBy);
-        const existing = acc[periodKey] ?? { totalAmount: 0, count: 0 };
+  private async getAggregatedDataFromDB(
+    dateFrom: Date,
+    dateTo: Date,
+    groupBy: 'day' | 'week' | 'month',
+    userId?: string
+  ): Promise<RawAnalyticsResult[]> {
+    const params: unknown[] = [dateFrom, dateTo];
+    let query: string;
 
-        acc[periodKey] = {
-          totalAmount: existing.totalAmount + expenseItem.amount,
-          count: existing.count + 1,
-        };
+    if (userId) {
+      // Query with userId filtering through Expense table JOIN
+      const truncateFunction = this.getSQLTruncateFunction(groupBy, true);
 
-        return acc;
-      },
-      {}
+      query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(ei.amount) as total_amount,
+          COUNT(*) as expense_count
+        FROM "ExpenseItem" ei
+        JOIN "Expense" e ON ei."expenseId" = e.id
+        WHERE ei."createdAt" >= $1 AND ei."createdAt" <= $2 AND e."userId" = $3
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+      params.push(userId);
+    } else {
+      // Simple query without userId filtering
+      const truncateFunction = this.getSQLTruncateFunction(groupBy, false);
+
+      query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(amount) as total_amount,
+          COUNT(*) as expense_count
+        FROM "ExpenseItem" 
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+    }
+
+    // Execute the raw SQL query with parameterized arguments
+    const results = await this.db.$queryRawUnsafe<RawAnalyticsResult[]>(
+      query,
+      ...params
     );
 
-    return grouped;
+    return results;
+  }
+
+  private getSQLTruncateFunction(
+    groupBy: 'day' | 'week' | 'month',
+    useAlias = false
+  ): string {
+    const column = useAlias ? 'ei."createdAt"' : '"createdAt"';
+
+    switch (groupBy) {
+      case 'day':
+        return `DATE_TRUNC('day', ${column})`;
+      case 'week':
+        return `DATE_TRUNC('week', ${column})`; // PostgreSQL week
+      case 'month':
+        return `DATE_TRUNC('month', ${column})`;
+      default:
+        return `DATE_TRUNC('day', ${column})`;
+    }
   }
 
   private getPeriodKey(date: Date, groupBy: 'day' | 'week' | 'month'): string {
@@ -112,20 +149,6 @@ export class AnalyticsRepository {
       default:
         return d.format('YYYY-MM-DD');
     }
-  }
-
-  private formatGroupedData(
-    grouped: GroupedExpenseItems
-  ): ExpenseAnalyticsData[] {
-    const result: ExpenseAnalyticsData[] = Object.entries(grouped)
-      .map(([period, data]) => ({
-        period,
-        totalAmount: Math.round(data.totalAmount * 100) / 100, // Round to 2 decimal places
-        expenseCount: data.count,
-      }))
-      .sort((a, b) => a.period.localeCompare(b.period));
-
-    return result;
   }
 }
 
