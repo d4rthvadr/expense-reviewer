@@ -10,9 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  directUrl = env("DIRECT_URL")
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  // directUrl = env("DIRECT_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum Currency {
@@ -39,25 +39,37 @@ enum Category {
   OTHER
 }
 
+enum RecurringPeriod {
+  WEEKLY
+  MONTHLY
+}
+
 enum ExpenseStatus {
   PENDING
   APPROVED
   REJECTED
 }
 
+enum RecurringTemplateType {
+  BUDGET
+  EXPENSE
+}
+
 model User {
-  id        String    @id
-  name      String?
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  status    String?
-  type      String?
-  lastLogin DateTime?
-  currency  Currency? @default(USD)
-  updatedAt DateTime  @updatedAt
-  Budget    Budget[]
-  Expense   Expense[]
+  id                String              @id
+  name              String?
+  email             String              @unique
+  password          String
+  createdAt         DateTime            @default(now())
+  status            String?
+  type              String?
+  lastRecurSync     DateTime?
+  lastLogin         DateTime?
+  currency          Currency?           @default(USD)
+  updatedAt         DateTime            @updatedAt
+  Budget            Budget[]
+  Expense           Expense[]
+  RecurringTemplate RecurringTemplate[]
 }
 
 model Expense {
@@ -93,15 +105,39 @@ model ExpenseItem {
 }
 
 model Budget {
-  id          String    @id
-  name        String?
-  userId      String?
-  amount      Float
-  currency    Currency? @default(USD)
-  category    Category  @default(OTHER)
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String    @id
+  name                String?
+  userId              String?
+  amount              Float
+  isRecurring         Boolean   @default(false)
+  recurringTemplateId String? // Only set when isRecurring = true
+  currency            Currency? @default(USD)
+  category            Category  @default(OTHER)
+  description         String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  user User? @relation(fields: [userId], references: [id])
+  user              User?              @relation(fields: [userId], references: [id])
+  recurringTemplate RecurringTemplate? @relation(fields: [recurringTemplateId], references: [id], onDelete: SetNull)
+}
+
+model RecurringTemplate {
+  id              String                @id
+  name            String?
+  userId          String?
+  type            RecurringTemplateType
+  amount          Float
+  isRecurring     Boolean               @default(true)
+  recurringPeriod RecurringPeriod? // Only set when recurring = true
+  startDate       DateTime              @default(now())
+  endDate         DateTime?
+  isActive        Boolean               @default(true)
+  currency        Currency?             @default(USD)
+  category        Category              @default(OTHER)
+  description     String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  user   User?    @relation(fields: [userId], references: [id])
+  Budget Budget[]
 }

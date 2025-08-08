@@ -14,7 +14,7 @@
     "format": "prettier --write 'src/**/*.{js,ts,json,md}'",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
     "db:deploy": "npx prisma migrate deploy",
-    "db:migration": "npx prisma migrate dev --create-only",
+    "db:migrate": "npx prisma migrate dev --create-only",
     "db:gen": "npx prisma generate",
     "prepare": "cd .. && husky install"
   },
