@@ -19,6 +19,8 @@ export function mapBudget(entity: BudgetEntity | null): BudgetModel | null {
     category: convertToFamilyType(entity.category, Category),
     userId: convertNullToUndefined(entity.userId),
     description: convertNullToUndefined(entity.description),
+    isRecurring: entity.isRecurring,
+    recurringTemplateId: convertNullToUndefined(entity.recurringTemplateId),
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
   });

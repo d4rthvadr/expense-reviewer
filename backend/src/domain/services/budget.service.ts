@@ -65,11 +65,14 @@ export class BudgetService {
 
     const budget: BudgetModel = await this.findByBudgetById(budgetId);
 
-    budget.name = data.name;
-    budget.description = data.description;
-    budget.currency = data.currency;
-    budget.category = data.category;
-    budget.amount = data.amount;
+    if (data.name !== undefined) budget.name = data.name;
+    if (data.description !== undefined) budget.description = data.description;
+    if (data.currency !== undefined) budget.currency = data.currency;
+    if (data.category !== undefined) budget.category = data.category;
+    if (data.amount !== undefined) budget.amount = data.amount;
+    if (data.isRecurring !== undefined) budget.isRecurring = data.isRecurring;
+    if (data.recurringTemplateId !== undefined)
+      budget.recurringTemplateId = data.recurringTemplateId;
 
     const updatedBudget = await this.#budgetRepository.save(budget);
 
@@ -115,6 +118,8 @@ export class BudgetService {
       category,
       currency,
       amount,
+      isRecurring,
+      recurringTemplateId,
       createdAt,
       updatedAt,
     }: BudgetModel = data;
@@ -125,6 +130,8 @@ export class BudgetService {
       category,
       currency,
       description,
+      isRecurring,
+      recurringTemplateId,
       createdAt,
       updatedAt,
     };
