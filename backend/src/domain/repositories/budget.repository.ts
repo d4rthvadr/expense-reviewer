@@ -93,6 +93,8 @@ export class BudgetRepository extends Database {
           category: data.category as unknown as Category, // TODO: Fix this
           currency: data.currency,
           userId: data.userId,
+          isRecurring: data.isRecurring,
+          recurringTemplateId: data.recurringTemplateId,
         },
         update: {
           name: data.name,
@@ -101,6 +103,8 @@ export class BudgetRepository extends Database {
           category: data.category as unknown as Category, // TODO: Fix this
           currency: data.currency,
           description: data.description,
+          isRecurring: data.isRecurring,
+          recurringTemplateId: data.recurringTemplateId,
         },
       });
 

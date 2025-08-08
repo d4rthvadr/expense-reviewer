@@ -8,4 +8,6 @@ export interface CreateBudgetDto {
   description?: string;
   category: Category;
   currency?: Currency;
+  isRecurring?: boolean;
+  recurringTemplateId?: string;
 }

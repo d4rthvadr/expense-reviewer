@@ -8,6 +8,8 @@ export interface BudgetResponseDto {
   currency?: Currency;
   description?: string;
   category: Category;
+  isRecurring: boolean;
+  recurringTemplateId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

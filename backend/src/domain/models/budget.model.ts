@@ -10,6 +10,8 @@ interface BudgetDataInput {
   category: Category;
   currency?: Currency;
   description?: string;
+  isRecurring?: boolean;
+  recurringTemplateId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,6 +24,8 @@ export class BudgetModel {
   #category: Category;
   #currency?: Currency;
   #description?: string;
+  #isRecurring: boolean;
+  #recurringTemplateId?: string;
   #createdAt: Date;
   #updatedAt: Date;
 
@@ -34,6 +38,8 @@ export class BudgetModel {
       description,
       category,
       currency = Currency.USD,
+      isRecurring = false,
+      recurringTemplateId,
       createdAt = new Date(),
       updatedAt = new Date(),
     } = data;
@@ -44,6 +50,8 @@ export class BudgetModel {
     this.#category = category;
     this.#currency = currency;
     this.#description = description;
+    this.#isRecurring = isRecurring;
+    this.#recurringTemplateId = recurringTemplateId;
     this.#createdAt = createdAt;
     this.#updatedAt = updatedAt;
   }
@@ -211,5 +219,43 @@ export class BudgetModel {
    */
   set updatedAt(value: Date) {
     this.#updatedAt = value;
+  }
+
+  /**
+   * Gets whether the budget is recurring.
+   *
+   * @returns {boolean} True if the budget is recurring, false otherwise.
+   */
+  get isRecurring(): boolean {
+    return this.#isRecurring;
+  }
+
+  /**
+   * Sets whether the budget is recurring.
+   *
+   * @param value - Boolean indicating if the budget is recurring.
+   */
+  set isRecurring(value: boolean) {
+    this.#isRecurring = value;
+    this.#updatedAt = new Date();
+  }
+
+  /**
+   * Gets the recurring template ID associated with the budget.
+   *
+   * @returns {string | undefined} The recurring template ID, or undefined if not set.
+   */
+  get recurringTemplateId(): string | undefined {
+    return this.#recurringTemplateId;
+  }
+
+  /**
+   * Sets the recurring template ID associated with the budget.
+   *
+   * @param value - The recurring template ID to associate with the budget.
+   */
+  set recurringTemplateId(value: string | undefined) {
+    this.#recurringTemplateId = value;
+    this.#updatedAt = new Date();
   }
 }

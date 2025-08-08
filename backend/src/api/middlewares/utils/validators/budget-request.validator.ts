@@ -35,6 +35,23 @@ export const createBudgetValidators = [
     .optional()
     .isString()
     .withMessage('Description must be a string'),
+  body('isRecurring')
+    .optional()
+    .isBoolean()
+    .withMessage('isRecurring must be a boolean'),
+  body('recurringTemplateId')
+    .optional()
+    .isString()
+    .withMessage('Recurring template ID must be a string')
+    .custom((value, { req }) => {
+      // If isRecurring is true, recurringTemplateId should be provided
+      if (req.body.isRecurring === true && !value) {
+        throw new Error(
+          'Recurring template ID is required when isRecurring is true'
+        );
+      }
+      return true;
+    }),
 ];
 
 export const updateBudgetValidators = [
