@@ -183,7 +183,7 @@ export class AnalyticsRepository {
         WITH budget_totals AS (
           SELECT 
             category,
-            SUM(amountUsd) as budget_amount_usd
+            SUM("amountUsd") as budget_amount_usd
           FROM "Budget" 
           WHERE "createdAt" >= $1 
             AND "createdAt" <= $2
@@ -192,7 +192,7 @@ export class AnalyticsRepository {
         expense_totals AS (
           SELECT 
             ei.category,
-            SUM(ei.amountUsd) as expense_amount_usd
+            SUM("amountUsd") as expense_amount_usd
           FROM "ExpenseItem" ei
           WHERE ei."createdAt" >= $1 
             AND ei."createdAt" <= $2
