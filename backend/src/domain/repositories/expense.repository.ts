@@ -23,6 +23,7 @@ export interface ExpenseItemEntity {
   id?: string;
   name: string;
   amount: number;
+  amountUsd: number;
   category: string;
   currency?: Currency | null;
   userId?: string | null;
@@ -38,6 +39,7 @@ const createExpenseItem = (item: ExpenseItemModel) => ({
   id: item.id,
   name: item.name,
   amount: item.amount,
+  amountUsd: item.amountUsd,
   category: item.category as unknown as Category,
   description: item.description,
   qty: item.qty,

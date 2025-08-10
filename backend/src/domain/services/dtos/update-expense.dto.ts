@@ -1,5 +1,5 @@
 import { ExpenseStatus } from '@domain/enum/expense-status.enum';
-import { ExpenseItem } from './create-expense.dto';
+import { ExpenseItemWithOutUsd } from './create-expense.dto';
 import { Currency } from '@domain/enum/currency.enum';
 
 export interface UpdateExpenseDto {
@@ -9,5 +9,5 @@ export interface UpdateExpenseDto {
   review?: string;
   status: ExpenseStatus;
   createdAt: string; // ISO 8601 date string
-  items: ExpenseItem[];
+  items: ExpenseItemWithOutUsd[];
 }
