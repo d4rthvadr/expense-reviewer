@@ -1,0 +1,73 @@
+name: 🗄️ Database Migration (Staging)
+
+on:
+  # Auto trigger on merge to main (only if migrations changed)
+  push:
+    branches: [main]
+    paths: ["backend/prisma/migrations/**"]
+
+  # Manual trigger option
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (validate only)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  migrate:
+    name: Run Prisma Migration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔒 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📥 Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🔍 Validate migrations (dry run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        working-directory: ./backend
+        run: |
+          echo "🔍 Checking migration status..."
+          npx prisma migrate status
+          echo "🔍 Validating schema changes..."
+          npx prisma migrate diff --from-url "$DIRECT_URL" --to-schema-datamodel prisma/schema.prisma
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+      - name: ▶️ Deploy migrations
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        working-directory: ./backend
+        run: |
+          echo "🚀 Deploying migrations to Supabase..."
+          npx prisma migrate deploy
+          echo "✅ Migrations deployed successfully"
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+      - name: 🔄 Generate Prisma client
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        working-directory: ./backend
+        run: |
+          echo "🔄 Regenerating Prisma client..."
+          npx prisma generate
+
+      - name: ✅ Verify database connection
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        working-directory: ./backend
+        run: |
+          echo "✅ Testing database connection..."
+          npx prisma db execute --command "SELECT COUNT(*) FROM \"User\";" --url "$DIRECT_URL"
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
