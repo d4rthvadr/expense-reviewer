@@ -65,14 +65,14 @@ export class BudgetService {
 
     const budget: BudgetModel = await this.findByBudgetById(budgetId);
 
-    if (data.name !== undefined) budget.name = data.name;
-    if (data.description !== undefined) budget.description = data.description;
-    if (data.currency !== undefined) budget.currency = data.currency;
-    if (data.category !== undefined) budget.category = data.category;
-    if (data.amount !== undefined) budget.amount = data.amount;
-    if (data.isRecurring !== undefined) budget.isRecurring = data.isRecurring;
-    if (data.recurringTemplateId !== undefined)
-      budget.recurringTemplateId = data.recurringTemplateId;
+    budget.name = data.name;
+    budget.description = data.description;
+    budget.currency = data.currency;
+    budget.category = data.category;
+    budget.amount = data.amount;
+    budget.isRecurring = data.isRecurring ?? budget.isRecurring;
+    budget.recurringTemplateId =
+      data.recurringTemplateId ?? budget.recurringTemplateId;
 
     const updatedBudget = await this.#budgetRepository.save(budget);
 
@@ -93,9 +93,7 @@ export class BudgetService {
 
   async delete(budgetId: string): Promise<void> {
     log.info(`Deleting budget with id: ${budgetId}`);
-
     const budget: BudgetModel = await this.findByBudgetById(budgetId);
-
     await this.#budgetRepository.delete(budget.id);
   }
 
