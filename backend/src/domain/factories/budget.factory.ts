@@ -6,6 +6,7 @@ interface BudgetCreateDataDto {
   name?: string;
   userId?: string;
   amount: number;
+  amountUsd: number;
   description?: string;
   category: Category;
   currency?: Currency;
@@ -17,11 +18,13 @@ export class BudgetFactory {
    * @returns A new BudgetModel instance.
    */
   static createBudget(data: BudgetCreateDataDto): BudgetModel {
-    const { name, category, amount, description, currency, userId } = data;
+    const { name, category, amount, amountUsd, description, currency, userId } =
+      data;
 
     return new BudgetModel({
       name,
       amount,
+      amountUsd,
       category,
       currency,
       description,

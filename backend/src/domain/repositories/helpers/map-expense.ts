@@ -17,6 +17,7 @@ const mapExpenseItem = (item: ExpenseItemEntity) => ({
     Currency
   ),
   amount: item.amount,
+  amountUsd: item.amountUsd,
   qty: convertNullToUndefined(item.qty),
 });
 

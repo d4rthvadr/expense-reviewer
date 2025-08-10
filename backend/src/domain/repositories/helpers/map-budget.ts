@@ -16,6 +16,7 @@ export function mapBudget(entity: BudgetEntity | null): BudgetModel | null {
     id: entity.id,
     name: convertNullToUndefined(entity.name),
     amount: entity.amount,
+    amountUsd: entity.amountUsd,
     category: convertToFamilyType(entity.category, Category),
     userId: convertNullToUndefined(entity.userId),
     description: convertNullToUndefined(entity.description),

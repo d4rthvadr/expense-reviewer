@@ -11,11 +11,22 @@ import { CreateBudgetDto } from './dtos/create-budget.dto';
 import { QueryParams } from './interfaces/query-params';
 import { PaginatedResultDto } from '@api/controllers/dtos/response/paginated-response.dto';
 import { buildFindQuery } from './utils';
+import {
+  currencyConversionService,
+  CurrencyConversionService,
+} from './currency-conversion.service';
+import { Currency } from '@domain/enum/currency.enum';
 
 export class BudgetService {
   #budgetRepository: BudgetRepository;
-  constructor(budgetRepository: BudgetRepository) {
+  #currencyConversionService: CurrencyConversionService;
+
+  constructor(
+    budgetRepository: BudgetRepository,
+    currencyConversionService: CurrencyConversionService
+  ) {
     this.#budgetRepository = budgetRepository;
+    this.#currencyConversionService = currencyConversionService;
   }
 
   async find(
@@ -48,7 +59,17 @@ export class BudgetService {
 
   async create(data: CreateBudgetDto): Promise<BudgetResponseDto> {
     log.info(`Creating budget with data: | meta: ${JSON.stringify({ data })}`);
-    const budgetModel = BudgetFactory.createBudget(data);
+    const conversionResult =
+      await this.#currencyConversionService.convertCurrency(
+        data.amount,
+        data.currency || Currency.USD,
+        Currency.USD
+      );
+
+    const budgetModel = BudgetFactory.createBudget({
+      ...data,
+      amountUsd: conversionResult.convertedAmount,
+    });
 
     const budget = await this.#budgetRepository.save(budgetModel);
 
@@ -136,4 +157,7 @@ export class BudgetService {
   }
 }
 
-export const budgetService = new BudgetService(budgetRepository);
+export const budgetService = new BudgetService(
+  budgetRepository,
+  currencyConversionService
+);
