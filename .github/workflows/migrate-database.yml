@@ -19,6 +19,7 @@ jobs:
   migrate:
     name: Run Prisma Migration
     runs-on: ubuntu-latest
+    environment: staging
 
     steps:
       - name: 🔒 Checkout code
