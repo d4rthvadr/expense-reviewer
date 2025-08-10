@@ -70,6 +70,68 @@ export class AnalyticsController {
       });
     }
   }
+
+  async getBudgetVsExpenses(req: Request, res: Response): Promise<void> {
+    try {
+      const { dateFrom, dateTo } = req.query as {
+        dateFrom?: string;
+        dateTo?: string;
+      };
+
+      if (!dateFrom || !dateTo) {
+        res.status(400).json({
+          success: false,
+          message: 'dateFrom and dateTo are required parameters',
+        });
+        return;
+      }
+
+      // Parse and validate dates
+      const parsedDateFrom = new Date(dateFrom);
+      const parsedDateTo = new Date(dateTo);
+
+      if (isNaN(parsedDateFrom.getTime()) || isNaN(parsedDateTo.getTime())) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid date format. Use YYYY-MM-DD format',
+        });
+        return;
+      }
+
+      if (parsedDateFrom > parsedDateTo) {
+        res.status(400).json({
+          success: false,
+          message: 'dateFrom must be before or equal to dateTo',
+        });
+        return;
+      }
+
+      const data = await analyticsService.getBudgetVsExpenses(
+        parsedDateFrom,
+        parsedDateTo
+      );
+
+      const response = {
+        success: true,
+        data,
+        message: `Budget vs expense comparison retrieved for ${data.length} categories`,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      log.error({
+        message: 'Error in budget vs expense controller',
+        error,
+        code: 'BUDGET_VS_EXPENSE_CONTROLLER_ERROR',
+      });
+
+      res.status(500).json({
+        success: false,
+        message:
+          'Internal server error while retrieving budget vs expense data',
+      });
+    }
+  }
 }
 
 export const analyticsController = new AnalyticsController();

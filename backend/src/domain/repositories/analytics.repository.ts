@@ -20,6 +20,15 @@ export interface BudgetData {
   createdAt: Date;
 }
 
+export interface BudgetVsExpenseData {
+  category: string;
+  budgetAmount: number;
+  expenseAmount: number;
+  utilizationPercentage: number;
+  remaining: number;
+  status: 'UNDER_BUDGET' | 'OVER_BUDGET' | 'ON_BUDGET' | 'NO_BUDGET';
+}
+
 export interface AnalyticsFilters {
   dateFrom: Date;
   dateTo: Date;
@@ -32,6 +41,12 @@ interface RawAnalyticsResult {
   period_date: Date;
   total_amount: number;
   expense_count: bigint; // PostgreSQL COUNT returns bigint
+}
+
+interface BudgetVsExpenseRawResult {
+  category: string;
+  budget_amount: number;
+  expense_amount: number;
 }
 
 export class AnalyticsRepository {
@@ -153,6 +168,59 @@ export class AnalyticsRepository {
         return d.format('YYYY-MM');
       default:
         return d.format('YYYY-MM-DD');
+    }
+  }
+
+  async getBudgetVsExpenseData(
+    dateFrom: Date,
+    dateTo: Date
+  ): Promise<BudgetVsExpenseRawResult[]> {
+    try {
+      log.info('Fetching budget vs expense comparison data');
+
+      const query = `
+        WITH budget_totals AS (
+          SELECT 
+            category,
+            SUM(amount) as budget_amount
+          FROM "Budget" 
+          WHERE "createdAt" >= $1 
+            AND "createdAt" <= $2
+          GROUP BY category
+        ),
+        expense_totals AS (
+          SELECT 
+            ei.category,
+            SUM(ei.amount) as expense_amount
+          FROM "ExpenseItem" ei
+          WHERE ei."createdAt" >= $1 
+            AND ei."createdAt" <= $2
+          GROUP BY ei.category
+        )
+        SELECT 
+          COALESCE(bt.category, et.category) as category,
+          COALESCE(bt.budget_amount, 0) as budget_amount,
+          COALESCE(et.expense_amount, 0) as expense_amount
+        FROM budget_totals bt
+        FULL OUTER JOIN expense_totals et ON bt.category = et.category
+        ORDER BY category;
+      `;
+
+      const results = await this.db.$queryRawUnsafe<BudgetVsExpenseRawResult[]>(
+        query,
+        dateFrom,
+        dateTo
+      );
+
+      log.info(`Retrieved ${results.length} budget vs expense comparisons`);
+      return results;
+    } catch (error) {
+      log.error({
+        message: 'Error fetching budget vs expense data',
+        error,
+        code: 'BUDGET_VS_EXPENSE_FETCH_ERROR',
+      });
+      throw error;
     }
   }
 

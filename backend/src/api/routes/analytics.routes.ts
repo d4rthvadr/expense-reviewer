@@ -118,4 +118,62 @@ router.get(
  */
 router.get('/budgets', analyticsController.getBudgets);
 
+/**
+ * @swagger
+ * /api/analytics/budget-vs-expenses:
+ *   get:
+ *     summary: Get budget vs expense comparison by category
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD)
+ *       - in: query
+ *         name: dateTo
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Budget vs expense comparison data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                       budgetAmount:
+ *                         type: number
+ *                       expenseAmount:
+ *                         type: number
+ *                       utilizationPercentage:
+ *                         type: number
+ *                       remaining:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                         enum: [UNDER_BUDGET, OVER_BUDGET, ON_BUDGET, NO_BUDGET]
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request - missing or invalid parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/budget-vs-expenses', analyticsController.getBudgetVsExpenses);
+
 export default router;
