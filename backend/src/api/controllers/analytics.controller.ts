@@ -73,9 +73,10 @@ export class AnalyticsController {
 
   async getBudgetVsExpenses(req: Request, res: Response): Promise<void> {
     try {
-      const { dateFrom, dateTo } = req.query as {
+      const { dateFrom, dateTo, userId } = req.query as {
         dateFrom?: string;
         dateTo?: string;
+        userId?: string;
       };
 
       if (!dateFrom || !dateTo) {
@@ -108,7 +109,8 @@ export class AnalyticsController {
 
       const data = await analyticsService.getBudgetVsExpenses(
         parsedDateFrom,
-        parsedDateTo
+        parsedDateTo,
+        userId
       );
 
       const response = {

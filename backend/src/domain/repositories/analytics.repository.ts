@@ -24,6 +24,7 @@ export interface BudgetVsExpenseData {
   category: string;
   budgetAmount: number;
   expenseAmount: number;
+  currency: Currency;
   utilizationPercentage: number;
   remaining: number;
   status: 'UNDER_BUDGET' | 'OVER_BUDGET' | 'ON_BUDGET' | 'NO_BUDGET';
@@ -45,8 +46,8 @@ interface RawAnalyticsResult {
 
 interface BudgetVsExpenseRawResult {
   category: string;
-  budget_amount: number;
-  expense_amount: number;
+  budget_amount_usd: number;
+  expense_amount_usd: number;
 }
 
 export class AnalyticsRepository {
@@ -176,13 +177,13 @@ export class AnalyticsRepository {
     dateTo: Date
   ): Promise<BudgetVsExpenseRawResult[]> {
     try {
-      log.info('Fetching budget vs expense comparison data');
+      log.info('Fetching budget vs expense comparison data using USD amounts');
 
       const query = `
         WITH budget_totals AS (
           SELECT 
             category,
-            SUM(amount) as budget_amount
+            SUM(amountUsd) as budget_amount_usd
           FROM "Budget" 
           WHERE "createdAt" >= $1 
             AND "createdAt" <= $2
@@ -191,7 +192,7 @@ export class AnalyticsRepository {
         expense_totals AS (
           SELECT 
             ei.category,
-            SUM(ei.amount) as expense_amount
+            SUM(ei.amountUsd) as expense_amount_usd
           FROM "ExpenseItem" ei
           WHERE ei."createdAt" >= $1 
             AND ei."createdAt" <= $2
@@ -199,8 +200,8 @@ export class AnalyticsRepository {
         )
         SELECT 
           COALESCE(bt.category, et.category) as category,
-          COALESCE(bt.budget_amount, 0) as budget_amount,
-          COALESCE(et.expense_amount, 0) as expense_amount
+          COALESCE(bt.budget_amount_usd, 0) as budget_amount_usd,
+          COALESCE(et.expense_amount_usd, 0) as expense_amount_usd
         FROM budget_totals bt
         FULL OUTER JOIN expense_totals et ON bt.category = et.category
         ORDER BY category;
@@ -212,7 +213,9 @@ export class AnalyticsRepository {
         dateTo
       );
 
-      log.info(`Retrieved ${results.length} budget vs expense comparisons`);
+      log.info(
+        `Retrieved ${results.length} budget vs expense comparisons using USD amounts`
+      );
       return results;
     } catch (error) {
       log.error({

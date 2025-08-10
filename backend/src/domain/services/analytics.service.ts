@@ -6,6 +6,8 @@ import {
   AnalyticsFilters,
   analyticsRepository,
 } from '@domain/repositories/analytics.repository';
+import { currencyConversionService } from '@domain/services/currency-conversion.service';
+import { Currency } from '@domain/enum/currency.enum';
 import { log } from '@infra/logger';
 
 export class AnalyticsService {
@@ -61,7 +63,8 @@ export class AnalyticsService {
 
   async getBudgetVsExpenses(
     dateFrom: Date,
-    dateTo: Date
+    dateTo: Date,
+    userId?: string
   ): Promise<BudgetVsExpenseData[]> {
     try {
       // Validate date range
@@ -80,41 +83,72 @@ export class AnalyticsService {
         `Fetching budget vs expense data from ${adjustedDateFrom.toISOString()} to ${adjustedDateTo.toISOString()}`
       );
 
+      // Get raw USD data from repository
       const rawData = await this.analyticsRepository.getBudgetVsExpenseData(
         adjustedDateFrom,
         adjustedDateTo
       );
 
-      // Transform raw data into formatted response
-      const data: BudgetVsExpenseData[] = rawData.map((item) => {
-        const budgetAmount = Number(item.budget_amount);
-        const expenseAmount = Number(item.expense_amount);
-        const remaining = budgetAmount - expenseAmount;
+      // Get user's preferred currency (default to USD)
+      const userCurrency = Currency.USD;
+      if (userId) {
+        // TODO: Fetch user and get their preferred currency
+        // const user = await this.userRepository.findById(userId);
+        // userCurrency = user?.currency || Currency.USD;
+      }
 
-        let utilizationPercentage = 0;
-        let status: BudgetVsExpenseData['status'] = 'NO_BUDGET';
+      // Transform raw USD data to user's preferred currency
+      const data: BudgetVsExpenseData[] = await Promise.all(
+        rawData.map(async (item) => {
+          const budgetAmountUsd = Number(item.budget_amount_usd);
+          const expenseAmountUsd = Number(item.expense_amount_usd);
 
-        if (budgetAmount > 0) {
-          utilizationPercentage = (expenseAmount / budgetAmount) * 100;
+          // Convert from USD to user's preferred currency
+          const budgetAmount = await currencyConversionService.convertCurrency(
+            budgetAmountUsd,
+            Currency.USD,
+            userCurrency
+          );
 
-          if (utilizationPercentage < 100) {
-            status = 'UNDER_BUDGET';
-          } else if (utilizationPercentage > 100) {
-            status = 'OVER_BUDGET';
-          } else {
-            status = 'ON_BUDGET';
+          const expenseAmount = await currencyConversionService.convertCurrency(
+            expenseAmountUsd,
+            Currency.USD,
+            userCurrency
+          );
+
+          const remaining =
+            budgetAmount.convertedAmount - expenseAmount.convertedAmount;
+
+          let utilizationPercentage = 0;
+          let status: BudgetVsExpenseData['status'] = 'NO_BUDGET';
+
+          if (budgetAmount.convertedAmount > 0) {
+            utilizationPercentage =
+              (expenseAmount.convertedAmount / budgetAmount.convertedAmount) *
+              100;
+
+            if (utilizationPercentage < 100) {
+              status = 'UNDER_BUDGET';
+            } else if (utilizationPercentage > 100) {
+              status = 'OVER_BUDGET';
+            } else {
+              status = 'ON_BUDGET';
+            }
           }
-        }
 
-        return {
-          category: item.category,
-          budgetAmount: Math.round(budgetAmount * 100) / 100,
-          expenseAmount: Math.round(expenseAmount * 100) / 100,
-          utilizationPercentage: Math.round(utilizationPercentage * 100) / 100,
-          remaining: Math.round(remaining * 100) / 100,
-          status,
-        };
-      });
+          return {
+            category: item.category,
+            budgetAmount: Math.round(budgetAmount.convertedAmount * 100) / 100,
+            expenseAmount:
+              Math.round(expenseAmount.convertedAmount * 100) / 100,
+            currency: userCurrency,
+            utilizationPercentage:
+              Math.round(utilizationPercentage * 100) / 100,
+            remaining: Math.round(remaining * 100) / 100,
+            status,
+          };
+        })
+      );
 
       // Sort by expense amount descending, then by category name
       const sortedData = data.sort((a, b) => {

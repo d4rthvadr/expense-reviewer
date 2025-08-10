@@ -122,7 +122,7 @@ router.get('/budgets', analyticsController.getBudgets);
  * @swagger
  * /api/analytics/budget-vs-expenses:
  *   get:
- *     summary: Get budget vs expense comparison by category
+ *     summary: Get budget vs expense comparison by category with currency conversion
  *     tags: [Analytics]
  *     parameters:
  *       - in: query
@@ -139,6 +139,11 @@ router.get('/budgets', analyticsController.getBudgets);
  *           type: string
  *           format: date
  *         description: End date (YYYY-MM-DD)
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Optional user ID to get amounts in user's preferred currency
  *     responses:
  *       200:
  *         description: Budget vs expense comparison data retrieved successfully
@@ -158,8 +163,14 @@ router.get('/budgets', analyticsController.getBudgets);
  *                         type: string
  *                       budgetAmount:
  *                         type: number
+ *                         description: Budget amount in user's preferred currency
  *                       expenseAmount:
  *                         type: number
+ *                         description: Expense amount in user's preferred currency
+ *                       currency:
+ *                         type: string
+ *                         enum: [USD, EUR, GHS]
+ *                         description: Currency of the amounts (user's preferred currency)
  *                       utilizationPercentage:
  *                         type: number
  *                       remaining:
