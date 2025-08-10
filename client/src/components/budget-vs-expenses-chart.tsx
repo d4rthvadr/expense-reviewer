@@ -27,7 +27,7 @@ const chartConfig = {
     color: "#10b981",
   },
   expenseAmount: {
-    label: "Expenses", 
+    label: "Expenses",
     color: "#3b82f6",
   },
   remaining: {
@@ -49,7 +49,7 @@ const getDefaultDateRange = () => {
   const today = new Date();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(today.getDate() - 30);
-  
+
   return {
     dateFrom: thirtyDaysAgo.toISOString().split("T")[0],
     dateTo: today.toISOString().split("T")[0],
@@ -74,18 +74,45 @@ interface StatusSummary {
   noBudget: number;
 }
 
-const StatusSummaryCards = ({ statusSummary }: { statusSummary: StatusSummary }) => {
+const StatusSummaryCards = ({
+  statusSummary,
+}: {
+  statusSummary: StatusSummary;
+}) => {
   const cards = [
-    { label: "Under Budget", count: statusSummary.underBudget, color: "bg-green-100 text-green-800", icon: "✓" },
-    { label: "On Budget", count: statusSummary.onBudget, color: "bg-yellow-100 text-yellow-800", icon: "=" },
-    { label: "Over Budget", count: statusSummary.overBudget, color: "bg-red-100 text-red-800", icon: "!" },
-    { label: "No Budget", count: statusSummary.noBudget, color: "bg-gray-100 text-gray-800", icon: "?" },
+    {
+      label: "Under Budget",
+      count: statusSummary.underBudget,
+      color: "bg-green-100 text-green-800",
+      icon: "✓",
+    },
+    {
+      label: "On Budget",
+      count: statusSummary.onBudget,
+      color: "bg-yellow-100 text-yellow-800",
+      icon: "=",
+    },
+    {
+      label: "Over Budget",
+      count: statusSummary.overBudget,
+      color: "bg-red-100 text-red-800",
+      icon: "!",
+    },
+    {
+      label: "No Budget",
+      count: statusSummary.noBudget,
+      color: "bg-gray-100 text-gray-800",
+      icon: "?",
+    },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
       {cards.map((card) => (
-        <div key={card.label} className={`${card.color} p-3 rounded-lg text-center`}>
+        <div
+          key={card.label}
+          className={`${card.color} p-3 rounded-lg text-center`}
+        >
           <div className="text-lg font-semibold">
             {card.icon} {card.count}
           </div>
@@ -111,9 +138,15 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     return (
       <div className="bg-white p-3 border rounded-lg shadow-lg">
         <p className="font-medium">{label}</p>
-        <p className="text-green-600">Total Budget: ${data.totalBudget.toFixed(2)}</p>
-        <p className="text-blue-600">Expenses: ${data.expenseAmount.toFixed(2)}</p>
-        <p className="text-gray-600">Remaining: ${data.remainingBudget.toFixed(2)}</p>
+        <p className="text-green-600">
+          Total Budget: ${data.totalBudget.toFixed(2)}
+        </p>
+        <p className="text-blue-600">
+          Expenses: ${data.expenseAmount.toFixed(2)}
+        </p>
+        <p className="text-gray-600">
+          Remaining: ${data.remainingBudget.toFixed(2)}
+        </p>
         <p className="text-sm text-gray-600">
           Utilization: {data.utilizationPercentage.toFixed(1)}%
         </p>
@@ -134,16 +167,16 @@ const BudgetVsExpensesChart = () => {
     return data.reduce(
       (acc, item) => {
         switch (item.status) {
-          case 'UNDER_BUDGET':
+          case "UNDER_BUDGET":
             acc.underBudget++;
             break;
-          case 'ON_BUDGET':
+          case "ON_BUDGET":
             acc.onBudget++;
             break;
-          case 'OVER_BUDGET':
+          case "OVER_BUDGET":
             acc.overBudget++;
             break;
-          case 'NO_BUDGET':
+          case "NO_BUDGET":
             acc.noBudget++;
             break;
         }
@@ -158,7 +191,7 @@ const BudgetVsExpensesChart = () => {
     setLoading(true);
     setError(null);
 
-    console.log('Fetching budget vs expense data for:', dateRange); // Debug log
+    console.log("Fetching budget vs expense data for:", dateRange); // Debug log
 
     try {
       const response = await getBudgetVsExpenseData(
@@ -166,20 +199,22 @@ const BudgetVsExpensesChart = () => {
         dateRange.dateTo
       );
 
-      console.log('API Response:', response); // Debug log
+      console.log("API Response:", response); // Debug log
 
       if (response.success && response.data) {
-        console.log('Setting data:', response.data); // Debug log
+        console.log("Setting data:", response.data); // Debug log
         setData(response.data);
       } else {
-        console.log('API Error:', response.error); // Debug log
+        console.log("API Error:", response.error); // Debug log
         setError(response.error || "Failed to load budget vs expense data");
         setData([]);
       }
     } catch (err) {
-      console.error('Fetch Error:', err); // Debug log
+      console.error("Fetch Error:", err); // Debug log
       setError(
-        err instanceof Error ? err.message : "Failed to load budget vs expense data"
+        err instanceof Error
+          ? err.message
+          : "Failed to load budget vs expense data"
       );
       setData([]);
     } finally {
@@ -195,9 +230,12 @@ const BudgetVsExpensesChart = () => {
   // Prepare chart data for stacked bars
   const chartData: ChartData[] = data.map((item) => {
     // For categories with no budget, we'll show only expenses
-    const remainingBudget = item.budgetAmount > 0 ? Math.max(0, item.budgetAmount - item.expenseAmount) : 0;
+    const remainingBudget =
+      item.budgetAmount > 0
+        ? Math.max(0, item.budgetAmount - item.expenseAmount)
+        : 0;
     const totalBudget = Math.max(item.budgetAmount, item.expenseAmount); // Show at least the expense amount
-    
+
     return {
       category: item.category,
       categoryLabel: formatCategoryName(item.category),
@@ -210,26 +248,26 @@ const BudgetVsExpensesChart = () => {
     };
   });
 
-  console.log('Chart data:', chartData); // Debug log
-  console.log('Raw data:', data); // Debug log
+  console.log("Chart data:", chartData); // Debug log
+  console.log("Raw data:", data); // Debug log
 
   const statusSummary = getStatusSummary(data);
 
   // Handle date changes
   const handleDateFromChange = (date: Date | undefined) => {
     if (date) {
-      setDateRange(prev => ({
+      setDateRange((prev) => ({
         ...prev,
-        dateFrom: date.toISOString().split("T")[0]
+        dateFrom: date.toISOString().split("T")[0],
       }));
     }
   };
 
   const handleDateToChange = (date: Date | undefined) => {
     if (date) {
-      setDateRange(prev => ({
+      setDateRange((prev) => ({
         ...prev,
-        dateTo: date.toISOString().split("T")[0]
+        dateTo: date.toISOString().split("T")[0],
       }));
     }
   };
@@ -316,7 +354,7 @@ const BudgetVsExpensesChart = () => {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h1 className="text-lg font-medium">Budget vs Expenses</h1>
-          
+
           <div className="flex flex-col sm:flex-row gap-2">
             <Popover>
               <PopoverTrigger asChild>
@@ -351,7 +389,7 @@ const BudgetVsExpensesChart = () => {
         </div>
 
         <StatusSummaryCards statusSummary={statusSummary} />
-        
+
         <ChartContent />
       </div>
     </ErrorBoundary>

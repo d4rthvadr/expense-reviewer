@@ -29,7 +29,7 @@ export interface BudgetVsExpenseData {
   currency: string;
   utilizationPercentage: number;
   remaining: number;
-  status: 'UNDER_BUDGET' | 'OVER_BUDGET' | 'ON_BUDGET' | 'NO_BUDGET';
+  status: "UNDER_BUDGET" | "OVER_BUDGET" | "ON_BUDGET" | "NO_BUDGET";
 }
 
 type AnalyticsResponse = {
@@ -139,7 +139,10 @@ export async function getBudgetVsExpenseData(
       dateTo,
     });
 
-    console.log("Fetching budget vs expense data with filters:", searchParams.toString());
+    console.log(
+      "Fetching budget vs expense data with filters:",
+      searchParams.toString()
+    );
 
     const response = await client.get<BudgetVsExpenseResponse>(
       `/analytics/budget-vs-expenses?${searchParams.toString()}`
