@@ -1,6 +1,7 @@
 import express from 'express';
 import { analyticsController } from '../controllers/analytics.controller';
 import {
+  getBudgetVsExpensesValidators,
   getExpensesOverTimeValidators,
   validateRequest,
 } from '../middlewares/utils/validators';
@@ -185,6 +186,11 @@ router.get('/budgets', analyticsController.getBudgets);
  *       500:
  *         description: Internal server error
  */
-router.get('/budget-vs-expenses', analyticsController.getBudgetVsExpenses);
+router.get(
+  '/budget-vs-expenses',
+  getBudgetVsExpensesValidators,
+  validateRequest,
+  analyticsController.getBudgetVsExpenses
+);
 
 export default router;

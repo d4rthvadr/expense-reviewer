@@ -21,3 +21,19 @@ export const getExpensesOverTimeValidators = [
 
   query('userId').optional().isString().withMessage('userId must be a string'),
 ];
+
+export const getBudgetVsExpensesValidators = [
+  query('dateFrom')
+    .notEmpty()
+    .withMessage('dateFrom is required')
+    .isISO8601()
+    .withMessage('dateFrom must be a valid ISO date string'),
+
+  query('dateTo')
+    .notEmpty()
+    .withMessage('dateTo is required')
+    .isISO8601()
+    .withMessage('dateTo must be a valid ISO date string'),
+
+  query('userId').optional().isString().withMessage('userId must be a string'),
+];
