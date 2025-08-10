@@ -1,6 +1,6 @@
 import { ExpenseRepository } from '@domain/repositories/expense.repository';
 import { log } from '@infra/logger';
-import { CreateExpenseDto } from './dtos/create-expense.dto';
+import { CreateExpenseDto, ExpenseItem } from './dtos/create-expense.dto';
 import { ExpenseFactory } from '@domain/factories/expense.factory';
 import { ExpenseResponseDto } from '../../api/controllers/dtos/response/expense-response.dto';
 import { ExpenseModel } from '@domain/models/expense.model';
@@ -16,6 +16,11 @@ import {
 import { addDays, startOfMonth } from 'date-fns';
 import { budgetService } from '@domain/services/budget.service';
 import { buildFindQuery } from './utils';
+import {
+  CurrencyConversionService,
+  currencyConversionService,
+} from '@domain/services/currency-conversion.service';
+import { Currency } from '@domain/enum/currency.enum';
 
 type ExpenseReviewPayload = ExpenseReviewJobData;
 
@@ -23,8 +28,14 @@ const DAYS_PASSED_TO_REVIEW = 3; // Number of days after which expenses should b
 
 class ExpenseService {
   #expenseRepository: ExpenseRepository;
-  constructor(expenseRepository: ExpenseRepository) {
+  #currencyConversionService: CurrencyConversionService;
+
+  constructor(
+    expenseRepository: ExpenseRepository,
+    currencyConversionService: CurrencyConversionService
+  ) {
     this.#expenseRepository = expenseRepository;
+    this.#currencyConversionService = currencyConversionService;
   }
 
   /**
@@ -96,7 +107,26 @@ class ExpenseService {
   async create(data: CreateExpenseDto): Promise<ExpenseResponseDto> {
     log.info(`Creating expense with data | meta: ${JSON.stringify(data)}`);
 
-    const expenseModel = ExpenseFactory.createExpense(data);
+    const convertedItemsInUsd = await Promise.all(
+      data.items.map(async (item) => {
+        const convertedItem =
+          await this.#currencyConversionService.convertCurrency(
+            item.amount,
+            item.currency,
+            Currency.USD
+          );
+
+        return {
+          ...item,
+          amountUsd: convertedItem.convertedAmount,
+        };
+      })
+    );
+
+    const expenseModel = ExpenseFactory.createExpense({
+      ...data,
+      items: convertedItemsInUsd,
+    });
 
     const createdExpense: ExpenseModel =
       await this.#expenseRepository.save(expenseModel);
@@ -127,6 +157,22 @@ class ExpenseService {
 
     const expense: ExpenseModel = await this.findById(expenseId);
 
+    const convertedItemsInUsd = await Promise.all(
+      data.items.map(async (item) => {
+        const convertedItem =
+          await this.#currencyConversionService.convertCurrency(
+            item.amount,
+            item.currency,
+            Currency.USD
+          );
+
+        return {
+          ...item,
+          amountUsd: convertedItem.convertedAmount,
+        };
+      })
+    );
+
     if (expense.status !== ExpenseStatus.PENDING) {
       log.error(`Expense status is not PENDING: ${expense.status}`);
       // TODO: Handle this case appropriately, e.g., throw an error or return a specific response
@@ -139,8 +185,7 @@ class ExpenseService {
     expense.type = data.type;
     expense.status = data.status;
     expense.createdAt = new Date(data.createdAt);
-    expense.items = data.items;
-
+    expense.items = convertedItemsInUsd; // Update items with converted amounts
     const updatedExpense: ExpenseModel =
       await this.#expenseRepository.save(expense);
 
@@ -342,5 +387,8 @@ class ExpenseService {
   }
 }
 
-const expenseService = new ExpenseService(new ExpenseRepository());
+const expenseService = new ExpenseService(
+  new ExpenseRepository(),
+  currencyConversionService
+);
 export { expenseService, ExpenseService };

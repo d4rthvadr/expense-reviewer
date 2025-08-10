@@ -10,6 +10,7 @@ export interface ExpenseItem {
   currency?: Currency;
   category: Category;
   amount: number;
+  amountUsd: number;
   userId?: string;
   qty?: number;
 }

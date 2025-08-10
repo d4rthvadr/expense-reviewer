@@ -9,6 +9,7 @@ interface ExpenseItemDataInput {
   category: Category;
   currency?: Currency;
   amount: number;
+  amountUsd: number;
   qty?: number;
 }
 
@@ -19,6 +20,7 @@ export class ExpenseItemModel {
   #category: Category;
   #currency?: Currency;
   #amount: number;
+  #amountUsd: number;
   #qty?: number;
 
   constructor(data: ExpenseItemDataInput) {
@@ -27,6 +29,7 @@ export class ExpenseItemModel {
       name,
       description,
       amount,
+      amountUsd,
       category,
       currency = Currency.USD,
       qty,
@@ -37,6 +40,7 @@ export class ExpenseItemModel {
     this.#category = category;
     this.#currency = currency;
     this.#amount = amount;
+    this.#amountUsd = amountUsd;
     this.#qty = qty;
   }
 
@@ -66,6 +70,14 @@ export class ExpenseItemModel {
 
   set amount(value: number) {
     this.#amount = value;
+  }
+
+  set amountUsd(value: number) {
+    this.#amountUsd = value;
+  }
+
+  get amountUsd(): number {
+    return this.#amountUsd;
   }
 
   get qty(): number | undefined {

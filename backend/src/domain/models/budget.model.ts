@@ -6,6 +6,7 @@ interface BudgetDataInput {
   id?: string;
   name?: string;
   amount: number;
+  amountUsd: number;
   userId?: string;
   category: Category;
   currency?: Currency;
@@ -20,6 +21,7 @@ export class BudgetModel {
   readonly #id: string;
   #name?: string;
   #amount: number;
+  #amountUsd: number;
   #userId?: string;
   #category: Category;
   #currency?: Currency;
@@ -34,6 +36,7 @@ export class BudgetModel {
       id = uuidv4(),
       name,
       amount,
+      amountUsd,
       userId,
       description,
       category,
@@ -46,6 +49,7 @@ export class BudgetModel {
     this.#id = id;
     this.#name = name;
     this.#amount = amount;
+    this.#amountUsd = amountUsd; // Use amountUsd if provided, otherwise fallback to amount
     this.#userId = userId;
     this.#category = category;
     this.#currency = currency;
@@ -105,6 +109,31 @@ export class BudgetModel {
       throw new Error('Budget amount cannot be negative');
     }
     this.#amount = value;
+  }
+
+  /**
+   * Gets the amount of the budget in USD.
+   *
+   * @returns {number} The amount of the budget in USD.
+   */
+  set amountUsd(value: number | undefined) {
+    if (!value) {
+      return;
+    }
+    if (value < 0) {
+      throw new Error('Budget amount in USD cannot be negative');
+    }
+    this.#amountUsd = value;
+    this.#updatedAt = new Date();
+  }
+
+  /**
+   * Gets the amount of the budget in USD.
+   *
+   * @returns {number} The amount of the budget in USD.
+   */
+  get amountUsd(): number {
+    return this.#amountUsd;
   }
 
   /**

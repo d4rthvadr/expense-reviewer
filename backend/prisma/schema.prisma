@@ -96,6 +96,7 @@ model ExpenseItem {
   qty         Int?
   category    Category  @default(OTHER)
   amount      Float
+  amountUsd   Float // Amount converted to USD at creation
   currency    Currency? @default(USD)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -109,6 +110,7 @@ model Budget {
   name                String?
   userId              String?
   amount              Float
+  amountUsd           Float // Amount converted to USD at creation
   isRecurring         Boolean   @default(false)
   recurringTemplateId String? // Only set when isRecurring = true
   currency            Currency? @default(USD)

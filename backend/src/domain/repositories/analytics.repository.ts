@@ -20,6 +20,16 @@ export interface BudgetData {
   createdAt: Date;
 }
 
+export interface BudgetVsExpenseData {
+  category: string;
+  budgetAmount: number;
+  expenseAmount: number;
+  currency: Currency;
+  utilizationPercentage: number;
+  remaining: number;
+  status: 'UNDER_BUDGET' | 'OVER_BUDGET' | 'ON_BUDGET' | 'NO_BUDGET';
+}
+
 export interface AnalyticsFilters {
   dateFrom: Date;
   dateTo: Date;
@@ -32,6 +42,12 @@ interface RawAnalyticsResult {
   period_date: Date;
   total_amount: number;
   expense_count: bigint; // PostgreSQL COUNT returns bigint
+}
+
+interface BudgetVsExpenseRawResult {
+  category: string;
+  budget_amount_usd: number;
+  expense_amount_usd: number;
 }
 
 export class AnalyticsRepository {
@@ -153,6 +169,61 @@ export class AnalyticsRepository {
         return d.format('YYYY-MM');
       default:
         return d.format('YYYY-MM-DD');
+    }
+  }
+
+  async getBudgetVsExpenseData(
+    dateFrom: Date,
+    dateTo: Date
+  ): Promise<BudgetVsExpenseRawResult[]> {
+    try {
+      log.info('Fetching budget vs expense comparison data using USD amounts');
+
+      const query = `
+        WITH budget_totals AS (
+          SELECT 
+            category,
+            SUM(amountUsd) as budget_amount_usd
+          FROM "Budget" 
+          WHERE "createdAt" >= $1 
+            AND "createdAt" <= $2
+          GROUP BY category
+        ),
+        expense_totals AS (
+          SELECT 
+            ei.category,
+            SUM(ei.amountUsd) as expense_amount_usd
+          FROM "ExpenseItem" ei
+          WHERE ei."createdAt" >= $1 
+            AND ei."createdAt" <= $2
+          GROUP BY ei.category
+        )
+        SELECT 
+          COALESCE(bt.category, et.category) as category,
+          COALESCE(bt.budget_amount_usd, 0) as budget_amount_usd,
+          COALESCE(et.expense_amount_usd, 0) as expense_amount_usd
+        FROM budget_totals bt
+        FULL OUTER JOIN expense_totals et ON bt.category = et.category
+        ORDER BY category;
+      `;
+
+      const results = await this.db.$queryRawUnsafe<BudgetVsExpenseRawResult[]>(
+        query,
+        dateFrom,
+        dateTo
+      );
+
+      log.info(
+        `Retrieved ${results.length} budget vs expense comparisons using USD amounts`
+      );
+      return results;
+    } catch (error) {
+      log.error({
+        message: 'Error fetching budget vs expense data',
+        error,
+        code: 'BUDGET_VS_EXPENSE_FETCH_ERROR',
+      });
+      throw error;
     }
   }
 

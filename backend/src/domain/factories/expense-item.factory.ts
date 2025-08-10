@@ -5,6 +5,7 @@ import { ExpenseItemModel } from '@domain/models/expense-item.model';
 interface ExpenseItemCreateDataDto {
   name: string;
   amount: number;
+  amountUsd: number;
   description?: string;
   category: Category;
   currency?: Currency;
@@ -17,13 +18,15 @@ export class ExpenseItemFactory {
    * @returns A new ExpenseModel instance.
    */
   static createExpenseItem(data: ExpenseItemCreateDataDto): ExpenseItemModel {
-    const { name, amount, description, category, currency, qty } = data;
+    const { name, amount, amountUsd, description, category, currency, qty } =
+      data;
 
     const user: ExpenseItemModel = new ExpenseItemModel({
       name,
       amount,
       qty,
       currency,
+      amountUsd,
       category,
       description,
     });
