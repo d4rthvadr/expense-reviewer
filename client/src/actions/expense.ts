@@ -79,7 +79,7 @@ export async function createExpense(
     );
 
     // Revalidate the expenses pages
-    revalidatePath("/expenses");
+    revalidatePath("/dashboard/expenses");
 
     return { success: true, data: response };
   } catch (error) {
@@ -102,7 +102,7 @@ export async function updateExpense(
       expense
     );
 
-    revalidatePath("/expenses");
+    revalidatePath("/dashboard/expenses");
 
     return { success: true, data: response };
   } catch (error) {
@@ -124,7 +124,7 @@ export async function deleteExpense(
     );
 
     // Revalidate the expenses pages
-    revalidatePath("/expenses");
+    revalidatePath("/dashboard/expenses");
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting expense:", error);
