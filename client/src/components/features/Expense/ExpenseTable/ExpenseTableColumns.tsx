@@ -2,32 +2,45 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
-import Link from "next/link";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
-import ExpenseStatusBadge from "../ExpenseStatusBadge";
-import { ExpenseItem, ExpenseStatus } from "@/constants/expense";
+import { ExpenseItem } from "@/constants/expense";
+import { useExpenseStore } from "@/stores/expenseStore";
+import { Currency } from "@/constants/currency.enum";
+import { Category } from "@/constants/category.enum";
+
+const EditButton = ({ expense }: { expense: ExpenseItem }) => {
+  const openEditSheet = useExpenseStore((state) => state.openEditSheet);
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => openEditSheet(expense)}
+      className="text-blue-500 hover:text-blue-700"
+    >
+      <Edit className="h-4 w-4 mr-1" />
+      <span>Edit</span>
+    </Button>
+  );
+};
 
 export type ExpenseColumns = {
-  id: string;
+  id?: string;
   name: string;
+  amount: number;
+  currency: Currency;
+  category: Category;
+  description?: string;
+  qty: number;
   createdAt: string;
-  totalAmount: number;
-  items: ExpenseItem[];
-  status?: ExpenseStatus | undefined;
-  type?: string;
-  currency: string;
 };
 
 export const columns: ColumnDef<ExpenseColumns>[] = [
   {
     accessorKey: "id",
     header: "ID",
-  },
-  {
-    accessorKey: "type",
-    header: "Type",
   },
   {
     accessorKey: "name",
@@ -44,27 +57,51 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
     },
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "description",
+    header: "Description",
     cell: ({ row }) => {
-      const { status } = row.original;
-      return <ExpenseStatusBadge status={status} />;
+      const description = row.original.description;
+      return description ? (
+        <span className="max-w-[200px] truncate" title={description}>
+          {description}
+        </span>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
     },
   },
   {
-    accessorKey: "totalAmount",
-    header: "Total Amount",
+    accessorKey: "category",
+    header: "Category",
     cell: ({ row }) => {
-      const { totalAmount = 0, currency = "USD" } = row.original;
-      return formatCurrency(totalAmount, currency);
+      const category = row.original.category;
+      return (
+        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+          {category
+            .replace(/_/g, " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+        </span>
+      );
     },
   },
   {
-    header: "Sub Items",
+    accessorKey: "qty",
+    header: "Quantity",
     cell: ({ row }) => {
-      return row.original.items.length || 0;
+      const { qty = 1 } = row.original;
+      return qty;
     },
   },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    cell: ({ row }) => {
+      const { amount = 0, currency = "USD" } = row.original;
+      return formatCurrency(amount, currency);
+    },
+  },
+
   {
     accessorKey: "createdAt",
     header: "Created On",
@@ -72,13 +109,6 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
   {
     id: "edit",
     header: "Edit",
-    cell: ({ row }) => (
-      <Link href={`/dashboard/expenses/${row.original.id}`}>
-        <span className="text-blue-500 hover:underline flex items-center space-x-1">
-          <Edit className="h-4 w-4" />
-          <span>Edit</span>
-        </span>
-      </Link>
-    ),
+    cell: ({ row }) => <EditButton expense={row.original} />,
   },
 ];

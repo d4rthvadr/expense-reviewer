@@ -5,9 +5,10 @@ import { Edit } from "lucide-react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
-import { Category, Budget } from "@/constants/budget";
+import { Budget } from "@/constants/budget";
 import { useBudgetStore } from "@/stores/budgetStore";
 import { Currency } from "@/constants/currency.enum";
+import { Category } from "@/constants/category.enum";
 
 // Edit button component that can use hooks
 const EditButton = ({ budget }: { budget: Budget }) => {

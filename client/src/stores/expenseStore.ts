@@ -4,24 +4,31 @@ import {
   updateExpense,
 } from "@/actions/expense";
 import { normalizeExpense } from "@/components/features/Expense/expense.utils";
-import { Expense } from "@/constants/expense";
+import { ExpenseItem } from "@/constants/expense";
 import { create } from "zustand";
 import { toast } from "sonner";
 
 type ExpenseActions = {
   getExpenseById: (expenseId: string) => Promise<void>;
-  createExpense: (expense: Expense, callback?: () => void) => void;
+  createExpense: (expense: ExpenseItem, callback?: () => void) => void;
   updateExpense: (
-    expense: Expense,
+    expense: ExpenseItem,
     expenseId: string,
     callback?: () => void
   ) => Promise<void>;
+
+  // logic for handling sheet state
+  openEditSheet: (expense: ExpenseItem | null) => void;
+  closeEditSheet: () => void;
 };
 
 export type ExpenseState = {
-  expense: Expense | null;
+  expense: ExpenseItem | null;
   isSubmitting?: boolean;
   isLoading?: boolean;
+  // expense state
+  selectedExpense: ExpenseItem | null;
+  isEditSheetOpen: boolean;
 };
 
 export type ExpenseStore = ExpenseState & ExpenseActions;
@@ -34,6 +41,7 @@ const defaultExpenseState = {
 
 export const useExpenseStore = create<ExpenseStore>()((set) => ({
   expense: defaultExpenseState.expense,
+  selectedExpense: null,
 
   getExpenseById: async (expenseId: string) => {
     set(() => ({ isLoading: true }));
@@ -49,10 +57,12 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
       set(() => ({ isLoading: false }));
     }
   },
-  createExpense: async (expense: Expense, callback?: () => void) => {
+  createExpense: async (expense: ExpenseItem, callback?: () => void) => {
     set(() => ({ isSubmitting: true }));
 
     const { data, success } = await createExpense(expense);
+
+    console.log("Create expense response:", { data, success });
 
     if (!success) {
       // Handle error case
@@ -73,7 +83,7 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
   },
 
   updateExpense: async (
-    expense: Expense,
+    expense: ExpenseItem,
     expenseId: string,
     callback?: () => void
   ) => {
@@ -97,4 +107,10 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
 
     set(() => ({ expense: data, isSubmitting: false }));
   },
+
+  // logic for handling sheet state
+  isEditSheetOpen: false,
+  openEditSheet: (expense: ExpenseItem | null) =>
+    set({ selectedExpense: expense, isEditSheetOpen: true }),
+  closeEditSheet: () => set({ selectedExpense: null, isEditSheetOpen: false }),
 }));

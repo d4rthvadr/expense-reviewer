@@ -22,12 +22,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Budget, Category, CategoryValues } from "@/constants/budget";
+import { Budget, CategoryValues } from "@/constants/budget";
 import SelectComponent from "@/components/form/SelectComponent";
 import { Currency } from "@/constants/currency.enum";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { createBudget, updateBudget } from "@/actions/budget";
+import { Category } from "@/constants/category.enum";
 
 // Schema
 const formSchema = z.object({
