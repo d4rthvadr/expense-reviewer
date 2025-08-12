@@ -8,7 +8,7 @@ export const normalizeExpense = (
   return {
     id: expense.id,
     name: expense.name,
-    description: expense.description,
+    description: expense.description ?? expense.description,
     category: expense.category,
     currency: expense.currency || Currency.USD,
     amount: expense.amount || 0,
