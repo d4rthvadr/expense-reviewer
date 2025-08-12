@@ -70,6 +70,7 @@ model User {
   Budget            Budget[]
   Expense           Expense[]
   RecurringTemplate RecurringTemplate[]
+  ExpenseItem       ExpenseItem[]
 }
 
 model Expense {
@@ -85,8 +86,6 @@ model Expense {
   updatedAt    DateTime      @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  expenseItem ExpenseItem[]
 }
 
 model ExpenseItem {
@@ -95,14 +94,13 @@ model ExpenseItem {
   description String?
   qty         Int?
   category    Category  @default(OTHER)
+  userId      String?
   amount      Float
   amountUsd   Float // Amount converted to USD at creation
   currency    Currency? @default(USD)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  expenseId String
-  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 model Budget {
