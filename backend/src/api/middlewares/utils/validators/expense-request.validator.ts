@@ -1,6 +1,5 @@
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
-import { ExpenseStatus } from '@domain/enum/expense-status.enum';
 import { body, param } from 'express-validator';
 
 export const createExpenseValidators = [
@@ -9,67 +8,34 @@ export const createExpenseValidators = [
     .withMessage('Name must be a string')
     .notEmpty()
     .withMessage('Name is required'),
-  body('type')
-    .isString()
-    .withMessage('Type must be a string')
-    .notEmpty()
-    .withMessage('Type is required'),
-  body('status')
-    .isIn(Object.values(ExpenseStatus))
-    .withMessage(
-      `Status must be one of the following: (${Object.values(ExpenseStatus).join(', ')})`
-    )
-    .notEmpty()
-    .withMessage('Status is required'),
-  body('currency')
-    .optional()
-    .isIn(Object.values(Currency))
-    .withMessage(
-      `Currency must be a valid currency. (${Object.values(Currency).join(', ')})`
-    )
-    .notEmpty()
-    .withMessage('Currency is required'),
-  body('createdAt')
-    .isISO8601()
-    .withMessage('CreatedAt must be a valid ISO 8601 date string')
-    .notEmpty()
-    .withMessage('CreatedAt is required'),
-  body('items')
-    .isArray()
-    .withMessage('Items must be an array')
-    .notEmpty()
-    .withMessage('At least one item is required'),
-  body('items.*.name')
-    .isString()
-    .withMessage('Item name must be a string')
-    .notEmpty()
-    .withMessage('Item name is required'),
-  body('items.*.amount')
+  body('amount')
     .isNumeric()
-    .withMessage('Item amount must be a number')
+    .withMessage('Amount must be a number')
     .notEmpty()
-    .withMessage('Item amount is required'),
-  body('items.*.category')
+    .withMessage('Amount is required'),
+  body('category')
     .isIn(Object.values(Category))
     .withMessage(
       `Category must be a valid category (${Object.values(Category).join(', ')})`
     )
     .notEmpty()
-    .withMessage('Item category is required'),
-  body('items.*.currency')
-    .optional()
+    .withMessage('Category is required'),
+  body('currency')
     .isIn(Object.values(Currency))
     .withMessage(
-      `Item currency must be one of the following: (${Object.values(Currency).join(', ')})`
+      `Currency must be one of the following: (${Object.values(Currency).join(', ')})`
     ),
-  body('items.*.qty')
-    .optional()
-    .isNumeric()
-    .withMessage('Item quantity must be a number'),
-  body('items.*.description')
+  body('qty').optional().isNumeric().withMessage('Quantity must be a number'),
+  body('description')
     .optional()
     .isString()
-    .withMessage('Item description must be a string'),
+    .withMessage('Description must be a string'),
+  body('createdAt')
+    .optional()
+    .isISO8601()
+    .withMessage('CreatedAt must be a valid ISO 8601 date string')
+    .notEmpty()
+    .withMessage('CreatedAt is required'),
 ];
 
 export const updateExpenseValidators = [

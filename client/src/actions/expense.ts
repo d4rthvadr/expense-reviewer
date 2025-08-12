@@ -1,6 +1,6 @@
 "use server";
 
-import { Expense } from "@/constants/expense";
+import { ExpenseItem } from "@/constants/expense";
 import { client } from "@/data/client";
 import { revalidatePath } from "next/cache";
 
@@ -9,14 +9,14 @@ type ResponseWithError = {
 };
 
 type TExpenseListResponse = {
-  data: Expense[];
+  data: ExpenseItem[];
   total?: number;
   limit?: number;
   offset?: number;
 } & ResponseWithError;
 
 type TExpenseResponse = {
-  data: Expense | null;
+  data: ExpenseItem | null;
   success: boolean;
 } & ResponseWithError;
 
@@ -70,7 +70,7 @@ export async function getExpensesById(id: string): Promise<TExpenseResponse> {
  *
  */
 export async function createExpense(
-  expense: Expense
+  expense: ExpenseItem
 ): Promise<TExpenseResponse> {
   try {
     const response = await client.post<TExpenseResponse["data"]>(
@@ -80,9 +80,6 @@ export async function createExpense(
 
     // Revalidate the expenses pages
     revalidatePath("/expenses");
-    if (response?.id) {
-      revalidatePath(`/expenses/${response.id}`, "page");
-    }
 
     return { success: true, data: response };
   } catch (error) {
@@ -96,7 +93,7 @@ export async function createExpense(
 }
 
 export async function updateExpense(
-  expense: Expense,
+  expense: ExpenseItem,
   expenseId: string
 ): Promise<TExpenseResponse> {
   try {
@@ -105,9 +102,7 @@ export async function updateExpense(
       expense
     );
 
-    // Revalidate the expenses pages
     revalidatePath("/expenses");
-    revalidatePath(`/expenses/${expenseId}`, "page");
 
     return { success: true, data: response };
   } catch (error) {

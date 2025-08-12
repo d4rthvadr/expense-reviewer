@@ -5,10 +5,8 @@ import {
 } from '../../../generated/prisma';
 import { log } from '@infra/logger';
 import { mapExpense } from './helpers/map-expense';
-import { ExpenseItemFactory } from '@domain/factories/expense-item.factory';
 import { ExpenseItemModel } from '@domain/models/expense-item.model';
 import { Database } from '@infra/db/database';
-import { ExpenseModel } from '@domain/models/expense.model';
 
 interface ListExpenseDto {
   filters: Record<string, unknown>;
@@ -29,36 +27,26 @@ export interface ExpenseItemEntity {
   userId?: string | null;
   description?: string | null;
   qty?: number | null;
+  createdAt: Date;
 }
 
 export interface ExpenseEntityFull extends ExpenseEntity {
   expenseItem: ExpenseItemEntity[];
 }
 
-const createExpenseItem = (item: ExpenseItemModel) => ({
-  id: item.id,
-  name: item.name,
-  amount: item.amount,
-  amountUsd: item.amountUsd,
-  category: item.category as unknown as Category,
-  description: item.description,
-  qty: item.qty,
-});
 export class ExpenseRepository extends Database {
   constructor() {
     super();
   }
 
-  async findById(expenseId: string): Promise<ExpenseModel | null> {
+  async findById(expenseId: string): Promise<ExpenseItemModel | null> {
     try {
-      const expense: ExpenseEntityFull | null = await this.expense.findFirst({
-        where: {
-          id: expenseId,
-        },
-        include: {
-          expenseItem: true,
-        },
-      });
+      const expense: ExpenseItemEntity | null =
+        await this.expenseItem.findFirst({
+          where: {
+            id: expenseId,
+          },
+        });
 
       return mapExpense(expense);
     } catch (error) {
@@ -74,20 +62,17 @@ export class ExpenseRepository extends Database {
 
   async find(
     data: ListExpenseDto
-  ): Promise<{ data: ExpenseModel[]; total: number }> {
+  ): Promise<{ data: ExpenseItemModel[]; total: number }> {
     log.info(`Finding expenses with filters: ${JSON.stringify(data)}`);
     const { filters, limit, offset } = data;
 
     try {
-      const [records, total]: [ExpenseEntityFull[], number] =
+      const [records, total]: [ExpenseItemEntity[], number] =
         await this.$transaction([
-          this.expense.findMany({
+          this.expenseItem.findMany({
             where: filters,
             take: limit,
             skip: offset * limit,
-            include: {
-              expenseItem: true,
-            },
             orderBy: {
               [data.sort.sortBy]: data.sort.sortDir,
             },
@@ -99,7 +84,7 @@ export class ExpenseRepository extends Database {
           }),
         ]);
 
-      const expenses = records.map((expense: ExpenseEntityFull) =>
+      const expenses = records.map((expense: ExpenseItemEntity) =>
         mapExpense(expense)
       );
 
@@ -118,54 +103,32 @@ export class ExpenseRepository extends Database {
     }
   }
 
-  async save(data: ExpenseModel): Promise<ExpenseModel> {
+  async save(data: ExpenseItemModel): Promise<ExpenseItemModel> {
     try {
-      const expense: ExpenseEntityFull = await this.expense.upsert({
+      const expense: ExpenseItemEntity = await this.expenseItem.upsert({
         where: {
           id: data.id,
         },
         create: {
           id: data.id,
-          name: data.name!, // TODO: Fix this
-          type: data.type,
-          total_amount: 0,
+          name: data.name!,
+          amount: data.amount,
+          amountUsd: data.amountUsd,
+          category: data.category as unknown as Category,
+          description: data.description,
+          qty: data.qty,
           currency: data.currency,
-          userId: data.userId,
-          status: data.status,
-          review: data.review,
           createdAt: data.createdAt,
-          expenseItem: {
-            createMany: {
-              data: data.items.map((item) =>
-                createExpenseItem(ExpenseItemFactory.createExpenseItem(item))
-              ),
-              skipDuplicates: true,
-            },
-          },
         },
         update: {
           name: data.name,
-          type: data.type,
-          total_amount: 0,
+          amount: data.amount,
+          amountUsd: data.amountUsd,
+          category: data.category as unknown as Category,
+          description: data.description,
+          qty: data.qty,
           currency: data.currency,
-          userId: data.userId,
-          status: data.status,
-          review: data.review,
           createdAt: data.createdAt,
-          expenseItem: {
-            deleteMany: {
-              expenseId: data.id,
-            },
-            createMany: {
-              data: data.items.map((item) =>
-                createExpenseItem(ExpenseItemFactory.createExpenseItem(item))
-              ),
-              skipDuplicates: true,
-            },
-          },
-        },
-        include: {
-          expenseItem: true, // Ensure expenseItem is included in the result
         },
       });
 
@@ -181,14 +144,11 @@ export class ExpenseRepository extends Database {
     }
   }
 
-  async delete(id: string): Promise<ExpenseModel | null> {
+  async delete(id: string): Promise<ExpenseItemModel | null> {
     try {
-      const deletedExpense = await this.expense.delete({
+      const deletedExpense = await this.expenseItem.delete({
         where: {
           id,
-        },
-        include: {
-          expenseItem: true, // Ensure expenseItem is included in the result
         },
       });
 
