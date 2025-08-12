@@ -10,17 +10,21 @@ interface ExpenseItemDataInput {
   currency?: Currency;
   amount: number;
   amountUsd: number;
+  userId?: string;
   qty?: number;
+  createdAt?: Date;
 }
 
 export class ExpenseItemModel {
   readonly #id: string;
   #name: string;
   #description?: string;
+  #userId?: string;
   #category: Category;
   #currency?: Currency;
   #amount: number;
   #amountUsd: number;
+  #createdAt: Date;
   #qty?: number;
 
   constructor(data: ExpenseItemDataInput) {
@@ -32,6 +36,8 @@ export class ExpenseItemModel {
       amountUsd,
       category,
       currency = Currency.USD,
+      userId,
+      createdAt = new Date(),
       qty,
     } = data;
     this.#id = id;
@@ -41,18 +47,23 @@ export class ExpenseItemModel {
     this.#currency = currency;
     this.#amount = amount;
     this.#amountUsd = amountUsd;
+    this.#userId = userId;
     this.#qty = qty;
+    this.#createdAt = createdAt;
   }
 
   get id(): string {
     return this.#id;
   }
 
-  get name(): string {
+  get name(): string | undefined {
     return this.#name;
   }
 
-  set name(value: string) {
+  set name(value: string | undefined) {
+    if (!value) {
+      return;
+    }
     this.#name = value;
   }
 
@@ -100,5 +111,28 @@ export class ExpenseItemModel {
   }
   set category(value: Category) {
     this.#category = value;
+  }
+
+  get userId(): string | undefined {
+    return this.#userId;
+  }
+
+  set userId(value: string | undefined) {
+    if (value) {
+      this.#userId = value;
+    }
+  }
+
+  /**
+   * Gets the creation date of the expense item.
+   *
+   * @returns {Date} The date and time when the expense item was created.
+   */
+  get createdAt(): Date {
+    return this.#createdAt;
+  }
+
+  set createdAt(value: Date) {
+    this.#createdAt = value;
   }
 }

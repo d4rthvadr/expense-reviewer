@@ -12,7 +12,8 @@ export interface ExpenseItem {
   amount: number;
   amountUsd: number;
   userId?: string;
-  qty?: number;
+  createdAt: Date;
+  qty: number;
 }
 
 interface ExpenseDataInput {
