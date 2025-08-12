@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import { clerkMiddleware } from '@clerk/express';
 import {
   agentRoutes,
   budgetRoutes,
@@ -19,16 +20,27 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Api routes
+app.use(clerkMiddleware()); // Apply Clerk middleware globally
+
+// Root route for health check
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    message: 'Expense Tracker API is running',
+    version: '1.0.0',
+  });
+});
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Protected API routes - requireAuth() ensures user is authenticated
+
 app.use('/api/agents', agentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/recurring-templates', recurringTemplateRoutes);
-
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);
