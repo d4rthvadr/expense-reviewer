@@ -1,7 +1,7 @@
 import TotalExpensesChart from "@/components/total-expenses-chart";
-import AppPieChart from "@/components/apppie-chart";
 import React from "react";
 import BudgetOverviewChart from "@/components/budget-overview-chart";
+import BudgetVsExpensesChart from "@/components/budget-vs-expenses-chart";
 
 export default function Dashboard() {
   return (
@@ -13,11 +13,12 @@ export default function Dashboard() {
           <div className="bg-primary-foreground p-4 rounded-lg lg:col-span-2 xl:col-span-1 2xl:col-span-1">
             <TotalExpensesChart />
           </div>
-          <div className="bg-primary-foreground p-4 rounded-lg">
-            <AppPieChart />
-          </div>
+
           <div className="bg-primary-foreground p-4 rounded-lg">
             <BudgetOverviewChart />
+          </div>
+          <div className="bg-primary-foreground p-4 rounded-lg ">
+            <BudgetVsExpensesChart />
           </div>
         </div>
       </main>

@@ -22,6 +22,16 @@ export interface BudgetData {
   createdAt: string;
 }
 
+export interface BudgetVsExpenseData {
+  category: string;
+  budgetAmount: number;
+  expenseAmount: number;
+  currency: string;
+  utilizationPercentage: number;
+  remaining: number;
+  status: "UNDER_BUDGET" | "OVER_BUDGET" | "ON_BUDGET" | "NO_BUDGET";
+}
+
 type AnalyticsResponse = {
   success: boolean;
   data: ExpenseAnalyticsData[];
@@ -31,6 +41,12 @@ type AnalyticsResponse = {
 type BudgetResponse = {
   success: boolean;
   data: BudgetData[];
+  message: string;
+} & { error?: string };
+
+type BudgetVsExpenseResponse = {
+  success: boolean;
+  data: BudgetVsExpenseData[];
   message: string;
 } & { error?: string };
 
@@ -101,6 +117,44 @@ export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
       success: false,
       data: [],
       message: "Failed to fetch budget data",
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Fetches budget vs expense comparison data from the server.
+ *
+ * @param dateFrom - Start date in YYYY-MM-DD format
+ * @param dateTo - End date in YYYY-MM-DD format
+ * @returns {Promise<BudgetVsExpenseResponse>} A promise that resolves to budget vs expense data and any error information.
+ */
+export async function getBudgetVsExpenseData(
+  dateFrom: string,
+  dateTo: string
+): Promise<BudgetVsExpenseResponse> {
+  try {
+    const searchParams = new URLSearchParams({
+      dateFrom,
+      dateTo,
+    });
+
+    console.log(
+      "Fetching budget vs expense data with filters:",
+      searchParams.toString()
+    );
+
+    const response = await client.get<BudgetVsExpenseResponse>(
+      `/analytics/budget-vs-expenses?${searchParams.toString()}`
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching budget vs expense data:", error);
+    return {
+      success: false,
+      data: [],
+      message: "Failed to fetch budget vs expense data",
       error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
