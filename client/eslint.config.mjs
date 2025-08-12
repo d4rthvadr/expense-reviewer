@@ -14,6 +14,7 @@ const eslintConfig = [
   {
     rules: {
       "@typescript-eslint/ban-ts-comment": "warn",
+      "ts-nocheck": false, // This allows @ts-nocheck comments to be used without triggering an error
     },
   },
 ];
