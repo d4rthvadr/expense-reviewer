@@ -13,8 +13,15 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "ts-nocheck": false, // This allows @ts-nocheck comments to be used without triggering an error
+      "@typescript-eslint/ban-ts-comment": [
+        "warn",
+        {
+          "ts-ignore": "allow-with-description",
+          "ts-expect-error": "allow-with-description",
+          "ts-nocheck": false, // Allow @ts-nocheck comments
+          "ts-check": false,
+        },
+      ],
     },
   },
 ];

@@ -20,7 +20,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(clerkMiddleware()); // Apply Clerk middleware globally
+// Apply Clerk middleware globally
+app.use(clerkMiddleware());
 
 // Root route for health check
 app.get('/', (req: Request, res: Response) => {
