@@ -25,13 +25,10 @@ export class ExpenseController {
     req: RequestQueryType<PaginatedInputDto<FindFilters>>,
     res: Response
   ) => {
-    const query = parseQueryOptions(req);
+    const parsedQuery = parseQueryOptions(req);
 
     const expenseListResult = await this.#expenseService.find({
-      ...query,
-      filters: {
-        ...query.filters,
-      },
+      ...parsedQuery,
     });
 
     res.status(200).json(expenseListResult);
