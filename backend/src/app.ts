@@ -9,6 +9,7 @@ import {
   userRoutes,
   analyticsRoutes,
   recurringTemplateRoutes,
+  webhookRoutes,
 } from './api/routes';
 import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
@@ -33,6 +34,9 @@ app.get('/', (req: Request, res: Response) => {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Webhook routes (unprotected, before Clerk middleware)
+app.use('/api/webhooks', webhookRoutes);
 
 // Protected API routes - requireAuth() ensures user is authenticated
 app.use('/api/agents', agentRoutes);

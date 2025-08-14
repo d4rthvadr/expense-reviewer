@@ -14,7 +14,7 @@ interface UserDataInput {
 }
 
 export class UserModel {
-  readonly #id: string;
+  #id: string;
   #name?: string;
   #email: string;
   #status?: UserStatus;
@@ -51,6 +51,15 @@ export class UserModel {
    */
   get id(): string {
     return this.#id;
+  }
+
+  /**
+   * Sets the unique identifier for the user.
+   *
+   * @param value - The unique ID to be assigned to the user.
+   */
+  set id(value: string) {
+    this.#id = value;
   }
 
   /**

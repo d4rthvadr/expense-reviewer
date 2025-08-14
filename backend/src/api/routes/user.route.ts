@@ -54,7 +54,8 @@ const route = Express.Router();
 
 // /api/users/id
 route.get('/:id', asyncHandler(userController.findOne));
-// /api/users
+
+// /api/users (regular user creation)
 route.post(
   '/',
   createUserRequestValidator,
