@@ -1,19 +1,17 @@
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
-import { ExpenseItemModel } from '@domain/models/expense-item.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 
 interface ExpenseCreateDataDto {
-  items: {
-    name: string;
-    description?: string;
-    currency?: Currency;
-    category: Category;
-    amount: number;
-    amountUsd: number;
-    userId?: string;
-    qty?: number;
-    createdAt?: string;
-  };
+  name: string;
+  description?: string;
+  currency?: Currency;
+  category: Category;
+  amount: number;
+  amountUsd: number;
+  userId?: string;
+  qty?: number;
+  createdAt?: string;
 }
 export class ExpenseFactory {
   /**
@@ -22,10 +20,10 @@ export class ExpenseFactory {
    * @returns A new UserModel instance.
    */
   static createExpense(
-    data: ExpenseCreateDataDto['items'],
+    data: ExpenseCreateDataDto,
     userId?: string
-  ): ExpenseItemModel {
-    const expense = new ExpenseItemModel({
+  ): ExpenseModel {
+    const expense = new ExpenseModel({
       ...data,
       qty: data?.qty ?? 1,
       createdAt:

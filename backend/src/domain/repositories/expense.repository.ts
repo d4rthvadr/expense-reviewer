@@ -1,11 +1,7 @@
-import {
-  Category,
-  Currency,
-  Expense as ExpenseEntity,
-} from '../../../generated/prisma';
+import { Category, Currency } from '../../../generated/prisma';
 import { log } from '@infra/logger';
 import { mapExpense } from './helpers/map-expense';
-import { ExpenseItemModel } from '@domain/models/expense-item.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 import { Database } from '@infra/db/database';
 
 interface ListExpenseDto {
@@ -17,7 +13,7 @@ interface ListExpenseDto {
   limit: number;
   offset: number;
 }
-export interface ExpenseItemEntity {
+export interface ExpenseEntity {
   id?: string;
   name: string;
   amount: number;
@@ -30,23 +26,18 @@ export interface ExpenseItemEntity {
   createdAt: Date;
 }
 
-export interface ExpenseEntityFull extends ExpenseEntity {
-  expenseItem: ExpenseItemEntity[];
-}
-
 export class ExpenseRepository extends Database {
   constructor() {
     super();
   }
 
-  async findById(expenseId: string): Promise<ExpenseItemModel | null> {
+  async findById(expenseId: string): Promise<ExpenseModel | null> {
     try {
-      const expense: ExpenseItemEntity | null =
-        await this.expenseItem.findFirst({
-          where: {
-            id: expenseId,
-          },
-        });
+      const expense: ExpenseEntity | null = await this.expense.findFirst({
+        where: {
+          id: expenseId,
+        },
+      });
 
       return mapExpense(expense);
     } catch (error) {
@@ -62,14 +53,14 @@ export class ExpenseRepository extends Database {
 
   async find(
     data: ListExpenseDto
-  ): Promise<{ data: ExpenseItemModel[]; total: number }> {
+  ): Promise<{ data: ExpenseModel[]; total: number }> {
     log.info(`Finding expenses with filters: ${JSON.stringify(data)}`);
     const { filters, limit, offset } = data;
 
     try {
-      const [records, total]: [ExpenseItemEntity[], number] =
+      const [records, total]: [ExpenseEntity[], number] =
         await this.$transaction([
-          this.expenseItem.findMany({
+          this.expense.findMany({
             where: filters,
             take: limit,
             skip: offset * limit,
@@ -84,7 +75,7 @@ export class ExpenseRepository extends Database {
           }),
         ]);
 
-      const expenses = records.map((expense: ExpenseItemEntity) =>
+      const expenses = records.map((expense: ExpenseEntity) =>
         mapExpense(expense)
       );
 
@@ -103,9 +94,9 @@ export class ExpenseRepository extends Database {
     }
   }
 
-  async save(data: ExpenseItemModel): Promise<ExpenseItemModel> {
+  async save(data: ExpenseModel): Promise<ExpenseModel> {
     try {
-      const expense: ExpenseItemEntity = await this.expenseItem.upsert({
+      const expense: ExpenseEntity = await this.expense.upsert({
         where: {
           id: data.id,
         },
@@ -144,9 +135,9 @@ export class ExpenseRepository extends Database {
     }
   }
 
-  async delete(id: string): Promise<ExpenseItemModel | null> {
+  async delete(id: string): Promise<ExpenseModel | null> {
     try {
-      const deletedExpense = await this.expenseItem.delete({
+      const deletedExpense = await this.expense.delete({
         where: {
           id,
         },

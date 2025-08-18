@@ -34,7 +34,7 @@ export interface AnalyticsFilters {
   dateFrom: Date;
   dateTo: Date;
   groupBy: 'day' | 'week' | 'month';
-  userId?: string; // Will be used later when you add it to ExpenseItem
+  userId?: string; // Will be used later when you add it to Expense
 }
 
 // Interface for raw SQL results
@@ -99,31 +99,30 @@ export class AnalyticsRepository {
     let query: string;
 
     if (userId) {
-      // Query with userId filtering through Expense table JOIN
-      const truncateFunction = this.getSQLDateTruncateFunction(groupBy, true);
-
-      query = `
-        SELECT 
-          ${truncateFunction} as period_date,
-          SUM(ei.amount) as total_amount,
-          COUNT(*) as expense_count
-        FROM "ExpenseItem" ei
-        JOIN "Expense" e ON ei."expenseId" = e.id
-        WHERE ei."createdAt" >= $1 AND ei."createdAt" <= $2 AND e."userId" = $3
-        GROUP BY ${truncateFunction}
-        ORDER BY period_date
-      `;
-      params.push(userId);
-    } else {
-      // Simple query without userId filtering
-      const truncateFunction = this.getSQLDateTruncateFunction(groupBy, false);
+      // Query with userId filtering directly on Expense table
+      const truncateFunction = this.getSQLDateTruncateFunction(groupBy);
 
       query = `
         SELECT 
           ${truncateFunction} as period_date,
           SUM(amount) as total_amount,
           COUNT(*) as expense_count
-        FROM "ExpenseItem" 
+        FROM "Expense" 
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2 AND "userId" = $3
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+      params.push(userId);
+    } else {
+      // Simple query without userId filtering
+      const truncateFunction = this.getSQLDateTruncateFunction(groupBy);
+
+      query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(amount) as total_amount,
+          COUNT(*) as expense_count
+        FROM "Expense" 
         WHERE "createdAt" >= $1 AND "createdAt" <= $2
         GROUP BY ${truncateFunction}
         ORDER BY period_date
@@ -140,10 +139,9 @@ export class AnalyticsRepository {
   }
 
   private getSQLDateTruncateFunction(
-    groupBy: 'day' | 'week' | 'month',
-    useAlias = false
+    groupBy: 'day' | 'week' | 'month'
   ): string {
-    const column = useAlias ? 'ei."createdAt"' : '"createdAt"';
+    const column = '"createdAt"';
 
     switch (groupBy) {
       case 'day':
@@ -191,12 +189,12 @@ export class AnalyticsRepository {
         ),
         expense_totals AS (
           SELECT 
-            ei.category,
+            category,
             SUM("amountUsd") as expense_amount_usd
-          FROM "ExpenseItem" ei
-          WHERE ei."createdAt" >= $1 
-            AND ei."createdAt" <= $2
-          GROUP BY ei.category
+          FROM "Expense"
+          WHERE "createdAt" >= $1 
+            AND "createdAt" <= $2
+          GROUP BY category
         )
         SELECT 
           COALESCE(bt.category, et.category) as category,

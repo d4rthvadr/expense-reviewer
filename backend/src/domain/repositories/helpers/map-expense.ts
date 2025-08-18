@@ -1,24 +1,20 @@
 /* eslint-disable no-unused-vars */
 
 import { convertNullToUndefined, convertToFamilyType } from './utils';
-import { ExpenseItemEntity } from '../expense.repository';
+import { ExpenseEntity } from '../expense.repository';
 import { Category } from '@domain/enum/category.enum';
 import { Currency } from '@domain/enum/currency.enum';
-import { ExpenseItemModel } from '@domain/models/expense-item.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 
-export function mapExpense(entity: ExpenseItemEntity): ExpenseItemModel;
+export function mapExpense(entity: ExpenseEntity): ExpenseModel;
 export function mapExpense(entity: null): null;
-export function mapExpense(
-  entity: ExpenseItemEntity | null
-): ExpenseItemModel | null;
-export function mapExpense(
-  entity: ExpenseItemEntity | null
-): ExpenseItemModel | null {
+export function mapExpense(entity: ExpenseEntity | null): ExpenseModel | null;
+export function mapExpense(entity: ExpenseEntity | null): ExpenseModel | null {
   if (!entity) {
     return null;
   }
 
-  return new ExpenseItemModel({
+  return new ExpenseModel({
     id: entity.id,
     description: convertNullToUndefined(entity.description),
     name: entity.name,

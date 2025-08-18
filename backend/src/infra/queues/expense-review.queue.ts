@@ -5,7 +5,7 @@ import { agentService, AgentService } from '@domain/services/agent.service';
 import { Currency } from '../../../generated/prisma';
 import { buildPrompt } from '@infra/language-models/prompt-builder';
 import { expenseService } from '@domain/services/expense.service';
-import { ExpenseItem } from '@domain/models/expense.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 
 const connection = getRedisInstance();
 
@@ -75,10 +75,10 @@ class ExpenseReviewQueueService extends Worker {
 
       // const { items: expenseItems } = expense;
 
-      const expenseItems: ExpenseItem[] = [];
+      const expenses: ExpenseModel[] = [];
 
       const promptText = buildPrompt.reviewUserExpense(
-        expenseItems,
+        expenses,
         budgetPerCategory
       );
 

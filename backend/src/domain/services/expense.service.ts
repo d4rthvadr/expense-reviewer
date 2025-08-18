@@ -20,7 +20,7 @@ import {
   currencyConversionService,
 } from '@domain/services/currency-conversion.service';
 import { Currency } from '@domain/enum/currency.enum';
-import { ExpenseItemModel } from '@domain/models/expense-item.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 
 type ExpenseReviewPayload = ExpenseReviewJobData;
 
@@ -65,10 +65,10 @@ class ExpenseService {
    * @returns A promise that resolves to the found {@link ExpenseModel}.
    * @throws {ResourceNotFoundException} If no expense is found with the given ID.
    */
-  async findById(expenseId: string): Promise<ExpenseItemModel> {
+  async findById(expenseId: string): Promise<ExpenseModel> {
     log.info(`Finding expense by id: ${expenseId}`);
 
-    const expense: ExpenseItemModel | null =
+    const expense: ExpenseModel | null =
       await this.#expenseRepository.findById(expenseId);
     if (!expense) {
       log.error(`Expense not found with id: ${expenseId}`);
@@ -87,7 +87,7 @@ class ExpenseService {
    * @throws {NotFoundException} If no expense is found with the provided ID.
    */
   async findOne(expenseId: string): Promise<ExpenseResponseDto> {
-    const expense: ExpenseItemModel = await this.findById(expenseId);
+    const expense: ExpenseModel = await this.findById(expenseId);
 
     return this.#toExpenseDto(expense);
   }
@@ -114,12 +114,12 @@ class ExpenseService {
         Currency.USD
       );
 
-    const expenseModel: ExpenseItemModel = ExpenseFactory.createExpense({
+    const expenseModel: ExpenseModel = ExpenseFactory.createExpense({
       ...data,
       amountUsd: convertedAmountInUsd.convertedAmount,
     });
 
-    const createdExpense: ExpenseItemModel =
+    const createdExpense: ExpenseModel =
       await this.#expenseRepository.save(expenseModel);
 
     log.info(`Expense created | meta: ${JSON.stringify(createdExpense)}`);
@@ -146,7 +146,7 @@ class ExpenseService {
   ): Promise<ExpenseResponseDto> {
     log.info(`Updating expense with data | meta: ${JSON.stringify(data)}`);
 
-    const expense: ExpenseItemModel = await this.findById(expenseId);
+    const expense: ExpenseModel = await this.findById(expenseId);
 
     const convertedAmountInUsd =
       await this.#currencyConversionService.convertCurrency(
@@ -164,7 +164,7 @@ class ExpenseService {
     expense.qty = data.qty;
     expense.userId = data.userId;
     expense.createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
-    const updatedExpense: ExpenseItemModel =
+    const updatedExpense: ExpenseModel =
       await this.#expenseRepository.save(expense);
 
     log.info(`Expense updated | meta: ${JSON.stringify(updatedExpense)}`);
@@ -230,7 +230,7 @@ class ExpenseService {
 
     return []; // This is a placeholder for the actual implementation
 
-    const { data: expenses }: { data: ExpenseItemModel[] } =
+    const { data: expenses }: { data: ExpenseModel[] } =
       await this.#expenseRepository.find(findQueryData);
 
     return expenses;
@@ -268,7 +268,7 @@ class ExpenseService {
   async processPendingExpensesReview() {
     try {
       log.info(`Processing pending expenses review`);
-      const expenses: ExpenseItemModel[] =
+      const expenses: ExpenseModel[] =
         await this.fetchApprovedReviewedExpenses();
 
       if (expenses.length === 0) {
@@ -295,9 +295,9 @@ class ExpenseService {
   ): Promise<void> {
     log.info(`Updating pending expense review for id: ${expenseId}`);
 
-    const expense: ExpenseItemModel = await this.findById(expenseId);
+    const expense: ExpenseModel = await this.findById(expenseId);
 
-    const updatedExpense: ExpenseItemModel =
+    const updatedExpense: ExpenseModel =
       await this.#expenseRepository.save(expense);
 
     log.info(
@@ -318,7 +318,7 @@ class ExpenseService {
   async delete(expenseId: string): Promise<void> {
     log.info(`Deleting expense with id: ${expenseId}`);
 
-    const expense: ExpenseItemModel = await this.findById(expenseId);
+    const expense: ExpenseModel = await this.findById(expenseId);
 
     await this.#expenseRepository.delete(expenseId);
 
@@ -326,12 +326,12 @@ class ExpenseService {
   }
 
   /**
-   * Converts an ExpenseItemModel instance to an ExpenseResponseDto.
+   * Converts an ExpenseModel instance to an ExpenseResponseDto.
    *
    * @param data - The ExpenseModel object containing expense details.
    * @returns An ExpenseResponseDto object with the mapped expense properties.
    */
-  #toExpenseDto(data: ExpenseItemModel): ExpenseResponseDto {
+  #toExpenseDto(data: ExpenseModel): ExpenseResponseDto {
     const {
       id,
       name,

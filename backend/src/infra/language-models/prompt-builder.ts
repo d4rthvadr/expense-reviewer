@@ -1,4 +1,4 @@
-import { ExpenseItem } from '@domain/models/expense.model';
+import { ExpenseModel } from '@domain/models/expense.model';
 import { BudgetPerCategory } from '@infra/queues/expense-review.queue';
 
 const extractTextFromInvoice = (text: string) => `
@@ -25,7 +25,7 @@ const getBudgetInTextFormat = (budgets: BudgetPerCategory[]): string => {
     .join('\n');
 };
 
-const getItemInTextFormat = (items: ExpenseItem[]): string => {
+const getItemInTextFormat = (items: ExpenseModel[]): string => {
   return items
     .map((item, i) => {
       const totalAmount = item.amount * (item.qty ?? 1);
@@ -36,7 +36,7 @@ const getItemInTextFormat = (items: ExpenseItem[]): string => {
 };
 
 const reviewUserExpense = (
-  items: ExpenseItem[],
+  items: ExpenseModel[],
   budgets: BudgetPerCategory[]
 ) => {
   const itemsText = getItemInTextFormat(items);
