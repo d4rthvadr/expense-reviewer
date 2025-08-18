@@ -5,17 +5,17 @@ import { columns } from "@/components/features/Expense/ExpenseTable/ExpenseTable
 import { getExpenses } from "@/actions/expense";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
-import { ExpenseItem } from "@/constants/expense";
+import { Expense } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
-import ExpenseItemEditForm from "./ExpenseItemEditForm";
+import ExpenseEditForm from "./ExpenseEditForm";
 import { Toaster } from "@/components/ui/sonner";
 
 const ExpenseList = ({
   expenses: initialExpenses,
 }: {
-  expenses: ExpenseItem[];
+  expenses: Expense[];
 }) => {
-  const [expenses, setExpense] = useState<ExpenseItem[]>(initialExpenses);
+  const [expenses, setExpense] = useState<Expense[]>(initialExpenses);
 
   const { selectedExpense, isEditSheetOpen, openEditSheet, closeEditSheet } =
     useExpenseStore();
@@ -42,7 +42,7 @@ const ExpenseList = ({
           <h1 className="text-2xl font-bold mb-4">Expenses</h1>
           <Button
             variant="outline"
-            onClick={() => openEditSheet({} as ExpenseItem)}
+            onClick={() => openEditSheet({} as Expense)}
           >
             Add Expense
           </Button>
@@ -50,7 +50,7 @@ const ExpenseList = ({
         <DataTable
           columns={
             columns as import("@tanstack/react-table").ColumnDef<
-              ExpenseItem,
+              Expense,
               unknown
             >[]
           }
@@ -60,7 +60,7 @@ const ExpenseList = ({
 
       <Sheet open={isEditSheetOpen} onOpenChange={closeEditSheet}>
         {selectedExpense && (
-          <ExpenseItemEditForm
+          <ExpenseEditForm
             expense={selectedExpense}
             onClose={handleCloseEditSheet}
           />

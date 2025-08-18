@@ -1,6 +1,6 @@
 "use server";
 
-import { ExpenseItem } from "@/constants/expense";
+import { Expense } from "@/constants/expense";
 import { client } from "@/data/client";
 import { revalidatePath } from "next/cache";
 
@@ -9,14 +9,14 @@ type ResponseWithError = {
 };
 
 type TExpenseListResponse = {
-  data: ExpenseItem[];
+  data: Expense[];
   total?: number;
   limit?: number;
   offset?: number;
 } & ResponseWithError;
 
 type TExpenseResponse = {
-  data: ExpenseItem | null;
+  data: Expense | null;
   success: boolean;
 } & ResponseWithError;
 
@@ -70,7 +70,7 @@ export async function getExpensesById(id: string): Promise<TExpenseResponse> {
  *
  */
 export async function createExpense(
-  expense: ExpenseItem
+  expense: Expense
 ): Promise<TExpenseResponse> {
   try {
     const response = await client.post<TExpenseResponse["data"]>(
@@ -93,7 +93,7 @@ export async function createExpense(
 }
 
 export async function updateExpense(
-  expense: ExpenseItem,
+  expense: Expense,
   expenseId: string
 ): Promise<TExpenseResponse> {
   try {

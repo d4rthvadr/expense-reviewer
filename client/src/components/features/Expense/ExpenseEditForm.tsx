@@ -22,7 +22,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import SelectComponent from "@/components/form/SelectComponent";
-import { CategoryValues, ExpenseItem } from "@/constants/expense";
+import { CategoryValues, Expense } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
 import { Currency } from "@/constants/currency.enum";
 import { Category } from "@/constants/category.enum";
@@ -40,11 +40,11 @@ const formSchema = z.object({
   category: z.enum(CategoryValues as [string, ...string[]]),
 });
 
-const ExpenseItemEditForm = ({
+const ExpenseEditForm = ({
   expense,
   onClose,
 }: {
-  expense: ExpenseItem;
+  expense: Expense;
   onClose: () => void;
 }) => {
   const { updateExpense, createExpense, isSubmitting } = useExpenseStore();
@@ -230,6 +230,6 @@ const ExpenseItemEditForm = ({
   );
 };
 
-export default ExpenseItemEditForm;
+export default ExpenseEditForm;
 
-ExpenseItemEditForm.displayName = "ExpenseItemEditForm";
+ExpenseEditForm.displayName = "ExpenseEditForm";

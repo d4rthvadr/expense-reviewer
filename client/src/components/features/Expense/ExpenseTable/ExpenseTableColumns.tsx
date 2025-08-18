@@ -5,12 +5,12 @@ import { Edit } from "lucide-react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
-import { ExpenseItem } from "@/constants/expense";
+import { Expense } from "@/constants/expense";
 import { useExpenseStore } from "@/stores/expenseStore";
 import { Currency } from "@/constants/currency.enum";
 import { Category } from "@/constants/category.enum";
 
-const EditButton = ({ expense }: { expense: ExpenseItem }) => {
+const EditButton = ({ expense }: { expense: Expense }) => {
   const openEditSheet = useExpenseStore((state) => state.openEditSheet);
 
   return (

@@ -1,7 +1,7 @@
 import { Category } from "./category.enum";
 import { Currency } from "./currency.enum";
 
-export type ExpenseItem = {
+export type Expense = {
   id?: string;
   name: string;
   description?: string;
