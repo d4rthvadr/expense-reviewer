@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { clerkMiddleware } from '@clerk/express';
+import { clerkMiddleware, requireAuth } from '@clerk/express';
 import {
   agentRoutes,
   budgetRoutes,
@@ -15,11 +15,20 @@ import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import { log } from '@infra/logger';
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  console.log('[PEEK] check headers', req.headers);
+  log.info({
+    message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body)} | headers: ${JSON.stringify(req.headers)}`,
+  });
+  next();
+});
 
 // Apply Clerk middleware globally
 app.use(clerkMiddleware());
@@ -40,11 +49,11 @@ app.use('/api/webhooks', webhookRoutes);
 
 // Protected API routes - requireAuth() ensures user is authenticated
 app.use('/api/agents', agentRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/expenses', expenseRoutes);
-app.use('/api/budgets', budgetRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/recurring-templates', recurringTemplateRoutes);
+app.use('/api/users', requireAuth(), userRoutes);
+app.use('/api/expenses', requireAuth(), expenseRoutes);
+app.use('/api/budgets', requireAuth(), budgetRoutes);
+app.use('/api/analytics', requireAuth(), analyticsRoutes);
+app.use('/api/recurring-templates', requireAuth(), recurringTemplateRoutes);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);
