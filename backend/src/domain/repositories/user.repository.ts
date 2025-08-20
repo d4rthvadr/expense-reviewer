@@ -9,6 +9,13 @@ export class UserRepository extends Database {
     super();
   }
 
+  /**
+   * Retrieves a user by their unique identifier.
+   *
+   * @param userId - The unique identifier of the user to find.
+   * @returns A promise that resolves to the found user model or `null` if no user is found.
+   * @throws Will throw an error if the database query fails.
+   */
   async findOne(userId: string): Promise<UserModel | null> {
     try {
       const user: UserEntity | null = await this.user.findUnique({
@@ -27,6 +34,14 @@ export class UserRepository extends Database {
     }
   }
 
+  /**
+   * Saves a user to the database. If a user with the given ID exists, updates their information;
+   * otherwise, creates a new user record.
+   *
+   * @param data - The user data to save, represented as a UserModel.
+   * @returns A promise that resolves to the saved UserModel.
+   * @throws Will throw an error if the save operation fails.
+   */
   async save(data: UserModel): Promise<UserModel> {
     try {
       const user: UserEntity = await this.user.upsert({
@@ -56,6 +71,32 @@ export class UserRepository extends Database {
         message: 'An error occurred while saving user:',
         error,
         code: 'USER_SAVE_ERROR',
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Updates the last login timestamp for a user with the specified user ID.
+   *
+   * @param userId - The unique identifier of the user whose last login time should be updated.
+   * @returns A promise that resolves to the updated UserModel object, or null if the user was not found.
+   * @throws Will throw an error if the update operation fails.
+   */
+  async updateLastLogin(userId: string): Promise<UserModel | null> {
+    try {
+      const user: UserEntity | null = await this.user.update({
+        where: { id: userId },
+        data: { lastLogin: new Date() },
+      });
+
+      return mapUser(user);
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while updating user lastLogin:',
+        error,
+        code: 'USER_UPDATE_LAST_LOGIN_ERROR',
       });
 
       throw error;

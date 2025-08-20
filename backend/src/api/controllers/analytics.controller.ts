@@ -9,7 +9,7 @@ import { log } from '@infra/logger';
 export class AnalyticsController {
   async getExpensesOverTime(req: Request, res: Response): Promise<void> {
     try {
-      const { dateFrom, dateTo, groupBy, userId } =
+      const { dateFrom, dateTo, groupBy } =
         req.query as Partial<AnalyticsRequestDto>;
 
       // Parse dates (validation already handled by middleware)
@@ -20,7 +20,7 @@ export class AnalyticsController {
         parsedDateFrom,
         parsedDateTo,
         groupBy as 'day' | 'week' | 'month',
-        userId
+        req.user?.id
       );
 
       const response: AnalyticsApiResponse = {
@@ -46,9 +46,7 @@ export class AnalyticsController {
 
   async getBudgets(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = req.query as { userId?: string };
-
-      const data = await analyticsService.getBudgets(userId);
+      const data = await analyticsService.getBudgets(req.user?.id);
 
       const response = {
         success: true,
@@ -73,10 +71,9 @@ export class AnalyticsController {
 
   async getBudgetVsExpenses(req: Request, res: Response): Promise<void> {
     try {
-      const { dateFrom, dateTo, userId } = req.query as {
+      const { dateFrom, dateTo } = req.query as {
         dateFrom?: string;
         dateTo?: string;
-        userId?: string;
       };
 
       if (!dateFrom || !dateTo) {
@@ -110,7 +107,7 @@ export class AnalyticsController {
       const data = await analyticsService.getBudgetVsExpenses(
         parsedDateFrom,
         parsedDateTo,
-        userId
+        req.user?.id
       );
 
       const response = {

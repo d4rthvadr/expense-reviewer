@@ -123,6 +123,39 @@ export class UserService {
     return this.#toUserCreatedDto(user);
   }
 
+  /**
+   * Updates the last login timestamp for a user identified by the given Clerk ID.
+   *
+   * Logs the update process and handles cases where the user is not found.
+   * Returns the updated user data as a `UserResponseDto` if successful, or `null` if the user does not exist.
+   * Throws an error if the update operation fails.
+   *
+   * @param clerkId - The Clerk ID of the user whose last login timestamp should be updated.
+   * @returns A promise that resolves to the updated `UserResponseDto` or `null` if the user is not found.
+   * @throws Will throw an error if the update operation encounters an issue.
+   */
+  async updateLastLogin(clerkId: string): Promise<UserResponseDto | null> {
+    log.info(`Updating last login for user with Clerk ID: ${clerkId}`);
+
+    try {
+      const user = await this.#userRepository.updateLastLogin(clerkId);
+      if (!user) {
+        log.warn(`User not found with Clerk ID: ${clerkId}`);
+        return null;
+      }
+
+      log.info(
+        `Successfully updated last login for user with Clerk ID: ${clerkId}`
+      );
+      return this.#toUserCreatedDto(user);
+    } catch (error) {
+      log.error(
+        `Error updating last login for user with Clerk ID ${clerkId}: ${error}`
+      );
+      throw error;
+    }
+  }
+
   #toUserCreatedDto({
     id,
     name,

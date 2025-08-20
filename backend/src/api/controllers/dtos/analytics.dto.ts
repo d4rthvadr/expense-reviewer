@@ -2,7 +2,6 @@ export interface AnalyticsRequestDto {
   dateFrom: string; // ISO date string
   dateTo: string; // ISO date string
   groupBy: 'day' | 'week' | 'month';
-  userId?: string;
 }
 
 export interface AnalyticsResponseDto {

@@ -11,6 +11,13 @@ interface EventData {
   last_name: string | null;
 }
 
+interface SessionEventData {
+  id: string;
+  user_id: string;
+  created_at: number;
+  status: string;
+}
+
 export class ClerkWebhookController {
   handleWebhook = async (req: Request, res: Response): Promise<unknown> => {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SIGNING_SECRET;
@@ -33,6 +40,9 @@ export class ClerkWebhookController {
       switch (eventType) {
         case 'user.created':
           await this.handleUserCreated(evt);
+          break;
+        case 'session.created':
+          await this.handleSessionCreated(evt);
           break;
         default:
           log.info(`Unhandled webhook event: ${eventType}`);
@@ -71,6 +81,35 @@ export class ClerkWebhookController {
     await userService.createFromClerk(userPayload, id);
 
     log.info(`Successfully created user with Clerk ID: ${id}`);
+  };
+
+  private handleSessionCreated = async (event: WebhookEvent) => {
+    log.info(
+      `Handling session.created event in ClerkWebhookController meta: ${JSON.stringify(event)}`
+    );
+
+    // Type assertion for session.created event
+    const sessionData = event.data as SessionEventData;
+    const { user_id } = sessionData;
+
+    if (!user_id) {
+      log.error('No user ID found in session.created webhook event');
+      return;
+    }
+
+    log.info(`Updating last login for user with Clerk ID: ${user_id}`);
+
+    try {
+      await userService.updateLastLogin(user_id);
+      log.info(
+        `Successfully updated last login for user with Clerk ID: ${user_id}`
+      );
+    } catch (error) {
+      log.error(
+        `Failed to update last login for user with Clerk ID ${user_id}: ${error}`
+      );
+      // Don't throw the error to avoid webhook failures
+    }
   };
 }
 
