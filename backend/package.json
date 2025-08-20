@@ -12,7 +12,7 @@
     "copy-templates": "cp -r src/infra/email/templates dist/infra/email/",
     "lint:fix": "eslint 'src/**/*.{js,ts}' --fix",
     "format": "prettier --write 'src/**/*.{js,ts,json,md}'",
-    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "dev": "nodemon",
     "db:deploy": "npx prisma migrate deploy",
     "db:migrate": "npx prisma migrate dev --create-only",
     "db:gen": "npx prisma generate",

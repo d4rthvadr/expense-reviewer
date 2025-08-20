@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { clerkMiddleware, requireAuth } from '@clerk/express';
+import { clerkMiddleware, getAuth, requireAuth } from '@clerk/express';
 import {
   agentRoutes,
   budgetRoutes,
@@ -23,7 +23,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-  console.log('[PEEK] check headers', req.headers);
+  log.info({
+    message: `Headers: ${JSON.stringify(req.headers)}`,
+  });
   log.info({
     message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body)} | headers: ${JSON.stringify(req.headers)}`,
   });
@@ -32,6 +34,12 @@ app.use((req, res, next) => {
 
 // Apply Clerk middleware globally
 app.use(clerkMiddleware());
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const { userId } = getAuth(req);
+  req.user = { id: userId };
+  next();
+});
 
 // Root route for health check
 app.get('/', (req: Request, res: Response) => {
