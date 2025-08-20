@@ -10,7 +10,6 @@ export interface AnalyticsFilters {
   dateFrom: string; // ISO date string
   dateTo: string; // ISO date string
   groupBy: "day" | "week" | "month";
-  userId?: string;
 }
 
 export interface ExpenseAnalyticsData {
@@ -52,10 +51,6 @@ export async function getExpensesOverTime(
       groupBy: filters.groupBy,
     });
 
-    if (filters.userId) {
-      searchParams.append("userId", filters.userId);
-    }
-
     console.log("Fetching analytics with filters:", searchParams.toString());
     const client = await getAuthenticatedClient();
 
@@ -77,18 +72,11 @@ export async function getExpensesOverTime(
 /**
  * Fetches budget data from the server.
  *
- * @param userId - Optional user ID filter
  * @returns {Promise<TListResponse<BudgetData>>} A promise that resolves to budget data and any error information.
  */
-export async function getBudgetData(
-  userId?: string
-): Promise<TListResponse<BudgetData>> {
+export async function getBudgetData(): Promise<TListResponse<BudgetData>> {
   try {
     const searchParams = new URLSearchParams();
-
-    if (userId) {
-      searchParams.append("userId", userId);
-    }
 
     console.log("Fetching budget data with filters:", searchParams.toString());
     const client = await getAuthenticatedClient();
