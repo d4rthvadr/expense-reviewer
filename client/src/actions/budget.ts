@@ -1,41 +1,32 @@
 "use server";
 
 import { Budget } from "@/constants/budget";
-import { client } from "@/data/client";
+import {
+  client,
+  getAuthenticatedClient,
+  clientErrorHandler,
+  TListResponse,
+  TResponse,
+} from "@/data/client";
 import { revalidatePath } from "next/cache";
-
-type ResponseWithError = {
-  error?: string;
-};
-
-type TBudgetListResponse = {
-  data: Budget[];
-  total?: number;
-  limit?: number;
-  offset?: number;
-} & ResponseWithError;
-
-type TBudgetResponse = {
-  data: Budget | null;
-  success: boolean;
-} & ResponseWithError;
 
 /**
  * Fetches the list of budgets from the server.
  *
- * @returns {Promise<TBudgetListResponse>} A promise that resolves to the list of budgets and any error information.
+ * @returns {Promise<TListResponse<Budget>>} A promise that resolves to the list of budgets and any error information.
  *
  **/
-export async function getBudgets(): Promise<TBudgetListResponse> {
+export async function getBudgets(): Promise<TListResponse<Budget>> {
   try {
-    const response = await client.get<TBudgetListResponse>("/budgets");
+    const client = await getAuthenticatedClient();
+    const response = await client.get<TListResponse<Budget>>("/budgets");
 
     return response;
   } catch (error) {
     console.error("Error fetching budgets:", error);
     return {
       data: [],
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -44,20 +35,21 @@ export async function getBudgets(): Promise<TBudgetListResponse> {
  * Fetches a budget by its unique identifier.
  *
  * @param id - The unique identifier of the budget to retrieve.
- * @returns A promise that resolves to a `TBudgetResponse` object containing the budget data or an error message.
+ * @returns A promise that resolves to a `TResponse` object containing the budget data or an error message.
  */
-export async function getBudgetById(id: string): Promise<TBudgetResponse> {
+export async function getBudgetById(id: string): Promise<TResponse<Budget>> {
   try {
-    const response = await client.get<TBudgetResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.get<TResponse<Budget>["data"]>(
       `/budgets/${id}`
     );
     return { success: true, data: response };
   } catch (error) {
     console.error("Error fetching budget by ID:", error);
+
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -69,9 +61,10 @@ export async function getBudgetById(id: string): Promise<TBudgetResponse> {
  * @returns A promise that resolves to a TBudgetResponse object containing the result of the operation.
  *
  */
-export async function createBudget(budget: Budget): Promise<TBudgetResponse> {
+export async function createBudget(budget: Budget): Promise<TResponse<Budget>> {
   try {
-    const response = await client.post<TBudgetResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.post<TResponse<Budget>["data"]>(
       "/budgets",
       budget
     );
@@ -87,8 +80,7 @@ export async function createBudget(budget: Budget): Promise<TBudgetResponse> {
     console.error("Error creating budget:", error);
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -96,9 +88,9 @@ export async function createBudget(budget: Budget): Promise<TBudgetResponse> {
 export async function updateBudget(
   budget: Budget,
   budgetId: string
-): Promise<TBudgetResponse> {
+): Promise<TResponse<Budget>> {
   try {
-    const response = await client.put<TBudgetResponse["data"]>(
+    const response = await client.put<TResponse<Budget>["data"]>(
       `/budgets/${budgetId}`,
       budget
     );
@@ -112,15 +104,17 @@ export async function updateBudget(
     console.error("Error updating budget:", error);
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
 
-export async function deleteBudget(budgetId: string): Promise<TBudgetResponse> {
+export async function deleteBudget(
+  budgetId: string
+): Promise<TResponse<Budget>> {
   try {
-    const response = await client.delete<TBudgetResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.delete<TResponse<Budget>["data"]>(
       `/budgets/${budgetId}`
     );
 
@@ -130,10 +124,10 @@ export async function deleteBudget(budgetId: string): Promise<TBudgetResponse> {
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting budget:", error);
+
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
