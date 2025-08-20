@@ -16,6 +16,7 @@ export type TResponse<T> = {
 export type ResponseWithError = {
   error?: string;
   authError?: boolean;
+  message?: string;
   success: boolean;
 };
 
@@ -102,5 +103,3 @@ export async function getAuthenticatedClient() {
 
   return getClient(token);
 }
-
-export const client = getClient();
