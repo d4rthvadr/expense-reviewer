@@ -25,10 +25,13 @@ interface DataTableProps<TData, TValue> {
   showPagination?: boolean;
 }
 
-const renderNoResultsRow = (length: number) => (
+const renderNoResultsRow = (
+  length: number,
+  message: string = "No results."
+) => (
   <TableRow>
     <TableCell colSpan={length} className="h-24 text-center">
-      No results.
+      {message}
     </TableCell>
   </TableRow>
 );
@@ -39,6 +42,8 @@ const DataTable = <TData, TValue>({
   showPagination = true,
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const showTablePagination = data?.length > 0 || (data && showPagination);
 
   const table = useReactTable({
     data,
@@ -56,6 +61,27 @@ const DataTable = <TData, TValue>({
     console.error("Table is not initialized properly.");
     return null;
   }
+
+  const renderTableBody = () => (
+    <TableBody>
+      {table?.getRowModel()?.rows?.length
+        ? table?.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        : renderNoResultsRow(columns.length)}
+    </TableBody>
+  );
+
+  const tableBodyContent =
+    !data || data.length === 0
+      ? renderNoResultsRow(columns.length)
+      : renderTableBody();
 
   return (
     <React.Fragment>
@@ -77,25 +103,10 @@ const DataTable = <TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table?.getRowModel().rows?.length
-              ? table?.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : renderNoResultsRow(columns.length)}
-          </TableBody>
+          {tableBodyContent}
         </Table>
       </div>
-      {showPagination && <DataTablePagination table={table} />}
+      {showTablePagination && <DataTablePagination table={table} />}
     </React.Fragment>
   );
 };
