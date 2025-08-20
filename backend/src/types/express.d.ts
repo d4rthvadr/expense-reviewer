@@ -6,7 +6,7 @@ declare global {
     interface Request {
       auth: AuthObject;
       user?: {
-        id: string | null;
+        id?: string;
       };
     }
   }

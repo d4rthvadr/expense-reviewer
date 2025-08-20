@@ -22,9 +22,14 @@ export class BudgetController {
     req: RequestBodyType<CreateBudgetRequestDto>,
     res: Response
   ) => {
-    log.info(`Creating user with data: ${JSON.stringify({ data: req.body })}`);
+    log.info(
+      `Creating user with data: ${JSON.stringify({ data: req.body, userId: req.user?.id })}`
+    );
 
-    const createdBudget = await this.#budgetService.create(req.body);
+    const createdBudget = await this.#budgetService.create({
+      userId: req.user?.id,
+      ...req.body,
+    });
 
     return res.status(201).json(createdBudget);
   };
@@ -35,11 +40,13 @@ export class BudgetController {
   ) => {
     const query = parseQueryOptions(req);
 
+    const userId = req.user?.id;
+
     const expenseListResult = await this.#budgetService.find({
       ...query,
       filters: {
         ...query.filters,
-        // userId,
+        ...(userId ? { userId } : {}),
       },
     });
 
@@ -48,9 +55,9 @@ export class BudgetController {
 
   findOne = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const user = await this.#budgetService.findById(id);
+    const budget = await this.#budgetService.findById(id);
 
-    res.status(200).json(user);
+    res.status(200).json(budget);
   };
 
   update = async (
@@ -65,10 +72,13 @@ export class BudgetController {
     const budgetId: string = req.params.budgetId;
     log.info(`Updating expense with id ${budgetId}`);
 
-    const updatedExpenseDto: BudgetResponseDto =
-      await this.#budgetService.update(budgetId, req.body);
+    const updatedBudgetDto: BudgetResponseDto =
+      await this.#budgetService.update(budgetId, {
+        ...req.body,
+        userId: req.user?.id,
+      });
 
-    res.status(200).json(updatedExpenseDto);
+    res.status(200).json(updatedBudgetDto);
   };
 
   delete = async (

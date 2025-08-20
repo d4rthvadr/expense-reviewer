@@ -37,7 +37,7 @@ app.use(clerkMiddleware());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
-  req.user = { id: userId };
+  req.user = { id: userId ?? undefined }; // Ensure userId is optional
   next();
 });
 

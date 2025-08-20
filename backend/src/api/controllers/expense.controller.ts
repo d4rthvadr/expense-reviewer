@@ -48,7 +48,7 @@ export class ExpenseController {
   ) => {
     log.info(`Creating expense with data | meta: ${JSON.stringify(req.body)}`);
     const createdExpenseDto: ExpenseResponseDto =
-      await this.#expenseService.create(req.body);
+      await this.#expenseService.create({ userId: req.user?.id, ...req.body });
 
     res.status(201).json(createdExpenseDto);
   };
