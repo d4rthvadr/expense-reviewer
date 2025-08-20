@@ -2,7 +2,6 @@
 
 import { Budget } from "@/constants/budget";
 import {
-  client,
   getAuthenticatedClient,
   clientErrorHandler,
   TListResponse,
@@ -90,6 +89,7 @@ export async function updateBudget(
   budgetId: string
 ): Promise<TResponse<Budget>> {
   try {
+    const client = await getAuthenticatedClient();
     const response = await client.put<TResponse<Budget>["data"]>(
       `/budgets/${budgetId}`,
       budget

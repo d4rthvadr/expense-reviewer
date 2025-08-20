@@ -1,6 +1,10 @@
 "use server";
 
-import { client } from "@/data/client";
+import {
+  clientErrorHandler,
+  getAuthenticatedClient,
+  TListResponse,
+} from "@/data/client";
 
 export interface AnalyticsFilters {
   dateFrom: string; // ISO date string
@@ -32,33 +36,15 @@ export interface BudgetVsExpenseData {
   status: "UNDER_BUDGET" | "OVER_BUDGET" | "ON_BUDGET" | "NO_BUDGET";
 }
 
-type AnalyticsResponse = {
-  success: boolean;
-  data: ExpenseAnalyticsData[];
-  message: string;
-} & { error?: string };
-
-type BudgetResponse = {
-  success: boolean;
-  data: BudgetData[];
-  message: string;
-} & { error?: string };
-
-type BudgetVsExpenseResponse = {
-  success: boolean;
-  data: BudgetVsExpenseData[];
-  message: string;
-} & { error?: string };
-
 /**
  * Fetches expense analytics over time from the server.
  *
  * @param filters - The analytics filters including date range and groupBy
- * @returns {Promise<AnalyticsResponse>} A promise that resolves to analytics data and any error information.
+ * @returns {Promise<TListResponse<ExpenseAnalyticsData>>} A promise that resolves to analytics data and any error information.
  */
 export async function getExpensesOverTime(
   filters: AnalyticsFilters
-): Promise<AnalyticsResponse> {
+): Promise<TListResponse<ExpenseAnalyticsData>> {
   try {
     const searchParams = new URLSearchParams({
       dateFrom: filters.dateFrom,
@@ -71,8 +57,9 @@ export async function getExpensesOverTime(
     }
 
     console.log("Fetching analytics with filters:", searchParams.toString());
+    const client = await getAuthenticatedClient();
 
-    const response = await client.get<AnalyticsResponse>(
+    const response = await client.get<TListResponse<ExpenseAnalyticsData>>(
       `/analytics/expenses-over-time?${searchParams.toString()}`
     );
 
@@ -80,10 +67,9 @@ export async function getExpensesOverTime(
   } catch (error) {
     console.error("Error fetching analytics:", error);
     return {
-      success: false,
       data: [],
       message: "Failed to fetch analytics data",
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -92,9 +78,11 @@ export async function getExpensesOverTime(
  * Fetches budget data from the server.
  *
  * @param userId - Optional user ID filter
- * @returns {Promise<BudgetResponse>} A promise that resolves to budget data and any error information.
+ * @returns {Promise<TListResponse<BudgetData>>} A promise that resolves to budget data and any error information.
  */
-export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
+export async function getBudgetData(
+  userId?: string
+): Promise<TListResponse<BudgetData>> {
   try {
     const searchParams = new URLSearchParams();
 
@@ -103,8 +91,9 @@ export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
     }
 
     console.log("Fetching budget data with filters:", searchParams.toString());
+    const client = await getAuthenticatedClient();
 
-    const response = await client.get<BudgetResponse>(
+    const response = await client.get<TListResponse<BudgetData>>(
       `/analytics/budgets${
         searchParams.toString() ? `?${searchParams.toString()}` : ""
       }`
@@ -114,10 +103,9 @@ export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
   } catch (error) {
     console.error("Error fetching budget data:", error);
     return {
-      success: false,
       data: [],
       message: "Failed to fetch budget data",
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -132,7 +120,7 @@ export async function getBudgetData(userId?: string): Promise<BudgetResponse> {
 export async function getBudgetVsExpenseData(
   dateFrom: string,
   dateTo: string
-): Promise<BudgetVsExpenseResponse> {
+): Promise<TListResponse<BudgetVsExpenseData>> {
   try {
     const searchParams = new URLSearchParams({
       dateFrom,
@@ -144,7 +132,8 @@ export async function getBudgetVsExpenseData(
       searchParams.toString()
     );
 
-    const response = await client.get<BudgetVsExpenseResponse>(
+    const client = await getAuthenticatedClient();
+    const response = await client.get<TListResponse<BudgetVsExpenseData>>(
       `/analytics/budget-vs-expenses?${searchParams.toString()}`
     );
 
@@ -152,10 +141,9 @@ export async function getBudgetVsExpenseData(
   } catch (error) {
     console.error("Error fetching budget vs expense data:", error);
     return {
-      success: false,
       data: [],
       message: "Failed to fetch budget vs expense data",
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }

@@ -1,41 +1,31 @@
 "use server";
 
 import { Expense } from "@/constants/expense";
-import { client } from "@/data/client";
+import {
+  getAuthenticatedClient,
+  clientErrorHandler,
+  TListResponse,
+  TResponse,
+} from "@/data/client";
 import { revalidatePath } from "next/cache";
-
-type ResponseWithError = {
-  error?: string;
-};
-
-type TExpenseListResponse = {
-  data: Expense[];
-  total?: number;
-  limit?: number;
-  offset?: number;
-} & ResponseWithError;
-
-type TExpenseResponse = {
-  data: Expense | null;
-  success: boolean;
-} & ResponseWithError;
 
 /**
  * Fetches the list of expenses from the server.
  *
- * @returns {Promise<TExpenseListResponse>} A promise that resolves to the list of expenses and any error information.
+ * @returns {Promise<TListResponse<Expense>>} A promise that resolves to the list of expenses and any error information.
  *
  **/
-export async function getExpenses(): Promise<TExpenseListResponse> {
+export async function getExpenses(): Promise<TListResponse<Expense>> {
   try {
-    const response = await client.get<TExpenseListResponse>("/expenses");
+    const client = await getAuthenticatedClient();
+    const response = await client.get<TListResponse<Expense>>("/expenses");
 
     return response;
   } catch (error) {
     console.error("Error fetching expenses:", error);
     return {
       data: [],
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -44,20 +34,21 @@ export async function getExpenses(): Promise<TExpenseListResponse> {
  * Fetches an expense by its unique identifier.
  *
  * @param id - The unique identifier of the expense to retrieve.
- * @returns A promise that resolves to a `TExpenseResponse` object containing the expense data or an error message.
+ * @returns A promise that resolves to a `TResponse` object containing the expense data or an error message.
  */
-export async function getExpensesById(id: string): Promise<TExpenseResponse> {
+export async function getExpensesById(id: string): Promise<TResponse<Expense>> {
   try {
-    const response = await client.get<TExpenseResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.get<TResponse<Expense>["data"]>(
       `/expenses/${id}`
     );
     return { success: true, data: response };
   } catch (error) {
     console.error("Error fetching expense by ID:", error);
+
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -66,14 +57,15 @@ export async function getExpensesById(id: string): Promise<TExpenseResponse> {
  * Creates a new expense by sending a POST request to the server.
  *
  * @param expense - The expense object to be created.
- * @returns A promise that resolves to a TExpenseResponse object containing the result of the operation.
+ * @returns A promise that resolves to a TResponse object containing the result of the operation.
  *
  */
 export async function createExpense(
   expense: Expense
-): Promise<TExpenseResponse> {
+): Promise<TResponse<Expense>> {
   try {
-    const response = await client.post<TExpenseResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.post<TResponse<Expense>["data"]>(
       "/expenses",
       expense
     );
@@ -86,8 +78,7 @@ export async function createExpense(
     console.error("Error creating expense:", error);
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
@@ -95,9 +86,10 @@ export async function createExpense(
 export async function updateExpense(
   expense: Expense,
   expenseId: string
-): Promise<TExpenseResponse> {
+): Promise<TResponse<Expense>> {
   try {
-    const response = await client.put<TExpenseResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.put<TResponse<Expense>["data"]>(
       `/expenses/${expenseId}`,
       expense
     );
@@ -109,17 +101,17 @@ export async function updateExpense(
     console.error("Error updating expense:", error);
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
 
 export async function deleteExpense(
   expenseId: string
-): Promise<TExpenseResponse> {
+): Promise<TResponse<Expense>> {
   try {
-    const response = await client.delete<TExpenseResponse["data"]>(
+    const client = await getAuthenticatedClient();
+    const response = await client.delete<TResponse<Expense>["data"]>(
       `/expenses/${expenseId}`
     );
 
@@ -128,10 +120,10 @@ export async function deleteExpense(
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting expense:", error);
+
     return {
       data: null,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      ...clientErrorHandler(error),
     };
   }
 }
