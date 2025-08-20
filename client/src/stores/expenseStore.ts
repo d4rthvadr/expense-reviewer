@@ -90,7 +90,7 @@ export const useExpenseStore = create<ExpenseStore>()((set) => ({
     }
 
     if (data?.id && typeof window !== "undefined") {
-      window.history.pushState(null, "", `/expenses/${data.id}`);
+      window.history.pushState(null, "", `/dashboard/expenses`);
     }
 
     toast.success("Expense created successfully");
