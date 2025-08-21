@@ -1,22 +1,13 @@
 import { Request, Response } from 'express';
-import { WebhookEvent } from '@clerk/backend';
+import {
+  UserJSON,
+  WebhookEvent,
+  SessionWebhookEvent,
+  UserWebhookEvent,
+} from '@clerk/backend';
 import { verifyWebhook } from '@clerk/express/webhooks';
 import { log } from '@infra/logger';
 import { userService } from '@domain/services/user.service';
-
-interface EventData {
-  id: string;
-  email_addresses: { email_address: string }[];
-  first_name: string | null;
-  last_name: string | null;
-}
-
-interface SessionEventData {
-  id: string;
-  user_id: string;
-  created_at: number;
-  status: string;
-}
 
 export class ClerkWebhookController {
   handleWebhook = async (req: Request, res: Response): Promise<unknown> => {
@@ -34,8 +25,6 @@ export class ClerkWebhookController {
       const eventType = evt.type;
 
       log.info(`Received webhook with ID ${id} and event type of ${eventType}`);
-
-      log.info(`Received webhook event: ${eventType}`);
 
       switch (eventType) {
         case 'user.created':
@@ -55,12 +44,32 @@ export class ClerkWebhookController {
     }
   };
 
-  private handleUserCreated = async (event: WebhookEvent) => {
+  /**
+   * Type guard to determine if the provided data conforms to the `UserJSON` interface.
+   *
+   * @param data - The data object to check, expected to be of type `UserWebhookEvent['data']`.
+   * @returns `true` if the data is a `UserJSON` object (i.e., it is an object containing both 'id' and 'email_addresses' properties), otherwise `false`.
+   */
+  private isUserJson = (data: UserWebhookEvent['data']): data is UserJSON => {
+    return (
+      data &&
+      typeof data === 'object' &&
+      'id' in data &&
+      'email_addresses' in data
+    );
+  };
+
+  private handleUserCreated = async (event: UserWebhookEvent) => {
     log.info(
       `Handling user.created event in ClerkWebhookController meta: ${JSON.stringify(event)}`
     );
-    // Type assertion for user.created event
-    const userData = event.data as EventData;
+
+    if (!this.isUserJson(event.data)) {
+      log.error('Invalid user.created webhook event data');
+      return;
+    }
+    const userData = event.data;
+
     const { id, email_addresses, first_name, last_name } = userData;
 
     if (!id) {
@@ -83,14 +92,14 @@ export class ClerkWebhookController {
     log.info(`Successfully created user with Clerk ID: ${id}`);
   };
 
-  private handleSessionCreated = async (event: WebhookEvent) => {
+  private handleSessionCreated = async (event: SessionWebhookEvent) => {
     log.info(
       `Handling session.created event in ClerkWebhookController meta: ${JSON.stringify(event)}`
     );
 
     // Type assertion for session.created event
-    const sessionData = event.data as SessionEventData;
-    const { user_id } = sessionData;
+    const sessionData = event.data;
+    const { user_id, last_active_at } = sessionData;
 
     if (!user_id) {
       log.error('No user ID found in session.created webhook event');
@@ -100,7 +109,7 @@ export class ClerkWebhookController {
     log.info(`Updating last login for user with Clerk ID: ${user_id}`);
 
     try {
-      await userService.updateLastLogin(user_id);
+      await userService.updateLastLogin(user_id, last_active_at);
       log.info(
         `Successfully updated last login for user with Clerk ID: ${user_id}`
       );
@@ -108,7 +117,7 @@ export class ClerkWebhookController {
       log.error(
         `Failed to update last login for user with Clerk ID ${user_id}: ${error}`
       );
-      // Don't throw the error to avoid webhook failures
+      // Not throwing the error to avoid webhook failures
     }
   };
 }

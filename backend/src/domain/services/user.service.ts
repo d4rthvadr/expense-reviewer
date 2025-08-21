@@ -134,11 +134,21 @@ export class UserService {
    * @returns A promise that resolves to the updated `UserResponseDto` or `null` if the user is not found.
    * @throws Will throw an error if the update operation encounters an issue.
    */
-  async updateLastLogin(clerkId: string): Promise<UserResponseDto | null> {
+  async updateLastLogin(
+    clerkId: string,
+    lastActiveAt?: number
+  ): Promise<UserResponseDto | null> {
     log.info(`Updating last login for user with Clerk ID: ${clerkId}`);
 
     try {
-      const user = await this.#userRepository.updateLastLogin(clerkId);
+      const lastActiveAtDate = lastActiveAt
+        ? new Date(lastActiveAt)
+        : new Date();
+
+      const user = await this.#userRepository.updateLastLogin(
+        clerkId,
+        lastActiveAtDate
+      );
       if (!user) {
         log.warn(`User not found with Clerk ID: ${clerkId}`);
         return null;

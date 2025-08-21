@@ -84,11 +84,14 @@ export class UserRepository extends Database {
    * @returns A promise that resolves to the updated UserModel object, or null if the user was not found.
    * @throws Will throw an error if the update operation fails.
    */
-  async updateLastLogin(userId: string): Promise<UserModel | null> {
+  async updateLastLogin(
+    userId: string,
+    lastActiveAt: Date
+  ): Promise<UserModel | null> {
     try {
       const user: UserEntity | null = await this.user.update({
         where: { id: userId },
-        data: { lastLogin: new Date() },
+        data: { lastLogin: lastActiveAt },
       });
 
       return mapUser(user);
