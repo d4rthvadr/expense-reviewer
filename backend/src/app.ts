@@ -40,7 +40,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
 
   if (userId) {
-    req.user = { id: userId }; // Ensure userId is optional
+    req.user = { id: userId };
   }
   next();
 });

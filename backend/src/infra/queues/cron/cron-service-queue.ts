@@ -7,7 +7,7 @@ import {
   ProcessorNames,
 } from './processors';
 import { getRedisInstance } from '@infra/db/cache';
-import { expenseService } from '@domain/services/expense.service';
+import { userService } from '@domain/services/user.service';
 
 const connection = getRedisInstance();
 
@@ -22,7 +22,7 @@ type CronServiceProcessorMap = {
 };
 
 const cronServiceProcessors: CronServiceProcessorMap = {
-  expenseReviewProcessor: new ExpenseReviewProcessor(expenseService),
+  expenseReviewProcessor: new ExpenseReviewProcessor(userService),
 };
 
 class CronServiceQueue extends Worker {

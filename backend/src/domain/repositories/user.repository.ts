@@ -9,6 +9,25 @@ export class UserRepository extends Database {
     super();
   }
 
+  async find(
+    data: { filter?: Record<string, any> } = {}
+  ): Promise<UserModel[]> {
+    log.info(`Finding users with data: ${JSON.stringify(data)}`);
+    try {
+      const users: UserEntity[] = await this.user.findMany({
+        where: data.filter,
+      });
+      return users.map((user) => mapUser(user));
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while finding users:',
+        error,
+        code: 'USER_FIND_ERROR',
+      });
+      throw error;
+    }
+  }
+
   /**
    * Retrieves a user by their unique identifier.
    *
@@ -55,6 +74,8 @@ export class UserRepository extends Database {
           status: data.status,
           currency: data.currency,
           password: data.password,
+          lastRecurSync: data.lastRecurSync,
+          lastLogin: data.lastLogin,
         },
         update: {
           name: data.name,
@@ -62,6 +83,8 @@ export class UserRepository extends Database {
           status: data.status,
           currency: data.currency,
           password: data.password,
+          lastRecurSync: data.lastRecurSync,
+          lastLogin: data.lastLogin,
         },
       });
 

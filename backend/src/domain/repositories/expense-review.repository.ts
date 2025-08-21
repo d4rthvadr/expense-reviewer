@@ -99,6 +99,33 @@ export class ExpenseReviewRepository extends Database {
       throw error;
     }
   }
+
+  async save(data: ExpenseReviewModel): Promise<ExpenseReviewModel> {
+    try {
+      const expenseReview = await this.expenseReview.upsert({
+        where: { id: data.id },
+        create: {
+          id: data.id,
+          reviewText: data.reviewText,
+          userId: data.userId,
+        },
+        update: {
+          reviewText: data.reviewText,
+          userId: data.userId,
+        },
+      });
+
+      return mapExpenseReview(expenseReview);
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while saving expense review:',
+        error,
+        code: 'EXPENSE_REVIEW_SAVE_ERROR',
+      });
+
+      throw error;
+    }
+  }
 }
 
 const expenseReviewRepository = new ExpenseReviewRepository();

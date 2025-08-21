@@ -20,7 +20,7 @@ export class AnalyticsController {
         parsedDateFrom,
         parsedDateTo,
         groupBy as 'day' | 'week' | 'month',
-        req.user?.id
+        req.user.id
       );
 
       const response: AnalyticsApiResponse = {
@@ -107,7 +107,7 @@ export class AnalyticsController {
       const data = await analyticsService.getBudgetVsExpenses(
         parsedDateFrom,
         parsedDateTo,
-        req.user?.id
+        req.user.id
       );
 
       const response = {

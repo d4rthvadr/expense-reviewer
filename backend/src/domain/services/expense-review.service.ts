@@ -8,6 +8,7 @@ import { log } from '@infra/logger';
 import { PaginatedResultDto } from '@api/controllers/dtos/response/paginated-response.dto';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { ExpenseReviewResponseDto } from '../../api/controllers/dtos/response/expense-review-response.dto';
+import { ExpenseReviewFactory } from '@domain/factories/expense-reviewe.factory';
 
 interface ExpenseReviewQueryParams {
   userId: string;
@@ -88,6 +89,20 @@ export class ExpenseReviewService {
         `Expense review not found with id: ${expenseReviewId}`
       );
     }
+  }
+
+  async createReview(
+    reviewText: string,
+    userId: string
+  ): Promise<ExpenseReviewModel> {
+    log.info(`Creating expense review for user ID: ${userId}`);
+
+    const newReview = ExpenseReviewFactory.createExpenseReview({
+      reviewText,
+      userId,
+    });
+
+    return await this.#expenseReviewRepository.save(newReview);
   }
 
   #toExpenseReviewDto(data: ExpenseReviewModel): ExpenseReviewResponseDto {

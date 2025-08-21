@@ -1,24 +1,9 @@
 import { log } from '@infra/logger';
-import { buildPrompt } from '@infra/language-models/prompt-builder';
 import { AgentWrapper } from '../interfaces/agent-wrapper.interface';
 import ollama from 'ollama';
 
-const parseResponse = (response: string): unknown => {
-  let parsedResponse = [];
-  try {
-    parsedResponse = JSON.parse(response);
-  } catch (err) {
-    log.warn({
-      message: 'Error processing response:',
-      error: err,
-      code: '',
-    });
-  }
-
-  return parsedResponse;
-};
-
 export class AgentService {
+  // eslint-disable-next-line no-unused-private-class-members
   #agentWrapper?: AgentWrapper;
 
   constructor(agentWrapper?: AgentWrapper) {
@@ -36,21 +21,9 @@ export class AgentService {
       ],
     });
 
+    log.info(`Response from Ollama: ${response.message.content}`);
+
     return response.message.content;
-  }
-
-  async extractTableData2(text: string): Promise<unknown> {
-    const prompt: string = buildPrompt.extractTextFromInvoice(text);
-
-    if (!this.#agentWrapper) {
-      throw new Error('AgentWrapper is not initialized');
-    }
-
-    const completion = await this.#agentWrapper.create([
-      { role: 'user', content: prompt },
-    ]);
-
-    return completion;
   }
 }
 

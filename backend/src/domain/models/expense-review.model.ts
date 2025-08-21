@@ -13,12 +13,14 @@ interface ExpenseReviewDataInput {
   reviewText: string;
   createdAt?: Date;
   updatedAt?: Date;
+  userId?: string;
   expense?: ExpenseItem[];
 }
 
 export class ExpenseReviewModel {
   readonly #id: string;
   #reviewText: string;
+  #userId?: string;
   #createdAt: Date;
   #updatedAt: Date;
   #expense?: ExpenseItem[];
@@ -26,6 +28,7 @@ export class ExpenseReviewModel {
   constructor(data: ExpenseReviewDataInput) {
     this.#id = data.id ?? uuidv4();
     this.#reviewText = data.reviewText;
+    this.#userId = data.userId;
     this.#createdAt = data.createdAt ?? new Date();
     this.#updatedAt = data.updatedAt ?? new Date();
     this.#expense = data.expense;
@@ -62,5 +65,13 @@ export class ExpenseReviewModel {
 
   set expense(value: ExpenseItem[] | undefined) {
     this.#expense = value;
+  }
+
+  get userId(): string | undefined {
+    return this.#userId;
+  }
+
+  set userId(value: string | undefined) {
+    this.#userId = value;
   }
 }

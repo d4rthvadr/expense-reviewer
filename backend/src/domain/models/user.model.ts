@@ -11,6 +11,8 @@ interface UserDataInput {
   password: string;
   createdAt?: Date;
   updatedAt?: Date;
+  lastLogin?: Date;
+  lastRecurSync?: Date;
 }
 
 export class UserModel {
@@ -22,6 +24,8 @@ export class UserModel {
   #password: string;
   #createdAt: Date;
   #updatedAt: Date;
+  #lastLogin?: Date;
+  #lastRecurSync?: Date;
 
   constructor(data: UserDataInput) {
     const {
@@ -33,6 +37,8 @@ export class UserModel {
       currency,
       createdAt = new Date(),
       updatedAt = new Date(),
+      lastLogin,
+      lastRecurSync,
     } = data;
     this.#id = id;
     this.#name = name;
@@ -42,6 +48,8 @@ export class UserModel {
     this.#password = password;
     this.#createdAt = createdAt;
     this.#updatedAt = updatedAt;
+    this.#lastLogin = lastLogin;
+    this.#lastRecurSync = lastRecurSync;
   }
 
   /**
@@ -172,5 +180,41 @@ export class UserModel {
    */
   get updatedAt(): Date {
     return this.#updatedAt;
+  }
+
+  /**
+   * Gets the date and time when the user's recurring sync was last performed.
+   *
+   * @returns {Date | undefined} The timestamp of the last recurring sync, or undefined if never synced.
+   */
+  get lastRecurSync(): Date | undefined {
+    return this.#lastRecurSync;
+  }
+
+  /**
+   * Sets the date and time when the user's recurring sync was last performed.
+   *
+   * @param value - The new timestamp for the last recurring sync.
+   */
+  set lastRecurSync(value: Date | undefined) {
+    this.#lastRecurSync = value;
+  }
+
+  /**
+   * Gets the date and time when the user last logged in.
+   *
+   * @returns {Date | undefined} The timestamp of the last login, or undefined if never logged in.
+   */
+  get lastLogin(): Date | undefined {
+    return this.#lastLogin;
+  }
+
+  /**
+   * Sets the date and time when the user last logged in.
+   *
+   * @param value - The new timestamp for the last login.
+   */
+  set lastLogin(value: Date | undefined) {
+    this.#lastLogin = value;
   }
 }

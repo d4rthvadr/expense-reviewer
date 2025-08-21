@@ -29,5 +29,6 @@ export function mapUser(entity: UserEntity | null): UserModel | null {
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
     password: entity.password,
+    lastRecurSync: convertNullToUndefined(entity.lastRecurSync),
   });
 }

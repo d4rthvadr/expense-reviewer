@@ -31,6 +31,16 @@ export class UserService {
     return uuidv4().replace(/-/g, '');
   }
 
+  async find(
+    data: { filter?: Record<string, any> } = {}
+  ): Promise<UserResponseDto[]> {
+    log.info(`Finding users with data: ${JSON.stringify(data)}`);
+
+    const users = await this.#userRepository.find(data);
+
+    return users.map((user) => this.#toUserCreatedDto(user));
+  }
+
   async findById(userId: string): Promise<UserResponseDto | undefined> {
     log.info(`Finding user by id: ${userId}`);
 
@@ -161,6 +171,48 @@ export class UserService {
     } catch (error) {
       log.error(
         `Error updating last login for user with Clerk ID ${clerkId}: ${error}`
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Updates the last recurring sync timestamp for a user identified by the given user ID.
+   *
+   * This method is typically called after processing expense reviews or other recurring operations
+   * to track when the user's data was last synchronized.
+   *
+   * @param userId - The unique ID of the user whose last recurring sync timestamp should be updated.
+   * @param lastRecurSync - The timestamp to set for the last recurring sync. Defaults to current time if not provided.
+   * @returns A promise that resolves to the updated `UserResponseDto` or `null` if the user is not found.
+   * @throws Will throw an error if the update operation encounters an issue.
+   */
+  async updateUserLastRecurSync(
+    userId: string,
+    lastRecurSync?: Date
+  ): Promise<UserResponseDto | null> {
+    log.info(`Updating last recurring sync for user with ID: ${userId}`);
+
+    try {
+      const syncTimestamp = lastRecurSync ?? new Date();
+
+      const user = await this.#userRepository.findOne(userId);
+      if (!user) {
+        log.warn(`User not found with ID: ${userId}`);
+        throw new Error(`User not found with ID: ${userId}`);
+      }
+
+      user.lastRecurSync = syncTimestamp;
+
+      const updatedUser = await this.#userRepository.save(user);
+
+      log.info(
+        `Successfully updated last recurring sync for user with ID: ${userId}`
+      );
+      return this.#toUserCreatedDto(updatedUser);
+    } catch (error) {
+      log.error(
+        `Error updating last recurring sync for user with ID ${userId}: ${error}`
       );
       throw error;
     }
