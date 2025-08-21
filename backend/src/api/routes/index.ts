@@ -5,6 +5,7 @@ import budgetRoutes from './budget.route';
 import analyticsRoutes from './analytics.routes';
 import recurringTemplateRoutes from './recurring-template.route';
 import webhookRoutes from './webhook.route';
+import expenseReviewRoutes from './expense-review.route';
 
 export {
   agentRoutes,
@@ -14,4 +15,5 @@ export {
   analyticsRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
+  expenseReviewRoutes,
 };
