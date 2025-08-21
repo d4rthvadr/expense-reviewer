@@ -110,7 +110,7 @@ class ExpenseService {
     const convertedAmountInUsd =
       await this.#currencyConversionService.convertCurrency(
         data.amount,
-        data.currency ?? Currency.USD,
+        data.currency,
         Currency.USD
       );
 
@@ -151,7 +151,7 @@ class ExpenseService {
     const convertedAmountInUsd =
       await this.#currencyConversionService.convertCurrency(
         data.amount,
-        data.currency ?? Currency.USD,
+        data.currency,
         Currency.USD
       );
 
