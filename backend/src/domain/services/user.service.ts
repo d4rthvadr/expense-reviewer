@@ -194,7 +194,25 @@ export class UserService {
     log.info(`Updating last recurring sync for user with ID: ${userId}`);
 
     try {
-      const syncTimestamp = lastRecurSync ?? new Date();
+      // if lastRecurSync is not provided, use current time
+      // but if provided, use it as the sync timestamp and add one more month to it
+      // this allows us compensate for missed recurring syncs until next sync
+
+      let syncTimestamp = new Date();
+      log.info(
+        `Initial sync: Setting to current time ${syncTimestamp.toISOString()}`
+      );
+      if (lastRecurSync) {
+        // Progressive catch-up: Add one month to the last sync date
+        // This allows cron to pick up missed syncs month by month
+        syncTimestamp = new Date(lastRecurSync.getTime());
+        syncTimestamp.setMonth(syncTimestamp.getMonth() + 1);
+        log.info(
+          `Progressive sync: Moving from ${lastRecurSync.toISOString()} to ${syncTimestamp.toISOString()}`
+        );
+      }
+
+      syncTimestamp.setHours(0, 0, 0, 0); // Normalize to start of day
 
       const user = await this.#userRepository.findOne(userId);
       if (!user) {

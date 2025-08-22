@@ -42,6 +42,7 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
           userId: user.id,
           dateFrom: daysElapsed,
           dateTo: now,
+          lastRecurSyncDate: user.lastRecurSync,
         };
 
         log.info(
@@ -62,54 +63,4 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
       throw error;
     }
   }
-
-  // async processOld(job: Job) {
-  //   log.info({
-  //     message: `Processing expense review job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`,
-  //   });
-
-  //   //await this.#expenseService.processPendingExpensesReview(job.data.userId);
-
-  //   // 1. lets get user's with last lastRecurSync exceeding 30 days for the time being
-  //   // or 2. We get the specific month of the lastRecurSync of us
-  //   // TODO: maybe we can use a different column.
-  //   // FOr now this will be used to trigger expense review for all users
-
-  //   const daysElapsed = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-  //   try {
-  //     const eligibleUsers = await this.#userService.find({
-  //       filter: {
-  //         lastRecurSync: {
-  //           lte: daysElapsed,
-  //         },
-  //       },
-  //     });
-
-  //     log.info(`Found ${eligibleUsers.length} users for expense review.`);
-
-  //     daysElapsed.setHours(0, 0, 0, 0);
-
-  //     const now = new Date();
-  //     now.setHours(23, 59, 59, 999); // Set to end of day
-
-  //     for (const user of eligibleUsers) {
-  //       const budgetWithExpenses =
-  //         await this.#analyticsService.getBudgetVsExpenses(
-  //           daysElapsed,
-  //           now,
-  //           user.id
-  //         );
-  //       log.info(
-  //         `Processing expense review for user: ${user.id} with budget data: ${JSON.stringify(budgetWithExpenses)}`
-  //       );
-  //     }
-  //   } catch (error) {
-  //     log.error({
-  //       message: `An error occurred while processing expense review job with ID: ${job.id}`,
-  //       error,
-  //       code: 'EXPENSE_REVIEW_PROCESSING_ERROR',
-  //     });
-  //     throw error;
-  //   }
-  // }
 }

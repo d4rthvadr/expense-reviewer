@@ -21,6 +21,7 @@ export type ExpenseReviewJobData = {
   dateTo: Date;
   dateFrom: Date;
   userId: string;
+  lastRecurSyncDate?: Date;
 };
 
 class ExpenseReviewQueueService extends Worker {
@@ -78,7 +79,7 @@ class ExpenseReviewQueueService extends Worker {
         message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
       });
 
-      const { userId, dateFrom, dateTo } = job.data;
+      const { userId, dateFrom, dateTo, lastRecurSyncDate } = job.data;
 
       const budgetWithExpenses =
         await this.#analyticsService.getBudgetVsExpenses(
@@ -100,7 +101,7 @@ class ExpenseReviewQueueService extends Worker {
       );
 
       //update user's lastRecurSync date
-      await userService.updateUserLastRecurSync(userId);
+      await userService.updateUserLastRecurSync(userId, lastRecurSyncDate);
 
       log.info(
         `Expense review created successfully for user: ${userId} with review ID: ${savedReview.id}`

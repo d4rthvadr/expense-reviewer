@@ -6,6 +6,7 @@ export interface UserResponseDto {
   name?: string;
   status?: UserStatus;
   currency?: Currency;
+  lastRecurSync?: Date;
   email: string;
   createdAt: Date;
 }
