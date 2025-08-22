@@ -9,6 +9,7 @@ import { log } from '@infra/logger';
 import { UserResponseDto } from '../../api/controllers/dtos/response/user-response.dto';
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { v4 as uuidv4 } from 'uuid';
+import { Prisma } from '../../../generated/prisma';
 
 export interface CreateFromClerkDto {
   email: string;
@@ -31,9 +32,7 @@ export class UserService {
     return uuidv4().replace(/-/g, '');
   }
 
-  async find(
-    data: { filter?: Record<string, any> } = {}
-  ): Promise<UserResponseDto[]> {
+  async find(data: Prisma.UserFindManyArgs = {}): Promise<UserResponseDto[]> {
     log.info(`Finding users with data: ${JSON.stringify(data)}`);
 
     const users = await this.#userRepository.find(data);
@@ -194,25 +193,7 @@ export class UserService {
     log.info(`Updating last recurring sync for user with ID: ${userId}`);
 
     try {
-      // if lastRecurSync is not provided, use current time
-      // but if provided, use it as the sync timestamp and add one more month to it
-      // this allows us compensate for missed recurring syncs until next sync
-
-      let syncTimestamp = new Date();
-      log.info(
-        `Initial sync: Setting to current time ${syncTimestamp.toISOString()}`
-      );
-      if (lastRecurSync) {
-        // Progressive catch-up: Add one month to the last sync date
-        // This allows cron to pick up missed syncs month by month
-        syncTimestamp = new Date(lastRecurSync.getTime());
-        syncTimestamp.setMonth(syncTimestamp.getMonth() + 1);
-        log.info(
-          `Progressive sync: Moving from ${lastRecurSync.toISOString()} to ${syncTimestamp.toISOString()}`
-        );
-      }
-
-      syncTimestamp.setHours(0, 0, 0, 0); // Normalize to start of day
+      const syncTimestamp = this.retrieveProgressiveSyncDate(lastRecurSync); // Normalize to start of day
 
       const user = await this.#userRepository.findOne(userId);
       if (!user) {
@@ -234,6 +215,38 @@ export class UserService {
       );
       throw error;
     }
+  }
+
+  /**
+   * Calculates the next progressive sync date for recurring operations.
+   *
+   * If `lastRecurSync` is not provided, the current date and time is used as the sync timestamp.
+   * If `lastRecurSync` is provided, one month is added to it to determine the next sync date.
+   * This approach allows for progressive catch-up, ensuring that missed recurring syncs
+   * are compensated for in subsequent runs (e.g., by a cron job).
+   *
+   * The returned date is normalized to the start of the day (00:00:00.000).
+   *
+   * @param lastRecurSync - The date of the last recurring sync, or `undefined` if this is the first sync.
+   * @returns The calculated sync timestamp, normalized to the start of the day.
+   */
+  private retrieveProgressiveSyncDate(lastRecurSync: Date | undefined) {
+    let syncTimestamp = new Date();
+    log.info(
+      `Initial sync: Setting to current time ${syncTimestamp.toISOString()}`
+    );
+    if (lastRecurSync) {
+      // Progressive catch-up: Add one month to the last sync date
+      // This allows cron to pick up missed syncs month by month
+      syncTimestamp = new Date(lastRecurSync.getTime());
+      syncTimestamp.setMonth(syncTimestamp.getMonth() + 1);
+      log.info(
+        `Progressive sync: Moving from ${lastRecurSync.toISOString()} to ${syncTimestamp.toISOString()}`
+      );
+    }
+
+    syncTimestamp.setHours(0, 0, 0, 0); // Normalize to start of day
+    return syncTimestamp;
   }
 
   #toUserCreatedDto({

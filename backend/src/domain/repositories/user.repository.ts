@@ -1,5 +1,5 @@
 import { mapUser } from './helpers/map-user';
-import { User as UserEntity } from '../../../generated/prisma';
+import { User as UserEntity, Prisma } from '../../../generated/prisma';
 import { UserModel } from '@domain/models/user.model';
 import { log } from '@infra/logger';
 import { Database } from '@infra/db/database';
@@ -9,13 +9,11 @@ export class UserRepository extends Database {
     super();
   }
 
-  async find(
-    data: { filter?: Record<string, any> } = {}
-  ): Promise<UserModel[]> {
+  async find(data: Prisma.UserFindManyArgs = {}): Promise<UserModel[]> {
     log.info(`Finding users with data: ${JSON.stringify(data)}`);
     try {
       const users: UserEntity[] = await this.user.findMany({
-        where: data.filter,
+        where: data.where,
       });
       return users.map((user) => mapUser(user));
     } catch (error) {
