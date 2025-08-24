@@ -20,6 +20,15 @@ export type ResponseWithError = {
   success: boolean;
 };
 
+/**
+ * Handles errors from client-side operations and formats them into a standardized response object.
+ *
+ * @param error - The error object to handle. Can be of any type.
+ * @returns An object containing:
+ *   - `success`: Always `false` to indicate failure.
+ *   - `error`: The error message if the error is an instance of `Error`, otherwise a generic message.
+ *   - `authError`: `true` if the error is an authentication error, otherwise `false`.
+ */
 export const clientErrorHandler = (error: unknown): ResponseWithError => {
   console.error("Error:", error);
   const isAuthError =

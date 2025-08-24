@@ -57,6 +57,15 @@ export class BudgetService {
     return budget;
   }
 
+  /**
+   * Creates a new budget entry.
+   *
+   * This method logs the creation request, converts the provided amount to USD if necessary,
+   * constructs a new budget model, saves it to the repository, and returns the created budget as a DTO.
+   *
+   * @param data - The data required to create a new budget, including amount and currency.
+   * @returns A promise that resolves to the created budget as a BudgetResponseDto.
+   */
   async create(data: CreateBudgetDto): Promise<BudgetResponseDto> {
     log.info(`Creating budget with data: | meta: ${JSON.stringify({ data })}`);
     const conversionResult =
