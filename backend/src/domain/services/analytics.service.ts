@@ -17,7 +17,7 @@ export class AnalyticsService {
     dateFrom: Date,
     dateTo: Date,
     groupBy: 'day' | 'week' | 'month',
-    userId?: string
+    userId: string
   ): Promise<ExpenseAnalyticsData[]> {
     try {
       // Validate date range
@@ -64,7 +64,7 @@ export class AnalyticsService {
   async getBudgetVsExpenses(
     dateFrom: Date,
     dateTo: Date,
-    userId?: string
+    userId: string
   ): Promise<BudgetVsExpenseData[]> {
     try {
       // Validate date range
@@ -86,7 +86,8 @@ export class AnalyticsService {
       // Get raw USD data from repository
       const rawData = await this.analyticsRepository.getBudgetVsExpenseData(
         adjustedDateFrom,
-        adjustedDateTo
+        adjustedDateTo,
+        userId
       );
 
       // Get user's preferred currency (default to USD)

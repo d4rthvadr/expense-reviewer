@@ -19,7 +19,7 @@ export class AgentController {
     }
 
     try {
-      const agentResponse = await this.#agentService.extractTableData(text);
+      const agentResponse = await this.#agentService.generateAIResponse(text);
 
       res.send({ data: agentResponse });
     } catch (error) {

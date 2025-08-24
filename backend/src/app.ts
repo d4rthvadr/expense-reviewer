@@ -10,6 +10,7 @@ import {
   analyticsRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
+  expenseReviewRoutes,
 } from './api/routes';
 import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
@@ -37,7 +38,10 @@ app.use(clerkMiddleware());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
-  req.user = { id: userId ?? undefined }; // Ensure userId is optional
+
+  if (userId) {
+    req.user = { id: userId };
+  }
   next();
 });
 
@@ -62,6 +66,7 @@ app.use('/api/expenses', requireAuth(), expenseRoutes);
 app.use('/api/budgets', requireAuth(), budgetRoutes);
 app.use('/api/analytics', requireAuth(), analyticsRoutes);
 app.use('/api/recurring-templates', requireAuth(), recurringTemplateRoutes);
+app.use('/api/expense-reviews', expenseReviewRoutes);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);

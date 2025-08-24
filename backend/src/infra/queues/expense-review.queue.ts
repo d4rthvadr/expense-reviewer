@@ -2,30 +2,33 @@ import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@infra/logger';
 import { getRedisInstance } from '@infra/db/cache';
 import { agentService, AgentService } from '@domain/services/agent.service';
-import { Currency } from '../../../generated/prisma';
 import { buildPrompt } from '@infra/language-models/prompt-builder';
-import { expenseService } from '@domain/services/expense.service';
-import { ExpenseModel } from '@domain/models/expense.model';
+import {
+  AnalyticsService,
+  analyticsService,
+} from '@domain/services/analytics.service';
+import {
+  expenseReviewService,
+  ExpenseReviewService,
+} from '@domain/services/expense-review.service';
+import { userService } from '@domain/services/user.service';
 
 const connection = getRedisInstance();
 
 const QUEUE_NAME = 'expense-review-queue';
 
-export interface BudgetPerCategory {
-  category: string;
-  currency?: Currency;
-  budget: number;
-}
-
 export type ExpenseReviewJobData = {
-  expenseId: string;
-  userId: string | undefined;
-  budgetPerCategory?: BudgetPerCategory[];
+  dateTo: Date;
+  dateFrom: Date;
+  userId: string;
+  lastRecurSyncDate?: Date;
 };
 
 class ExpenseReviewQueueService extends Worker {
   #queue: Queue;
   #agentService: AgentService;
+  #analyticsService: AnalyticsService;
+  #expenseReviewService: ExpenseReviewService;
 
   defaultJobOptions: JobsOptions = {
     attempts: 3,
@@ -36,7 +39,12 @@ class ExpenseReviewQueueService extends Worker {
     removeOnComplete: true,
     removeOnFail: true,
   };
-  constructor(queue: Queue, agentService: AgentService) {
+  constructor(
+    queue: Queue,
+    agentService: AgentService,
+    expenseReviewService: ExpenseReviewService,
+    analyticsService: AnalyticsService
+  ) {
     super(
       QUEUE_NAME,
       async (job: Job) => {
@@ -47,6 +55,8 @@ class ExpenseReviewQueueService extends Worker {
 
     this.#queue = queue;
     this.#agentService = agentService;
+    this.#analyticsService = analyticsService;
+    this.#expenseReviewService = expenseReviewService;
 
     this.on('completed', (job) => {
       log.info(
@@ -69,22 +79,33 @@ class ExpenseReviewQueueService extends Worker {
         message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
       });
 
-      const { expenseId, budgetPerCategory = [] } = job.data;
+      const { userId, dateFrom, dateTo, lastRecurSyncDate } = job.data;
 
-      // const expense = await expenseService.findById(expenseId);
-
-      // const { items: expenseItems } = expense;
-
-      const expenses: ExpenseModel[] = [];
-
-      const promptText = buildPrompt.reviewUserExpense(
-        expenses,
-        budgetPerCategory
+      const budgetWithExpenses =
+        await this.#analyticsService.getBudgetVsExpenses(
+          dateFrom,
+          dateTo,
+          userId
+        );
+      log.info(
+        `Processing expense review for user: ${userId} with budget data: ${JSON.stringify(budgetWithExpenses.length)}`
       );
 
-      const review = await this.#agentService.extractTableData(promptText);
+      const promptText = buildPrompt.reviewUserExpense(budgetWithExpenses);
 
-      await expenseService.updatePendingExpensesReview(expenseId, review);
+      const review = await this.#agentService.generateAIResponse(promptText);
+
+      const savedReview = await this.#expenseReviewService.createReview(
+        review,
+        userId
+      );
+
+      //update user's lastRecurSync date
+      await userService.updateUserLastRecurSync(userId, lastRecurSyncDate);
+
+      log.info(
+        `Expense review created successfully for user: ${userId} with review ID: ${savedReview.id}`
+      );
     } catch (error) {
       log.error({
         message: `Error processing job ${job.name}:${job.id}`,
@@ -98,7 +119,7 @@ class ExpenseReviewQueueService extends Worker {
   async addJob(data: ExpenseReviewJobData) {
     log.info(`Adding job to queue with data: ${JSON.stringify(data)}`);
 
-    const jobName = `expense-review-${data.expenseId}-${data.userId}`;
+    const jobName = `expense-review-${data.userId}`;
     await this.#queue.add(jobName, data, this.defaultJobOptions);
   }
 }
@@ -112,7 +133,9 @@ const expenseReviewQueue = new Queue(QUEUE_NAME, {
 // Create a new instance of QueueService
 const expenseReviewQueueService = new ExpenseReviewQueueService(
   expenseReviewQueue,
-  agentService
+  agentService,
+  expenseReviewService,
+  analyticsService
 );
 
 export { expenseReviewQueueService, QUEUE_NAME };

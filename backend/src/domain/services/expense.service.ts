@@ -79,6 +79,33 @@ class ExpenseService {
 
     return expense;
   }
+
+  /**
+   * Retrieves a list of expenses matching the provided array of expense IDs.
+   *
+   * @param expenseIds - An array of expense IDs to search for.
+   * @returns A promise that resolves to an array of {@link ExpenseModel} instances corresponding to the given IDs.
+   *
+   * @remarks
+   * This method logs the IDs being searched and delegates the actual data retrieval to the expense repository.
+   */
+  async findByIds(expenseIds: string[]): Promise<ExpenseModel[]> {
+    log.info(`Finding expenses by ids: ${expenseIds.join(', ')}`);
+
+    const findQueryData = buildFindQuery({
+      limit: expenseIds.length,
+      filters: {
+        id: {
+          in: expenseIds,
+        },
+      },
+    });
+
+    const expenses = await this.#expenseRepository.find(findQueryData);
+
+    return expenses.data;
+  }
+
   /**
    * Retrieves a single expense by its unique identifier.
    *
@@ -110,7 +137,7 @@ class ExpenseService {
     const convertedAmountInUsd =
       await this.#currencyConversionService.convertCurrency(
         data.amount,
-        data.currency ?? Currency.USD,
+        data.currency,
         Currency.USD
       );
 
@@ -151,7 +178,7 @@ class ExpenseService {
     const convertedAmountInUsd =
       await this.#currencyConversionService.convertCurrency(
         data.amount,
-        data.currency ?? Currency.USD,
+        data.currency,
         Currency.USD
       );
 
@@ -171,41 +198,7 @@ class ExpenseService {
     return this.#toExpenseDto(updatedExpense);
   }
 
-  /**
-   * Processes the approval of an expense by updating its status and, if approved,
-   * logs the approval and adds the expense to the review queue.
-   *
-   * @param expenseId - The unique identifier of the expense to process.
-   * @param status - The new status to set for the expense.
-   * @param userId - The identifier of the user performing the approval, or undefined if not available.
-   * @returns A promise that resolves when the processing is complete.
-   */
-  // eslint-disable-next-line no-unused-private-class-members
-  async #processExpenseApproval(
-    data: ExpenseReviewPayload & { status: ExpenseStatus }
-  ) {
-    const { expenseId, status } = data;
-    if (status !== ExpenseStatus.APPROVED) {
-      log.info(
-        `Expense with id ${expenseId} not approved with status: ${status}`
-      );
-      return;
-    }
-
-    const budgets = (
-      (await budgetService.getUserBudgets(data.userId)) || []
-    ).map((budget) => ({
-      category: budget.category,
-      budget: budget.amount,
-      currency: budget.currency,
-    }));
-    await this.pushPendingExpenseToReviewQueue({
-      ...data,
-      budgetPerCategory: budgets,
-    });
-  }
-
-  async fetchApprovedReviewedExpenses() {
+  private async fetchApprovedReviewedExpenses(userId: string) {
     log.info(`Fetching approved and not reviewed expenses`);
 
     // get today's date
@@ -220,89 +213,17 @@ class ExpenseService {
     const threshHoldDate = addDays(startOfNextMonth, DAYS_PASSED_TO_REVIEW);
     const findQueryData = buildFindQuery({
       filters: {
-        status: ExpenseStatus.PENDING,
-        review: null, // Only fetch expenses that are not reviewed
+        userId,
         createdAt: {
           gte: threshHoldDate,
         },
       },
     });
 
-    return []; // This is a placeholder for the actual implementation
-
     const { data: expenses }: { data: ExpenseModel[] } =
       await this.#expenseRepository.find(findQueryData);
 
     return expenses;
-  }
-
-  /**
-   * Adds a pending expense to the review queue for further processing.
-   *
-   * This method constructs a job containing the expense ID and user ID,
-   * logs the action, and enqueues the job using the expense review queue service.
-   *
-   * @param expense - The expense model instance to be pushed to the review queue.
-   * @returns A promise that resolves when the job has been successfully added to the queue.
-   */
-  async pushPendingExpenseToReviewQueue({
-    expenseId,
-    userId,
-    budgetPerCategory,
-  }: ExpenseReviewPayload) {
-    if (!userId) {
-      return;
-    }
-    const jobData: ExpenseReviewJobData = {
-      expenseId,
-      userId,
-      budgetPerCategory,
-    };
-
-    log.info(
-      `Adding expense to review queue | meta: ${JSON.stringify(jobData)}`
-    );
-
-    await expenseReviewQueueService.addJob(jobData);
-  }
-  async processPendingExpensesReview() {
-    try {
-      log.info(`Processing pending expenses review`);
-      const expenses: ExpenseModel[] =
-        await this.fetchApprovedReviewedExpenses();
-
-      if (expenses.length === 0) {
-        log.info(`No pending expenses found for review`);
-        return;
-      }
-
-      for (const expense of expenses) {
-        await this.pushPendingExpenseToReviewQueue({
-          expenseId: expense.id,
-          userId: expense.userId,
-        });
-      }
-    } catch (error: Error | any) {
-      log.error(`Error processing pending expenses review: ${error.message}`);
-      throw error;
-    }
-  }
-
-  // TODO: revise review update into a separate table
-  async updatePendingExpensesReview(
-    expenseId: string,
-    review: string
-  ): Promise<void> {
-    log.info(`Updating pending expense review for id: ${expenseId}`);
-
-    const expense: ExpenseModel = await this.findById(expenseId);
-
-    const updatedExpense: ExpenseModel =
-      await this.#expenseRepository.save(expense);
-
-    log.info(
-      `Pending expense review updated | meta: ${JSON.stringify(updatedExpense)}`
-    );
   }
 
   /**

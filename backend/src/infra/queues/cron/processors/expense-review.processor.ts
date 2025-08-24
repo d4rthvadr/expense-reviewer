@@ -1,18 +1,99 @@
 import { log } from '@infra/logger';
 import { CronServiceProcessor } from './processor.interface';
 import { Job } from 'bullmq';
-import { ExpenseService } from '@domain/services/expense.service';
+import { UserService } from '@domain/services/user.service';
+import { startOfMonth, endOfMonth } from 'date-fns';
+import {
+  ExpenseReviewJobData,
+  expenseReviewQueueService,
+} from '@infra/queues/expense-review.queue';
 
 export class ExpenseReviewProcessor implements CronServiceProcessor {
-  #expenseService: ExpenseService;
-  constructor(expenseService: ExpenseService) {
-    this.#expenseService = expenseService;
+  #userService: UserService;
+
+  constructor(userService: UserService) {
+    this.#userService = userService;
+  }
+
+  /**
+   * Calculates the synchronization period for the current month.
+   *
+   * @returns An object containing:
+   * - `dateFrom`: The start date of the current month (at 00:00:00.000).
+   * - `dateTo`: The end date of the current month (at 23:59:59.999).
+   *
+   * @remarks
+   * This method uses the current system date to determine the boundaries of the month.
+   * The returned dates are set to the exact start and end times of the respective days.
+   */
+  private calculateSyncPeriod(): {
+    dateFrom: Date;
+    dateTo: Date;
+  } {
+    const nowDate = new Date();
+
+    // Calculate month boundaries
+    const dateFrom = startOfMonth(nowDate);
+    dateFrom.setHours(0, 0, 0, 0); // Start of day
+
+    const dateTo = endOfMonth(nowDate);
+    dateTo.setHours(23, 59, 59, 999); // End of day
+
+    return { dateFrom, dateTo };
   }
   async process(job: Job) {
     log.info({
       message: `Processing expense review job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`,
     });
 
-    await this.#expenseService.processPendingExpensesReview();
+    const { dateFrom, dateTo } = this.calculateSyncPeriod();
+
+    try {
+      const searchQuery = {
+        where: {
+          OR: [
+            { lastRecurSync: null },
+            {
+              lastRecurSync: {
+                lt: dateFrom,
+              },
+            },
+          ],
+        },
+      };
+      const eligibleUsers = await this.#userService.find(searchQuery);
+
+      log.info(
+        `Found: ${eligibleUsers.length} users for expense review using query: ${JSON.stringify(searchQuery)}`
+      );
+
+      const now = new Date();
+      now.setHours(23, 59, 59, 999); // Set to end of day
+
+      for (const user of eligibleUsers) {
+        const jobData: ExpenseReviewJobData = {
+          userId: user.id,
+          dateFrom,
+          dateTo,
+          lastRecurSyncDate: user.lastRecurSync,
+        };
+
+        log.info(
+          `Adding expense to review queue | meta: ${JSON.stringify(jobData)}`
+        );
+
+        await expenseReviewQueueService.addJob(jobData);
+        log.info(
+          `Job added to expense review queue for user: ${user.id} | meta: ${JSON.stringify(jobData)}`
+        );
+      }
+    } catch (error) {
+      log.error({
+        message: `An error occurred while processing expense review job with ID: ${job.id}`,
+        error,
+        code: 'EXPENSE_REVIEW_PROCESSING_ERROR',
+      });
+      throw error;
+    }
   }
 }

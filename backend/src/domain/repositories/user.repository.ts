@@ -1,5 +1,5 @@
 import { mapUser } from './helpers/map-user';
-import { User as UserEntity } from '../../../generated/prisma';
+import { User as UserEntity, Prisma } from '../../../generated/prisma';
 import { UserModel } from '@domain/models/user.model';
 import { log } from '@infra/logger';
 import { Database } from '@infra/db/database';
@@ -7,6 +7,23 @@ import { Database } from '@infra/db/database';
 export class UserRepository extends Database {
   constructor() {
     super();
+  }
+
+  async find(data: Prisma.UserFindManyArgs = {}): Promise<UserModel[]> {
+    log.info(`Finding users with data: ${JSON.stringify(data)}`);
+    try {
+      const users: UserEntity[] = await this.user.findMany({
+        where: data.where,
+      });
+      return users.map((user) => mapUser(user));
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while finding users:',
+        error,
+        code: 'USER_FIND_ERROR',
+      });
+      throw error;
+    }
   }
 
   /**
@@ -55,6 +72,8 @@ export class UserRepository extends Database {
           status: data.status,
           currency: data.currency,
           password: data.password,
+          lastRecurSync: data.lastRecurSync,
+          lastLogin: data.lastLogin,
         },
         update: {
           name: data.name,
@@ -62,6 +81,8 @@ export class UserRepository extends Database {
           status: data.status,
           currency: data.currency,
           password: data.password,
+          lastRecurSync: data.lastRecurSync,
+          lastLogin: data.lastLogin,
         },
       });
 

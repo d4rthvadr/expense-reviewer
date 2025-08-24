@@ -9,6 +9,7 @@ import { log } from '@infra/logger';
 import { UserResponseDto } from '../../api/controllers/dtos/response/user-response.dto';
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { v4 as uuidv4 } from 'uuid';
+import { Prisma } from '../../../generated/prisma';
 
 export interface CreateFromClerkDto {
   email: string;
@@ -29,6 +30,14 @@ export class UserService {
   private generateRandomPassword(): string {
     // Generate a UUID and remove hyphens to create a password
     return uuidv4().replace(/-/g, '');
+  }
+
+  async find(data: Prisma.UserFindManyArgs = {}): Promise<UserResponseDto[]> {
+    log.info(`Finding users with data: ${JSON.stringify(data)}`);
+
+    const users = await this.#userRepository.find(data);
+
+    return users.map((user) => this.#toUserCreatedDto(user));
   }
 
   async findById(userId: string): Promise<UserResponseDto | undefined> {
@@ -164,6 +173,80 @@ export class UserService {
       );
       throw error;
     }
+  }
+
+  /**
+   * Updates the last recurring sync timestamp for a user identified by the given user ID.
+   *
+   * This method is typically called after processing expense reviews or other recurring operations
+   * to track when the user's data was last synchronized.
+   *
+   * @param userId - The unique ID of the user whose last recurring sync timestamp should be updated.
+   * @param lastRecurSync - The timestamp to set for the last recurring sync. Defaults to current time if not provided.
+   * @returns A promise that resolves to the updated `UserResponseDto` or `null` if the user is not found.
+   * @throws Will throw an error if the update operation encounters an issue.
+   */
+  async updateUserLastRecurSync(
+    userId: string,
+    lastRecurSync?: Date
+  ): Promise<UserResponseDto | null> {
+    log.info(`Updating last recurring sync for user with ID: ${userId}`);
+
+    try {
+      const syncTimestamp = this.retrieveProgressiveSyncDate(lastRecurSync); // Normalize to start of day
+
+      const user = await this.#userRepository.findOne(userId);
+      if (!user) {
+        log.warn(`User not found with ID: ${userId}`);
+        throw new Error(`User not found with ID: ${userId}`);
+      }
+
+      user.lastRecurSync = syncTimestamp;
+
+      const updatedUser = await this.#userRepository.save(user);
+
+      log.info(
+        `Successfully updated last recurring sync for user with ID: ${userId}`
+      );
+      return this.#toUserCreatedDto(updatedUser);
+    } catch (error) {
+      log.error(
+        `Error updating last recurring sync for user with ID ${userId}: ${error}`
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Calculates the next progressive sync date for recurring operations.
+   *
+   * If `lastRecurSync` is not provided, the current date and time is used as the sync timestamp.
+   * If `lastRecurSync` is provided, one month is added to it to determine the next sync date.
+   * This approach allows for progressive catch-up, ensuring that missed recurring syncs
+   * are compensated for in subsequent runs (e.g., by a cron job).
+   *
+   * The returned date is normalized to the start of the day (00:00:00.000).
+   *
+   * @param lastRecurSync - The date of the last recurring sync, or `undefined` if this is the first sync.
+   * @returns The calculated sync timestamp, normalized to the start of the day.
+   */
+  private retrieveProgressiveSyncDate(lastRecurSync: Date | undefined) {
+    let syncTimestamp = new Date();
+    log.info(
+      `Initial sync: Setting to current time ${syncTimestamp.toISOString()}`
+    );
+    if (lastRecurSync) {
+      // Progressive catch-up: Add one month to the last sync date
+      // This allows cron to pick up missed syncs month by month
+      syncTimestamp = new Date(lastRecurSync.getTime());
+      syncTimestamp.setMonth(syncTimestamp.getMonth() + 1);
+      log.info(
+        `Progressive sync: Moving from ${lastRecurSync.toISOString()} to ${syncTimestamp.toISOString()}`
+      );
+    }
+
+    syncTimestamp.setHours(0, 0, 0, 0); // Normalize to start of day
+    return syncTimestamp;
   }
 
   #toUserCreatedDto({

@@ -4,7 +4,7 @@ import { Currency } from '@domain/enum/currency.enum';
 interface Expense {
   name: string;
   description?: string;
-  currency?: Currency;
+  currency: Currency;
   category: Category;
   amount: number;
   amountUsd: number;

@@ -34,7 +34,7 @@ export interface AnalyticsFilters {
   dateFrom: Date;
   dateTo: Date;
   groupBy: 'day' | 'week' | 'month';
-  userId?: string; // Will be used later when you add it to Expense
+  userId: string; // Will be used later when you add it to Expense
 }
 
 // Interface for raw SQL results
@@ -172,7 +172,8 @@ export class AnalyticsRepository {
 
   async getBudgetVsExpenseData(
     dateFrom: Date,
-    dateTo: Date
+    dateTo: Date,
+    userId: string
   ): Promise<BudgetVsExpenseRawResult[]> {
     try {
       log.info('Fetching budget vs expense comparison data using USD amounts');
@@ -185,6 +186,7 @@ export class AnalyticsRepository {
           FROM "Budget" 
           WHERE "createdAt" >= $1 
             AND "createdAt" <= $2
+            AND "userId" = $3
           GROUP BY category
         ),
         expense_totals AS (
@@ -194,6 +196,7 @@ export class AnalyticsRepository {
           FROM "Expense"
           WHERE "createdAt" >= $1 
             AND "createdAt" <= $2
+            AND "userId" = $3
           GROUP BY category
         )
         SELECT 
@@ -208,11 +211,12 @@ export class AnalyticsRepository {
       const results = await this.db.$queryRawUnsafe<BudgetVsExpenseRawResult[]>(
         query,
         dateFrom,
-        dateTo
+        dateTo,
+        userId
       );
 
       log.info(
-        `Retrieved ${results.length} budget vs expense comparisons using USD amounts`
+        `Retrieved ${results.length} budget vs expense comparisons using USD amounts for user ${userId}`
       );
       return results;
     } catch (error) {

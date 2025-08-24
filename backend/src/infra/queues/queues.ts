@@ -7,7 +7,7 @@ import { ProcessorNames } from './cron/processors';
 export const startQueuesAndCrons = async () => {
   // crons
   cronServiceQueue
-    .addCron('* * * * *', ProcessorNames.expenseReviewProcessor)
+    .addCron('0 0 * * 0', ProcessorNames.expenseReviewProcessor) // Every Sunday at midnight
     .then(() => {
       log.info(`Cron ${CRON_NAME} job created successfully.`);
     })

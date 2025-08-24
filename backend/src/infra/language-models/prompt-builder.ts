@@ -1,68 +1,79 @@
-import { ExpenseModel } from '@domain/models/expense.model';
-import { BudgetPerCategory } from '@infra/queues/expense-review.queue';
+import { BudgetVsExpenseData } from '@domain/repositories/analytics.repository';
 
-const extractTextFromInvoice = (text: string) => `
-Extract a list of items from the following receipt text. Ignore subtotal, total and tax unless labeled. 
-Return a JSON array like: [ { "name": "Item Name", "quantity": 1, "price": 10.00 }, ... ].The receipt may contain multiple items, and the format may vary.
-i expect your response to be on only the JSON array.  
-Here is the Text:\n\n${text}
-`;
-
-const getBudgetInTextFormat = (budgets: BudgetPerCategory[]): string => {
-  if (!budgets || budgets.length === 0) {
-    return 'No budgets found.';
-  }
-  const budgetSet = new Set();
-  return budgets
-    .map((budget, i) => {
-      if (budgetSet.has(budget.category)) {
-        return;
-      }
-      budgetSet.add(budget.category);
-      return `${i + 1}. ${budget.category} - ${budget.budget.toFixed(2)} ${budget.currency}`;
-    })
-    .filter(Boolean)
-    .join('\n');
-};
-
-const getItemInTextFormat = (items: ExpenseModel[]): string => {
+const getItemInTextFormat = (items: BudgetVsExpenseData[]): string => {
   return items
     .map((item, i) => {
-      const totalAmount = item.amount * (item.qty ?? 1);
-      return `${i + 1}.  ${item.qty || 1}x ${item.name} (${item.amount.toFixed(2)} each) - ${item.description ?? item.name}.
-    > Total: ${item.currency} ${totalAmount.toFixed(2)}: Category: ${item.category}`;
+      return `${i + 1}.  Expense Amount: (${item.expenseAmount.toFixed(2)}) §BudgetAmount: ${item.budgetAmount.toFixed(2)}. Remaining: ${item.remaining.toFixed(2)}. Category: ${item.category}.
+  `;
     })
     .join('\n');
 };
 
-const reviewUserExpense = (
-  items: ExpenseModel[],
-  budgets: BudgetPerCategory[]
-) => {
+const reviewUserExpense = (items: BudgetVsExpenseData[]) => {
   const itemsText = getItemInTextFormat(items);
-  const budgetText = getBudgetInTextFormat(budgets);
 
-  const template = `You are an intelligent financial assistant helping a user review their expenses.
-Here is the user's **monthly budget by category**:
+  const template = `You are a financial assistant that analyzes a user’s budget and expenses. 
+Your job is to review spending data by category, compare expenses to budgets, and provide clear, human-readable insights and recommendations.
+Here is the user's **monthly budget with expenses**:
 
-items:\n\n${itemsText}
+Input:
+\n\n${itemsText}
 
-Category budget:\n\n${budgetText}
+Input Format:
+You will receive an array of JSON objects, each representing a budget category with the following fields:
 
-Instructions:
-- For each item, compare the total cost to its category budget
-- Point out which items or categories are over budget
-- Suggest ways to save or cut back
-- Highlight any spending trends or patterns
-- Be friendly, concise, and helpful
+- category (string) – name of the spending category
+
+- budgetAmount (number) – allocated budget for this category
+
+- expenseAmount (number) – actual spending recorded
+
+- currency (string) – the currency used (e.g., USD)
+
+- utilizationPercentage (number) – percentage of budget spent
+
+- remaining (number) – how much money is left (negative if overspent)
+
+
+Output Requirements:
+
+1. Category-Level Analysis:
+
+  - Highlight overspent categories (negative remaining, OVER_BUDGET or NO_BUDGET).
+
+  - Point out categories with unused budget (UNDER_BUDGET).
+
+  - For NO_BUDGET categories, explain that spending occurred without an allocated budget.
+
+2. Overall Spending Health:
+
+  - Total budget vs total expenses.
+
+  - How many categories are over/under/no budget.
+
+  - A short summary of spending behavior (e.g., "You spent without a budget on insurance, but food is still within limits").
+
+3. Actionable Recommendations:
+
+  - Suggest reducing or reallocating budgets.
+
+  - Suggest creating budgets for categories with recurring expenses but no budget.
+
+  - Highlight potential risks (e.g., overspending trends).
+
+4. Tone:
+
+  - Friendly, concise, and clear.
+
+  - Avoid jargon. Assume the user wants practical insights, not just raw numbers.
 
 `;
   return template;
 };
 
 const buildPrompt = {
-  extractTextFromInvoice,
   reviewUserExpense,
+  // Add more prompt builders here as needed
 };
 
 export { buildPrompt };
