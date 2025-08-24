@@ -48,8 +48,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     req.user = { id: userId };
   }
 
-  req.user = { id: 'test-user-id-01' };
-
   next();
 });
 
