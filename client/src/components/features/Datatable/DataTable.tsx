@@ -4,6 +4,7 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
@@ -50,10 +51,15 @@ const DataTable = <TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: getCoreRowModel(),
     state: {
       sorting,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
     },
   });
 
@@ -64,8 +70,8 @@ const DataTable = <TData, TValue>({
 
   const renderTableBody = () => (
     <TableBody>
-      {table?.getRowModel()?.rows?.length
-        ? table?.getRowModel().rows.map((row) => (
+      {table.getRowModel().rows.length > 0
+        ? table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
@@ -88,7 +94,7 @@ const DataTable = <TData, TValue>({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table?.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
