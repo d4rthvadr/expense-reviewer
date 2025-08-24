@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   description: "Track your expenses efficiently",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +34,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full overflow-x-hidden`}
         >
           <ThemeProvider
             attribute="class"
@@ -36,9 +42,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <main className="w-full">
-              <div className="px-4">{children}</div>
-            </main>
+            <main className="w-full">{children}</main>
           </ThemeProvider>
         </body>
       </html>

@@ -24,8 +24,8 @@ export async function getBudgets(): Promise<TListResponse<Budget>> {
   } catch (error) {
     console.error("Error fetching budgets:", error);
     return {
-      data: [],
       ...clientErrorHandler(error),
+      data: [],
     };
   }
 }
@@ -47,8 +47,8 @@ export async function getBudgetById(id: string): Promise<TResponse<Budget>> {
     console.error("Error fetching budget by ID:", error);
 
     return {
-      data: null,
       ...clientErrorHandler(error),
+      data: null,
     };
   }
 }
@@ -78,8 +78,8 @@ export async function createBudget(budget: Budget): Promise<TResponse<Budget>> {
   } catch (error) {
     console.error("Error creating budget:", error);
     return {
-      data: null,
       ...clientErrorHandler(error),
+      data: null,
     };
   }
 }
@@ -103,8 +103,8 @@ export async function updateBudget(
   } catch (error) {
     console.error("Error updating budget:", error);
     return {
-      data: null,
       ...clientErrorHandler(error),
+      data: null,
     };
   }
 }
@@ -126,8 +126,8 @@ export async function deleteBudget(
     console.error("Error deleting budget:", error);
 
     return {
-      data: null,
       ...clientErrorHandler(error),
+      data: null,
     };
   }
 }

@@ -27,8 +27,8 @@ export class BudgetController {
     );
 
     const createdBudget = await this.#budgetService.create({
-      userId: req.user?.id,
       ...req.body,
+      userId: req.user.id,
     });
 
     return res.status(201).json(createdBudget);
@@ -40,13 +40,13 @@ export class BudgetController {
   ) => {
     const query = parseQueryOptions(req);
 
-    const userId = req.user?.id;
+    const userId = req.user.id;
 
     const expenseListResult = await this.#budgetService.find({
       ...query,
       filters: {
         ...query.filters,
-        ...(userId ? { userId } : {}),
+        userId,
       },
     });
 
@@ -54,8 +54,8 @@ export class BudgetController {
   };
 
   findOne = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const budget = await this.#budgetService.findById(id);
+    const { budgetId } = req.params;
+    const budget = await this.#budgetService.findById(budgetId, req.user.id);
 
     res.status(200).json(budget);
   };
@@ -75,7 +75,7 @@ export class BudgetController {
     const updatedBudgetDto: BudgetResponseDto =
       await this.#budgetService.update(budgetId, {
         ...req.body,
-        userId: req.user?.id,
+        userId: req.user.id,
       });
 
     res.status(200).json(updatedBudgetDto);
@@ -86,7 +86,7 @@ export class BudgetController {
     res: Response
   ) => {
     const budgetId: string = req.params.budgetId;
-    await this.#budgetService.delete(budgetId);
+    await this.#budgetService.delete(budgetId, req.user.id);
 
     res.status(204).send();
   };

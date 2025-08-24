@@ -10,7 +10,7 @@ export default function DashboardLayout({
   return (
     <AuthStoreProvider>
       <Navbar />
-      <main className="p-4">{children}</main>
+      {children}
     </AuthStoreProvider>
   );
 }

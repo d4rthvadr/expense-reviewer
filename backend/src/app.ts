@@ -1,12 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { clerkMiddleware, getAuth, requireAuth } from '@clerk/express';
+import { clerkMiddleware, getAuth } from '@clerk/express';
 import {
   agentRoutes,
   budgetRoutes,
   expenseRoutes,
-  userRoutes,
   analyticsRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
@@ -33,8 +32,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Apply Clerk middleware globally
-app.use(clerkMiddleware());
+// Apply Clerk middleware globally with API configuration
+app.use(
+  clerkMiddleware({
+    // Configure for API-only behavior
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    secretKey: process.env.CLERK_SECRET_KEY,
+  })
+);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
@@ -42,8 +47,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   if (userId) {
     req.user = { id: userId };
   }
+
   next();
 });
+
+// Custom auth middleware that returns proper 401 responses
+const apiAuth = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Authentication required. Please provide a valid token.',
+    });
+    return;
+  }
+  next();
+};
 
 // Root route for health check
 app.get('/', (req: Request, res: Response) => {
@@ -53,20 +71,23 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// Swagger documentation with environment-based protection
+if (process.env.NODE_ENV === 'dev') {
+  const swaggerDocs = swaggerJsDoc(swaggerOptions);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+  log.info('Swagger documentation available at /api-docs');
+}
 
 // Webhook routes (unprotected, before Clerk middleware)
 app.use('/api/webhooks', webhookRoutes);
 
-// Protected API routes - requireAuth() ensures user is authenticated
-app.use('/api/agents', agentRoutes);
-app.use('/api/users', requireAuth(), userRoutes);
-app.use('/api/expenses', requireAuth(), expenseRoutes);
-app.use('/api/budgets', requireAuth(), budgetRoutes);
-app.use('/api/analytics', requireAuth(), analyticsRoutes);
-app.use('/api/recurring-templates', requireAuth(), recurringTemplateRoutes);
-app.use('/api/expense-reviews', expenseReviewRoutes);
+// Protected API routes - custom auth middleware ensures proper 401 responses
+app.use('/api/agents', apiAuth, agentRoutes);
+app.use('/api/expenses', apiAuth, expenseRoutes);
+app.use('/api/budgets', apiAuth, budgetRoutes);
+app.use('/api/analytics', apiAuth, analyticsRoutes);
+app.use('/api/recurring-templates', apiAuth, recurringTemplateRoutes);
+app.use('/api/expense-reviews', apiAuth, expenseReviewRoutes);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);

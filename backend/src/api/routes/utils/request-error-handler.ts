@@ -21,9 +21,8 @@ export const requestErrorHandler = (
   const errMessage = error?.message ?? 'Internal Server Error';
 
   res.status(500).json({
-    error: {
-      message: errMessage,
-      data: null,
-    },
+    message: errMessage,
+    data: null,
+    success: false,
   });
 };

@@ -37,7 +37,7 @@ const ExpenseList = ({
   return (
     <>
       <Toaster />
-      <div className="container mx-auto py-10">
+      <div className="w-full py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-8 py-2 flex  justify-between  rounded-md">
           <h1 className="text-2xl font-bold mb-4">Expenses</h1>
           <Button

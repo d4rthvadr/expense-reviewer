@@ -5,23 +5,27 @@ import BudgetVsExpensesChart from "@/components/budget-vs-expenses-chart";
 
 export default function Dashboard() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 lg:mb-8">
+        Dashboard
+      </h1>
 
-      <main>
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
-          <div className="bg-primary-foreground p-4 rounded-lg lg:col-span-2 xl:col-span-1 2xl:col-span-1">
-            <TotalExpensesChart />
-          </div>
-
-          <div className="bg-primary-foreground p-4 rounded-lg">
-            <BudgetOverviewChart />
-          </div>
-          <div className="bg-primary-foreground p-4 rounded-lg ">
-            <BudgetVsExpensesChart />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+        {/* Total Expenses Chart - Takes full width on mobile, spans 2 cols on tablet+ */}
+        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-2 xl:col-span-2">
+          <TotalExpensesChart />
         </div>
-      </main>
+
+        {/* Budget Overview Chart - Full width on mobile */}
+        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-1 xl:col-span-1">
+          <BudgetOverviewChart />
+        </div>
+
+        {/* Budget vs Expenses Chart - Full width on mobile */}
+        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-1 xl:col-span-1">
+          <BudgetVsExpensesChart />
+        </div>
+      </div>
     </div>
   );
 }

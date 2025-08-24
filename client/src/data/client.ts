@@ -40,13 +40,43 @@ export const clientErrorHandler = (error: unknown): ResponseWithError => {
   };
 };
 
-const parseResponse = <T>(response: Response) => {
-  if (!response.ok) {
-    console.error("client error", response);
-    console.log("err message", response.statusText);
-    throw new Error(`HTTP error! status: ${response.status}`);
+type ApiErrorResponse = {
+  message: string;
+  success: boolean;
+};
+
+const isErrorResponse = (data: unknown): data is ApiErrorResponse => {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    "success" in data
+  );
+};
+
+const parseResponse = async <T>(response: Response): Promise<T> => {
+  if (response.ok) {
+    return response.json() as Promise<T>;
   }
-  return response.json() as Promise<T>;
+
+  // Handle error response
+  const errorMessage = await getErrorMessage(response);
+  console.log("err message", errorMessage);
+  throw new Error(errorMessage);
+};
+
+const getErrorMessage = async (response: Response): Promise<string> => {
+  try {
+    const errorData = await response.json();
+
+    if (isErrorResponse(errorData) && !errorData.success) {
+      return errorData.message;
+    }
+  } catch (err) {
+    console.error("Error parsing error response:", err);
+  }
+
+  return response.statusText;
 };
 
 const buildRequestUrl = (endpoint: string) => {

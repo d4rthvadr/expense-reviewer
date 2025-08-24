@@ -16,11 +16,15 @@ interface ListBudgetDto {
 }
 
 export class BudgetRepository extends Database {
-  async findById(budgetId: string): Promise<BudgetModel | null> {
+  async findById(
+    budgetId: string,
+    userId: string
+  ): Promise<BudgetModel | null> {
     try {
       const budget: BudgetEntity | null = await this.budget.findFirst({
         where: {
           id: budgetId,
+          userId: userId,
         },
       });
 
