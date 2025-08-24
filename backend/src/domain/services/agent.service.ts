@@ -10,7 +10,9 @@ export class AgentService {
     this.#agentWrapper = agentWrapper;
   }
 
-  async extractTableData(prompt: string): Promise<string> {
+  async generateAIResponse(prompt: string): Promise<string> {
+    // TODO: Wrap this call with your AgentWrapper to handle different providers
+    // For now, we'll directly use the ollama client
     const startTime = Date.now();
     log.info(
       `Starting prompt execution at ${new Date(startTime).toISOString()}`
@@ -28,9 +30,7 @@ export class AgentService {
     log.info(`Response from Ollama: ${response.message.content}`);
 
     const endTime = Date.now();
-    log.info(
-      `Prompt execution completed at ${new Date(endTime).toISOString()}`
-    );
+
     log.info(
       `Total execution time: ${endTime - startTime} ms: ${Math.round((endTime - startTime) / 1000)} seconds at endTTime ${new Date(endTime).toISOString()}`
     );

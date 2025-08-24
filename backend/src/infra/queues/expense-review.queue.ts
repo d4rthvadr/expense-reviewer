@@ -93,7 +93,7 @@ class ExpenseReviewQueueService extends Worker {
 
       const promptText = buildPrompt.reviewUserExpense(budgetWithExpenses);
 
-      const review = await this.#agentService.extractTableData(promptText);
+      const review = await this.#agentService.generateAIResponse(promptText);
 
       const savedReview = await this.#expenseReviewService.createReview(
         review,
