@@ -522,6 +522,305 @@ const swaggerOptions = {
             },
           },
         },
+        RecurringTemplate: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique identifier for the recurring template',
+            },
+            name: {
+              type: 'string',
+              description: 'Name of the recurring template',
+              nullable: true,
+            },
+            userId: {
+              type: 'string',
+              description: 'ID of the user who owns this template',
+              nullable: true,
+            },
+            type: {
+              type: 'string',
+              enum: ['BUDGET', 'EXPENSE'],
+              description: 'Type of template (BUDGET or EXPENSE)',
+            },
+            amount: {
+              type: 'number',
+              description: 'Template amount in the specified currency',
+            },
+            isRecurring: {
+              type: 'boolean',
+              description: 'Whether this template is recurring',
+              default: true,
+            },
+            recurringPeriod: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY'],
+              description:
+                'Frequency of recurrence (only set when isRecurring = true)',
+              nullable: true,
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Start date for the recurring template',
+            },
+            endDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'End date for the recurring template (optional)',
+              nullable: true,
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether this template is currently active',
+              default: true,
+            },
+            currency: {
+              type: 'string',
+              enum: ['USD', 'EUR', 'GHS'],
+              description: 'Currency of the template amount',
+              default: 'USD',
+            },
+            category: {
+              type: 'string',
+              enum: [
+                'FOOD',
+                'TRANSPORT',
+                'UTILITIES',
+                'ENTERTAINMENT',
+                'HEALTH',
+                'EDUCATION',
+                'SHOPPING',
+                'MISCELLANEOUS',
+                'PERSONAL_AND_LIFESTYLE',
+                'TRAVEL',
+                'GIFTS_OR_DONATIONS',
+                'HOUSING',
+                'SAVINGS_OR_INVESTMENTS',
+                'INSURANCE',
+                'OTHER',
+              ],
+              description: 'Category of the template',
+              default: 'OTHER',
+            },
+            description: {
+              type: 'string',
+              description: 'Optional description of the template',
+              nullable: true,
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date when the template was created',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date when the template was last updated',
+            },
+          },
+          required: [
+            'id',
+            'type',
+            'amount',
+            'isRecurring',
+            'startDate',
+            'isActive',
+            'currency',
+            'category',
+            'createdAt',
+            'updatedAt',
+          ],
+        },
+        CreateRecurringTemplateRequest: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the recurring template (optional)',
+              maxLength: 100,
+            },
+            type: {
+              type: 'string',
+              enum: ['BUDGET', 'EXPENSE'],
+              description: 'Type of template (BUDGET or EXPENSE)',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0.01,
+              description: 'Template amount in the specified currency',
+            },
+            isRecurring: {
+              type: 'boolean',
+              description: 'Whether this template is recurring',
+              default: true,
+            },
+            recurringPeriod: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY'],
+              description:
+                'Frequency of recurrence (required when isRecurring = true)',
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description:
+                'Start date for the recurring template (optional, defaults to now)',
+            },
+            endDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'End date for the recurring template (optional)',
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether this template is currently active',
+              default: true,
+            },
+            currency: {
+              type: 'string',
+              enum: ['USD', 'EUR', 'GHS'],
+              description: 'Currency of the template amount',
+              default: 'USD',
+            },
+            category: {
+              type: 'string',
+              enum: [
+                'FOOD',
+                'TRANSPORT',
+                'UTILITIES',
+                'ENTERTAINMENT',
+                'HEALTH',
+                'EDUCATION',
+                'SHOPPING',
+                'MISCELLANEOUS',
+                'PERSONAL_AND_LIFESTYLE',
+                'TRAVEL',
+                'GIFTS_OR_DONATIONS',
+                'HOUSING',
+                'SAVINGS_OR_INVESTMENTS',
+                'INSURANCE',
+                'OTHER',
+              ],
+              description: 'Category of the template',
+            },
+            description: {
+              type: 'string',
+              description: 'Optional description of the template',
+              maxLength: 100,
+            },
+          },
+          required: ['type', 'amount', 'category'],
+        },
+        UpdateRecurringTemplateRequest: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the recurring template',
+              maxLength: 100,
+            },
+            type: {
+              type: 'string',
+              enum: ['BUDGET', 'EXPENSE'],
+              description: 'Type of template (BUDGET or EXPENSE)',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0.01,
+              description: 'Template amount in the specified currency',
+            },
+            isRecurring: {
+              type: 'boolean',
+              description: 'Whether this template is recurring',
+            },
+            recurringPeriod: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY'],
+              description:
+                'Frequency of recurrence (required when isRecurring = true)',
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Start date for the recurring template',
+            },
+            endDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'End date for the recurring template',
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether this template is currently active',
+            },
+            currency: {
+              type: 'string',
+              enum: ['USD', 'EUR', 'GHS'],
+              description: 'Currency of the template amount',
+            },
+            category: {
+              type: 'string',
+              enum: [
+                'FOOD',
+                'TRANSPORT',
+                'UTILITIES',
+                'ENTERTAINMENT',
+                'HEALTH',
+                'EDUCATION',
+                'SHOPPING',
+                'MISCELLANEOUS',
+                'PERSONAL_AND_LIFESTYLE',
+                'TRAVEL',
+                'GIFTS_OR_DONATIONS',
+                'HOUSING',
+                'SAVINGS_OR_INVESTMENTS',
+                'INSURANCE',
+                'OTHER',
+              ],
+              description: 'Category of the template',
+            },
+            description: {
+              type: 'string',
+              description: 'Optional description of the template',
+              maxLength: 100,
+            },
+          },
+        },
+        RecurringTemplateListResponse: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RecurringTemplate',
+              },
+              description: 'Array of recurring template objects',
+            },
+            pagination: {
+              type: 'object',
+              properties: {
+                total: {
+                  type: 'number',
+                  description: 'Total number of templates',
+                },
+                page: {
+                  type: 'number',
+                  description: 'Current page number',
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Number of items per page',
+                },
+                totalPages: {
+                  type: 'number',
+                  description: 'Total number of pages',
+                },
+              },
+            },
+          },
+        },
       },
     },
     security: [
