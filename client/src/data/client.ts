@@ -40,12 +40,12 @@ export const clientErrorHandler = (error: unknown): ResponseWithError => {
   };
 };
 
-type ErrorResponse = {
+type ApiErrorResponse = {
   message: string;
   success: boolean;
 };
 
-const isErrorResponse = (data: unknown): data is ErrorResponse => {
+const isErrorResponse = (data: unknown): data is ApiErrorResponse => {
   return (
     typeof data === "object" &&
     data !== null &&
