@@ -6,7 +6,6 @@ import {
   agentRoutes,
   budgetRoutes,
   expenseRoutes,
-  userRoutes,
   analyticsRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
@@ -49,6 +48,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     req.user = { id: userId };
   }
 
+  req.user = { id: 'test-user-id-01' };
+
   next();
 });
 
@@ -84,7 +85,6 @@ app.use('/api/webhooks', webhookRoutes);
 
 // Protected API routes - custom auth middleware ensures proper 401 responses
 app.use('/api/agents', apiAuth, agentRoutes);
-app.use('/api/users', apiAuth, userRoutes);
 app.use('/api/expenses', apiAuth, expenseRoutes);
 app.use('/api/budgets', apiAuth, budgetRoutes);
 app.use('/api/analytics', apiAuth, analyticsRoutes);

@@ -42,16 +42,21 @@ export class BudgetService {
     };
   }
 
-  async findById(budgetId: string): Promise<BudgetResponseDto> {
-    log.info(`Finding budget by id: ${budgetId}`);
+  async findById(budgetId: string, userId: string): Promise<BudgetResponseDto> {
+    log.info(`Finding budget by id: ${budgetId} for userId: ${userId}`);
 
-    const budget: BudgetModel = await this.findByBudgetById(budgetId);
+    const budget: BudgetModel = await this.findByBudgetById(budgetId, userId);
     return this.#toBudgetDto(budget);
   }
 
-  async findByBudgetById(budgetId: string): Promise<BudgetModel> {
-    const budget: BudgetModel | null =
-      await this.#budgetRepository.findById(budgetId);
+  async findByBudgetById(
+    budgetId: string,
+    userId: string
+  ): Promise<BudgetModel> {
+    const budget: BudgetModel | null = await this.#budgetRepository.findById(
+      budgetId,
+      userId
+    );
     this.validateBudgetFound(budget, budgetId);
 
     return budget;
@@ -87,13 +92,16 @@ export class BudgetService {
 
   async update(
     budgetId: string,
-    data: Partial<CreateBudgetDto>
+    data: CreateBudgetDto
   ): Promise<BudgetResponseDto> {
     log.info(
       `Updating budget with id: ${budgetId} | data: ${JSON.stringify(data)}`
     );
 
-    const budget: BudgetModel = await this.findByBudgetById(budgetId);
+    const budget: BudgetModel = await this.findByBudgetById(
+      budgetId,
+      data.userId
+    );
 
     budget.name = data.name;
     budget.description = data.description;
@@ -121,9 +129,9 @@ export class BudgetService {
     return (await this.find(budgetFindQuery)).data;
   }
 
-  async delete(budgetId: string): Promise<void> {
-    log.info(`Deleting budget with id: ${budgetId}`);
-    const budget: BudgetModel = await this.findByBudgetById(budgetId);
+  async delete(budgetId: string, userId: string): Promise<void> {
+    log.info(`Deleting budget with id: ${budgetId} for userId: ${userId}`);
+    const budget: BudgetModel = await this.findByBudgetById(budgetId, userId);
     await this.#budgetRepository.delete(budget.id);
   }
 
