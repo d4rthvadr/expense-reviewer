@@ -13,6 +13,14 @@ const swaggerOptions = {
       },
     ],
     components: {
+      securitySchemes: {
+        ClerkAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Clerk JWT token for authentication',
+        },
+      },
       schemas: {
         Budget: {
           type: 'object',
@@ -288,6 +296,11 @@ const swaggerOptions = {
         },
       },
     },
+    security: [
+      {
+        ClerkAuth: [],
+      },
+    ],
   },
   apis: [
     './src/api/routes/*.ts',
