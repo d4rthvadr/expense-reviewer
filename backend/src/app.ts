@@ -53,8 +53,12 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// Swagger documentation with environment-based protection
+if (process.env.NODE_ENV === 'dev') {
+  const swaggerDocs = swaggerJsDoc(swaggerOptions);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+  log.info('Swagger documentation available at /api-docs');
+}
 
 // Webhook routes (unprotected, before Clerk middleware)
 app.use('/api/webhooks', webhookRoutes);
