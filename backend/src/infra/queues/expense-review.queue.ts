@@ -79,9 +79,6 @@ class ExpenseReviewQueueService extends Worker {
         message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
       });
 
-      // TODO: Remove this temporary return after fixing issues with OpenAI responses
-      return;
-
       const { userId, dateFrom, dateTo, lastRecurSyncDate } = job.data;
 
       const budgetWithExpenses =
