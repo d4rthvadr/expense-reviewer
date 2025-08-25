@@ -22,10 +22,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  log.info({
-    message: `Headers: ${JSON.stringify(req.headers)}`,
-  });
+app.use((req, _, next) => {
   log.info({
     message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body)} | headers: ${JSON.stringify(req.headers)}`,
   });
@@ -41,7 +38,7 @@ app.use(
   })
 );
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
 
   if (userId) {
@@ -64,9 +61,8 @@ const apiAuth = (req: Request, res: Response, next: NextFunction): void => {
 };
 
 // Root route for health check
-app.get('/', (req: Request, res: Response) => {
+app.get('/health', (_: Request, res: Response) => {
   res.json({
-    message: 'Expense Tracker API is running',
     version: '1.0.0',
   });
 });
