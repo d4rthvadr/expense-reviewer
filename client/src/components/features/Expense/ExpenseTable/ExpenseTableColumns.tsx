@@ -1,8 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit } from "lucide-react";
-import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
 import { Expense } from "@/constants/expense";
@@ -15,12 +13,11 @@ const EditButton = ({ expense }: { expense: Expense }) => {
 
   return (
     <Button
-      variant="ghost"
+      variant="secondary"
       size="sm"
       onClick={() => openEditSheet(expense)}
       className="text-blue-500 hover:text-blue-700"
     >
-      <Edit className="h-4 w-4 mr-1" />
       <span>Edit</span>
     </Button>
   );
@@ -32,44 +29,11 @@ export type ExpenseColumns = {
   amount: number;
   currency: Currency;
   category: Category;
-  description?: string;
   qty: number;
   createdAt: string;
 };
 
 export const columns: ColumnDef<ExpenseColumns>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant={"ghost"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-          <span>Type</span>
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      const description = row.original.description;
-      return description ? (
-        <span className="max-w-[200px] truncate" title={description}>
-          {description}
-        </span>
-      ) : (
-        <span className="text-gray-400">-</span>
-      );
-    },
-  },
   {
     accessorKey: "category",
     header: "Category",
@@ -86,25 +50,23 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
     },
   },
   {
-    accessorKey: "qty",
-    header: "Quantity",
-    cell: ({ row }) => {
-      const { qty = 1 } = row.original;
-      return qty;
-    },
-  },
-  {
     accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => {
       const { amount = 0, currency = "USD" } = row.original;
-      return formatCurrency(amount, currency);
+
+      const totalAmount = amount * (row.original.qty || 1);
+      return formatCurrency(totalAmount, currency);
     },
   },
 
   {
     accessorKey: "createdAt",
     header: "Created On",
+    cell: ({ row }) => {
+      const date = new Date(row.original.createdAt);
+      return date.toLocaleDateString();
+    },
   },
   {
     id: "edit",

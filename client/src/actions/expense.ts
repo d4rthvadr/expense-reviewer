@@ -6,25 +6,37 @@ import {
   clientErrorHandler,
   TListResponse,
   TResponse,
+  defaultListResponse,
 } from "@/data/client";
 import { revalidatePath } from "next/cache";
 
 /**
- * Fetches the list of expenses from the server.
+ * Fetches the list of expenses from the server with pagination support.
  *
+ * @param page - The page number (1-based)
+ * @param pageSize - Number of items per page
  * @returns {Promise<TListResponse<Expense>>} A promise that resolves to the list of expenses and any error information.
  *
  **/
-export async function getExpenses(): Promise<TListResponse<Expense>> {
+export async function getExpenses(
+  page: number = 1,
+  limit: number = 10
+): Promise<TListResponse<Expense>> {
   try {
     const client = await getAuthenticatedClient();
-    const response = await client.get<TListResponse<Expense>>("/expenses");
+
+    const queryParams = new URLSearchParams({
+      limit: limit.toString(),
+      page: page.toString(),
+    });
+    const url = `/expenses?${queryParams.toString()}`;
+    const response = await client.get<TListResponse<Expense>>(url);
 
     return response;
   } catch (error) {
     console.error("Error fetching expenses:", error);
     return {
-      data: [],
+      ...defaultListResponse,
       ...clientErrorHandler(error),
     };
   }

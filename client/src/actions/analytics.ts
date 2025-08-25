@@ -2,6 +2,7 @@
 
 import {
   clientErrorHandler,
+  defaultListResponse,
   getAuthenticatedClient,
   TListResponse,
 } from "@/data/client";
@@ -62,9 +63,9 @@ export async function getExpensesOverTime(
   } catch (error) {
     console.error("Error fetching analytics:", error);
     return {
-      data: [],
-      message: "Failed to fetch analytics data",
+      ...defaultListResponse,
       ...clientErrorHandler(error),
+      message: "Failed to fetch analytics data",
     };
   }
 }
@@ -91,9 +92,9 @@ export async function getBudgetData(): Promise<TListResponse<BudgetData>> {
   } catch (error) {
     console.error("Error fetching budget data:", error);
     return {
-      data: [],
-      message: "Failed to fetch budget data",
+      ...defaultListResponse,
       ...clientErrorHandler(error),
+      message: "Failed to fetch budget data",
     };
   }
 }
@@ -129,9 +130,9 @@ export async function getBudgetVsExpenseData(
   } catch (error) {
     console.error("Error fetching budget vs expense data:", error);
     return {
-      data: [],
-      message: "Failed to fetch budget vs expense data",
+      ...defaultListResponse,
       ...clientErrorHandler(error),
+      message: "Failed to fetch budget vs expense data",
     };
   }
 }

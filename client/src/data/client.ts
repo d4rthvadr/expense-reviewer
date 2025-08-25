@@ -7,9 +7,12 @@ const DEFAULT_TIMEOUT = 30000;
 
 export type TListResponse<T> = {
   data: T[];
-  total?: number;
-  limit?: number;
-  offset?: number;
+  total: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 } & ResponseWithError;
 
 export type TResponse<T> = {
@@ -21,6 +24,16 @@ export type ResponseWithError = {
   authError?: boolean;
   message?: string;
   success: boolean;
+};
+
+export const defaultListResponse = {
+  data: [],
+  total: 0,
+  limit: 10,
+  page: 1,
+  totalPages: 0,
+  hasNext: false,
+  hasPrevious: false,
 };
 
 /**

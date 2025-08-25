@@ -6,26 +6,36 @@ import {
   clientErrorHandler,
   TListResponse,
   TResponse,
+  defaultListResponse,
 } from "@/data/client";
 import { revalidatePath } from "next/cache";
 
 /**
- * Fetches the list of budgets from the server.
+ * Fetches the list of budgets from the server with pagination support.
  *
+ * @param page - The page number (1-based)
+ * @param pageSize - Number of items per page
  * @returns {Promise<TListResponse<Budget>>} A promise that resolves to the list of budgets and any error information.
  *
  **/
-export async function getBudgets(): Promise<TListResponse<Budget>> {
+export async function getBudgets(
+  page: number = 1,
+  pageSize: number = 10
+): Promise<TListResponse<Budget>> {
   try {
     const client = await getAuthenticatedClient();
-    const response = await client.get<TListResponse<Budget>>("/budgets");
+    const offset = (page - 1) * pageSize; // Convert page to offset
+    const url = `/budgets?limit=${pageSize}&offset=${offset}`;
+    console.log(`Fetching budgets: ${url}`); // Debug log
+    const response = await client.get<TListResponse<Budget>>(url);
+    console.log(`Response:`, response); // Debug log
 
     return response;
   } catch (error) {
     console.error("Error fetching budgets:", error);
     return {
+      ...defaultListResponse,
       ...clientErrorHandler(error),
-      data: [],
     };
   }
 }
