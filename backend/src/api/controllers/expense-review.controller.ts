@@ -46,8 +46,7 @@ export class ExpenseReviewController {
       dateTo: defaultDateTo,
       limit: parseInt(limit.toString(), 10),
       offset: parseInt(offset.toString(), 10),
-      //   includeExpenses: includeExpenses === 'true',
-      includeExpenses: true,
+      includeExpenses: includeExpenses === 'true',
     };
 
     const expenseReviewListResult =

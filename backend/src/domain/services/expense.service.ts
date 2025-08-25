@@ -21,6 +21,8 @@ import {
 } from '@domain/services/currency-conversion.service';
 import { Currency } from '@domain/enum/currency.enum';
 import { ExpenseModel } from '@domain/models/expense.model';
+import { paginateDataResult } from '@api/controllers/utils/paginate-response';
+import { ExpenseFindFilters } from './interfaces/expense-filters';
 
 type ExpenseReviewPayload = ExpenseReviewJobData;
 
@@ -45,17 +47,17 @@ class ExpenseService {
    * @returns A promise that resolves to a paginated result containing expense response DTOs.
    */
   async find(
-    query: QueryParams
+    query: QueryParams<ExpenseFindFilters>,
+    userId: string
   ): Promise<PaginatedResultDto<ExpenseResponseDto>> {
-    // TODO:  build where query
-    const { data, total } = await this.#expenseRepository.find(query);
+    const { data, total } = await this.#expenseRepository.find(query, userId);
 
-    return {
-      data: data.map((expense) => this.#toExpenseDto(expense)),
-      limit: query.limit,
-      offset: query.offset,
+    return paginateDataResult(
+      data.map((expense) => this.#toExpenseDto(expense)),
       total,
-    };
+      query.limit,
+      query.offset
+    );
   }
 
   /**
@@ -78,32 +80,6 @@ class ExpenseService {
     }
 
     return expense;
-  }
-
-  /**
-   * Retrieves a list of expenses matching the provided array of expense IDs.
-   *
-   * @param expenseIds - An array of expense IDs to search for.
-   * @returns A promise that resolves to an array of {@link ExpenseModel} instances corresponding to the given IDs.
-   *
-   * @remarks
-   * This method logs the IDs being searched and delegates the actual data retrieval to the expense repository.
-   */
-  async findByIds(expenseIds: string[]): Promise<ExpenseModel[]> {
-    log.info(`Finding expenses by ids: ${expenseIds.join(', ')}`);
-
-    const findQueryData = buildFindQuery({
-      limit: expenseIds.length,
-      filters: {
-        id: {
-          in: expenseIds,
-        },
-      },
-    });
-
-    const expenses = await this.#expenseRepository.find(findQueryData);
-
-    return expenses.data;
   }
 
   /**
@@ -220,10 +196,11 @@ class ExpenseService {
       },
     });
 
-    const { data: expenses }: { data: ExpenseModel[] } =
-      await this.#expenseRepository.find(findQueryData);
+    // const { data: expenses }: { data: ExpenseModel[] } =
+    //   await this.#expenseRepository.find(findQueryData);
 
-    return expenses;
+    // return expenses;
+    return [];
   }
 
   /**
@@ -274,7 +251,6 @@ class ExpenseService {
       currency,
       description,
       qty,
-      items: [],
     };
   }
 }

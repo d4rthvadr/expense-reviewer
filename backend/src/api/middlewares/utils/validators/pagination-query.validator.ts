@@ -1,11 +1,11 @@
 import { query } from 'express-validator';
 
 export const paginationQueryParamsValidators = [
-  query('offset')
+  query('page')
     .optional()
-    .isInt({ min: 0 })
-    .withMessage('Offset must be a number')
-    .default(0),
+    .isInt({ min: 1 })
+    .withMessage('Page must be a number greater than 0')
+    .default(1),
   query('limit')
     .optional()
     .isInt({ min: 1 })

@@ -1,6 +1,9 @@
 export type PaginatedResultDto<T> = {
   data: T[];
   total: number;
+  page: number;
   limit: number;
-  offset: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 };

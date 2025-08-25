@@ -12,5 +12,4 @@ export interface ExpenseResponseDto {
   userId?: string;
   qty?: number;
   createdAt: Date;
-  items: []; // Placeholder for items, for backend compatibility
 }

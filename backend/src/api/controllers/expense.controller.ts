@@ -7,13 +7,8 @@ import {
 import { CreateExpenseRequestDto } from './dtos/request/create-expense-request.dto';
 import { log } from '@infra/logger';
 import { ExpenseResponseDto } from './dtos/response/expense-response.dto';
-import { PaginatedInputDto } from './dtos/request/paginated-input-request.dto';
 import { UpdateExpenseRequestDto } from './dtos/request/update-expense-request.dto';
-import {
-  FindFilters,
-  parseQueryOptions,
-  RequestQueryType,
-} from './utils/parse-query-options';
+import { parseQueryParams } from './utils/parse-query-options';
 
 export class ExpenseController {
   #expenseService: ExpenseService;
@@ -21,15 +16,13 @@ export class ExpenseController {
     this.#expenseService = expenseService;
   }
 
-  find = async (
-    req: RequestQueryType<PaginatedInputDto<FindFilters>>,
-    res: Response
-  ) => {
-    const parsedQuery = parseQueryOptions(req);
+  find = async (req: Request, res: Response) => {
+    const parsedQuery = parseQueryParams(req);
 
-    const expenseListResult = await this.#expenseService.find({
-      ...parsedQuery,
-    });
+    const expenseListResult = await this.#expenseService.find(
+      parsedQuery,
+      req.user.id
+    );
 
     res.status(200).json(expenseListResult);
   };

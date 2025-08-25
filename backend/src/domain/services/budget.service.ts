@@ -16,6 +16,8 @@ import {
   CurrencyConversionService,
 } from './currency-conversion.service';
 import { Currency } from '@domain/enum/currency.enum';
+import { BudgetFindFilters } from './interfaces/budget-filters';
+import { paginateDataResult } from '@api/controllers/utils/paginate-response';
 
 export class BudgetService {
   #budgetRepository: BudgetRepository;
@@ -30,16 +32,17 @@ export class BudgetService {
   }
 
   async find(
-    query: QueryParams
+    query: QueryParams<BudgetFindFilters>,
+    userId: string
   ): Promise<PaginatedResultDto<BudgetResponseDto>> {
-    const { data, total } = await this.#budgetRepository.find(query);
+    const { data, total } = await this.#budgetRepository.find(query, userId);
 
-    return {
-      data: data.map((budget) => this.#toBudgetDto(budget)),
-      limit: query.limit,
-      offset: query.offset,
+    return paginateDataResult(
+      data.map((budget) => this.#toBudgetDto(budget)),
       total,
-    };
+      query.limit,
+      query.offset
+    );
   }
 
   async findById(budgetId: string, userId: string): Promise<BudgetResponseDto> {
@@ -117,22 +120,10 @@ export class BudgetService {
     return this.#toBudgetDto(updatedBudget);
   }
 
-  async getUserBudgets(userId?: string) {
-    log.info(`Fetching user budgets for userId: ${userId}`);
-
-    const budgetFindQuery = buildFindQuery({
-      filters: {
-        // userId, TODO: Uncomment when userId is available in budget model
-      },
-    });
-
-    return (await this.find(budgetFindQuery)).data;
-  }
-
   async delete(budgetId: string, userId: string): Promise<void> {
     log.info(`Deleting budget with id: ${budgetId} for userId: ${userId}`);
     const budget: BudgetModel = await this.findByBudgetById(budgetId, userId);
-    await this.#budgetRepository.delete(budget.id);
+    await this.#budgetRepository.delete(budget.id, userId);
   }
 
   validateBudgetFound(

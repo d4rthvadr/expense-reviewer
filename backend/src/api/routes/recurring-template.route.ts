@@ -6,6 +6,7 @@ import {
   createRecurringTemplateValidators,
   updateRecurringTemplateValidators,
 } from '../middlewares/utils/validators/recurring-template-request.validator';
+import { paginationQueryParamsValidators } from '@api/middlewares/utils/validators/pagination-query.validator';
 
 const route = Router();
 
@@ -333,7 +334,12 @@ route.get('/:templateId', asyncHandler(recurringTemplateController.findOne));
  *         $ref: '#/components/responses/InternalServerError'
  */
 // GET /api/recurring-templates
-route.get('/', asyncHandler(recurringTemplateController.find));
+route.get(
+  '/',
+  paginationQueryParamsValidators,
+  validateRequest,
+  asyncHandler(recurringTemplateController.find)
+);
 
 /**
  * @swagger

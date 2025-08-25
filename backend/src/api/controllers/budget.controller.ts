@@ -5,12 +5,10 @@ import { budgetService, BudgetService } from '@domain/services/budget.service';
 import { CreateBudgetRequestDto } from './dtos/request/create-budget-request.dto';
 import { BudgetResponseDto } from './dtos/response/budget-response.dto';
 import { UpdateBudgetRequestDto } from './dtos/request/update-budget-request.dto';
-import {
-  FindFilters,
-  parseQueryOptions,
-  RequestQueryType,
-} from './utils/parse-query-options';
-import { PaginatedInputDto } from './dtos/request/paginated-input-request.dto';
+import { parseQueryParams } from './utils/parse-query-options';
+import { Currency } from '@domain/enum/currency.enum';
+import { Category } from '@domain/enum/category.enum';
+import { BudgetFindFilters } from '@domain/services/interfaces/budget-filters';
 
 export class BudgetController {
   #budgetService: BudgetService;
@@ -34,21 +32,21 @@ export class BudgetController {
     return res.status(201).json(createdBudget);
   };
 
-  find = async (
-    req: RequestQueryType<PaginatedInputDto<FindFilters>>,
-    res: Response
-  ) => {
-    const query = parseQueryOptions(req);
+  find = async (req: Request, res: Response) => {
+    const query = parseQueryParams<BudgetFindFilters>(req, (req) => {
+      const filters: BudgetFindFilters = {};
+      if (req.query.currency) {
+        filters.currency = req.query.currency as Currency;
+      }
+      if (req.query.category) {
+        filters.category = req.query.category as Category;
+      }
+      return filters;
+    });
 
     const userId = req.user.id;
 
-    const expenseListResult = await this.#budgetService.find({
-      ...query,
-      filters: {
-        ...query.filters,
-        userId,
-      },
-    });
+    const expenseListResult = await this.#budgetService.find(query, userId);
 
     res.status(200).json(expenseListResult);
   };
