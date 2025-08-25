@@ -6,29 +6,47 @@ import { Sheet } from "@/components/ui/sheet";
 import { columns } from "@/components/features/Budget/BudgetTable/BudgetTableColumns";
 import { useBudgetStore } from "@/stores/budgetStore";
 import { Budget } from "@/constants/budget";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getBudgets } from "@/actions/budget";
 
-const BudgetList = ({ budgets: initialBudgets }: { budgets: Budget[] }) => {
-  const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
+const BudgetList = () => {
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [paginationMeta, setPaginationMeta] = useState({
+    page: 1,
+    totalPages: 1,
+    hasNext: false,
+    hasPrevious: false,
+    total: 0,
+    limit: 10,
+  });
 
   const { selectedBudget, isEditSheetOpen, openEditSheet, closeEditSheet } =
     useBudgetStore();
 
   const handleCloseEditSheet = () => {
     closeEditSheet();
-
     refreshBudgets(); // Refresh data after editing
   };
 
-  const refreshBudgets = async () => {
+  const refreshBudgets = async (page: number = 1, newPageSize: number = 10) => {
     try {
-      const response = await getBudgets();
-      setBudgets(response.data);
+      const { data, ...pagination } = await getBudgets(page, newPageSize);
+      setBudgets(data);
+      setPaginationMeta((prev) => {
+        return { ...prev, ...pagination };
+      });
     } catch (error) {
       console.error("Error refreshing budgets:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    refreshBudgets();
+  }, []);
 
   return (
     <>
@@ -39,7 +57,20 @@ const BudgetList = ({ budgets: initialBudgets }: { budgets: Budget[] }) => {
             Add Budget
           </Button>
         </div>
-        <DataTable columns={columns} data={budgets} />
+        <DataTable
+          columns={columns}
+          data={budgets}
+          pagination={{
+            page: paginationMeta.page,
+            totalPages: paginationMeta.totalPages,
+            limit: paginationMeta.limit,
+            hasNext: paginationMeta.hasNext,
+            hasPrevious: paginationMeta.hasPrevious,
+            total: paginationMeta.total,
+            onPageChange: refreshBudgets,
+            isLoading,
+          }}
+        />
       </div>
 
       {/* Edit Sheet */}

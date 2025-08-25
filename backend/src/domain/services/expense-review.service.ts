@@ -46,7 +46,10 @@ export class ExpenseReviewService {
         this.#toExpenseReviewDto(expenseReview)
       ),
       limit: defaultQuery.limit,
-      offset: defaultQuery.offset,
+      page: Math.floor(defaultQuery.offset / defaultQuery.limit) + 1,
+      totalPages: Math.ceil(total / defaultQuery.limit),
+      hasNext: defaultQuery.offset + defaultQuery.limit < total,
+      hasPrevious: defaultQuery.offset > 0,
       total,
     };
   }

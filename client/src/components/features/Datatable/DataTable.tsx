@@ -4,6 +4,7 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
@@ -18,11 +19,23 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import DataTablePagination from "./DataTablePagination";
+import TableSkeleton from "./TableSkeleton";
+
+export interface PaginationProps {
+  page: number;
+  totalPages: number;
+  limit: number;
+  total: number;
+  onPageChange: (page: number, pageSize: number) => void;
+  isLoading?: boolean;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  showPagination?: boolean;
+  pagination?: PaginationProps;
 }
 
 const renderNoResultsRow = (
@@ -39,23 +52,42 @@ const renderNoResultsRow = (
 const DataTable = <TData, TValue>({
   columns,
   data,
-  showPagination = true,
+  pagination,
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const showTablePagination = data?.length > 0 || (data && showPagination);
+  const isServerSidePagination = !!pagination;
+  const showTablePagination =
+    isServerSidePagination || (data && data.length > 10) || true;
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: isServerSidePagination
+      ? undefined
+      : getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: getCoreRowModel(),
     state: {
       sorting,
     },
+    initialState: {
+      pagination: {
+        pageSize: pagination?.limit || 10,
+      },
+    },
+    // Server-side pagination configuration
+    manualPagination: isServerSidePagination,
+    pageCount: pagination?.totalPages || -1,
   });
+
+  // Show skeleton when loading
+  if (pagination?.isLoading) {
+    return (
+      <TableSkeleton rows={pagination.limit || 5} columns={columns.length} />
+    );
+  }
 
   if (!table) {
     console.error("Table is not initialized properly.");
@@ -64,8 +96,8 @@ const DataTable = <TData, TValue>({
 
   const renderTableBody = () => (
     <TableBody>
-      {table?.getRowModel()?.rows?.length
-        ? table?.getRowModel().rows.map((row) => (
+      {table.getRowModel().rows.length > 0
+        ? table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
@@ -78,17 +110,14 @@ const DataTable = <TData, TValue>({
     </TableBody>
   );
 
-  const tableBodyContent =
-    !data || data.length === 0
-      ? renderNoResultsRow(columns.length)
-      : renderTableBody();
+  const tableBodyContent = renderTableBody();
 
   return (
     <React.Fragment>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table?.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
@@ -106,7 +135,9 @@ const DataTable = <TData, TValue>({
           {tableBodyContent}
         </Table>
       </div>
-      {showTablePagination && <DataTablePagination table={table} />}
+      {showTablePagination && (
+        <DataTablePagination table={table} pagination={pagination} />
+      )}
     </React.Fragment>
   );
 };

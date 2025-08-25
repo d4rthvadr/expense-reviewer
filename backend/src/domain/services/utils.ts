@@ -8,7 +8,7 @@ export const buildFindQuery = ({
   filters: QueryParams['filters'];
   limit?: number;
   offset?: number;
-}): QueryParams => {
+}): Omit<QueryParams, 'page'> => {
   return {
     filters,
     sort: {

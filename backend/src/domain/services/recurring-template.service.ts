@@ -7,14 +7,9 @@ import { UpdateRecurringTemplateDto } from './dtos/update-recurring-template.dto
 import { ResourceNotFoundException } from '@domain/exceptions/resource-not-found.exception';
 import { RecurringTemplateResponseDto } from '@api/controllers/dtos/response/recurring-template-response.dto';
 import { PaginatedResultDto } from '@api/controllers/dtos/response/paginated-response.dto';
-
-interface ListRecurringTemplateParams {
-  userId?: string;
-  type?: string;
-  isActive?: boolean;
-  limit?: number;
-  offset?: number;
-}
+import { paginateDataResult } from '@api/controllers/utils/paginate-response';
+import { QueryParams } from './interfaces/query-params';
+import { RecurringTemplateFilters } from './interfaces/recurring-template-filters';
 
 export class RecurringTemplateService {
   readonly #recurringTemplateRepository: RecurringTemplateRepository;
@@ -106,16 +101,17 @@ export class RecurringTemplateService {
    * Finds recurring templates with pagination and filtering.
    */
   async find(
-    params: ListRecurringTemplateParams
+    params: QueryParams<RecurringTemplateFilters>,
+    userId: string
   ): Promise<PaginatedResultDto<RecurringTemplateResponseDto>> {
     log.info(`Finding recurring templates | meta: ${JSON.stringify(params)}`);
 
-    const result = await this.#recurringTemplateRepository.find(params);
+    const { data, total } = await this.#recurringTemplateRepository.find(
+      params,
+      userId
+    );
 
-    return {
-      ...result,
-      data: result.data.map(this.#toRecurringTemplateDto),
-    };
+    return paginateDataResult(data, total, params.limit, params.offset);
   }
 
   /**

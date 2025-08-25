@@ -8,6 +8,8 @@ import {
 import { CreateRecurringTemplateRequestDto } from './dtos/request/create-recurring-template-request.dto';
 import { UpdateRecurringTemplateRequestDto } from './dtos/request/update-recurring-template-request.dto';
 import { RecurringTemplateResponseDto } from './dtos/response/recurring-template-response.dto';
+import { parseQueryParams } from './utils/parse-query-options';
+import { RecurringTemplateFilters } from '@domain/services/interfaces/recurring-template-filters';
 
 export class RecurringTemplateController {
   readonly #recurringTemplateService: RecurringTemplateService;
@@ -77,39 +79,30 @@ export class RecurringTemplateController {
     res.status(200).json(templateDto);
   };
 
-  find = async (
-    req: Request<
-      unknown,
-      unknown,
-      unknown,
-      {
-        type?: string;
-        userId?: string;
-        isActive?: string;
-        limit?: string;
-        offset?: string;
+  find = async (req: Request, res: Response) => {
+    const parsedQuery = parseQueryParams<RecurringTemplateFilters>(
+      req,
+      (req) => {
+        const filters: RecurringTemplateFilters = {};
+        if (req.query.isActive) {
+          filters.isActive =
+            req.query.isActive === 'true'
+              ? true
+              : req.query.isActive === 'false'
+                ? false
+                : undefined;
+        }
+        return filters;
       }
-    >,
-    res: Response
-  ) => {
+    );
     log.info(
-      `Finding recurring templates with filters | meta: ${JSON.stringify(req.query)}`
+      `Finding recurring templates with filters | meta: ${JSON.stringify(parsedQuery)}`
     );
 
-    const queryParams = {
-      userId: req.query.userId,
-      type: req.query.type,
-      isActive:
-        req.query.isActive === 'true'
-          ? true
-          : req.query.isActive === 'false'
-            ? false
-            : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit, 10) : 10,
-      offset: req.query.offset ? parseInt(req.query.offset, 10) : 0,
-    };
-
-    const templatesDto = await this.#recurringTemplateService.find(queryParams);
+    const templatesDto = await this.#recurringTemplateService.find(
+      parsedQuery,
+      req.user.id
+    );
 
     res.status(200).json(templatesDto);
   };

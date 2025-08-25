@@ -1,5 +1,5 @@
-export interface QueryParams {
-  filters: Record<string, unknown>;
+export interface QueryParams<T = object> {
+  filters: T;
   sort: {
     sortBy: string;
     sortDir: string;

@@ -2,11 +2,17 @@ import { auth } from "@clerk/nextjs/server";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+// Default timeout in milliseconds (30 seconds)
+const DEFAULT_TIMEOUT = 30000;
+
 export type TListResponse<T> = {
   data: T[];
-  total?: number;
-  limit?: number;
-  offset?: number;
+  total: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 } & ResponseWithError;
 
 export type TResponse<T> = {
@@ -18,6 +24,16 @@ export type ResponseWithError = {
   authError?: boolean;
   message?: string;
   success: boolean;
+};
+
+export const defaultListResponse = {
+  data: [],
+  total: 0,
+  limit: 10,
+  page: 1,
+  totalPages: 0,
+  hasNext: false,
+  hasPrevious: false,
 };
 
 /**
@@ -86,7 +102,36 @@ const buildRequestUrl = (endpoint: string) => {
   return `${BASE_URL}${endpoint}`;
 };
 
-function getClient(token?: string) {
+/**
+ * Creates a fetch request with timeout functionality
+ */
+const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+
+    throw error;
+  }
+};
+
+function getClient(token?: string, timeoutMs: number = DEFAULT_TIMEOUT) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -97,33 +142,49 @@ function getClient(token?: string) {
 
   const client = {
     get: async <T = unknown>(endpoint: string) => {
-      const response = await fetch(buildRequestUrl(endpoint), {
-        headers,
-      });
+      const response = await fetchWithTimeout(
+        buildRequestUrl(endpoint),
+        {
+          headers,
+        },
+        timeoutMs
+      );
       return parseResponse<T>(response);
     },
     post: async <T>(endpoint: string, data: T) => {
       console.log("post data", { data, endpoint });
-      const response = await fetch(buildRequestUrl(endpoint), {
-        method: "POST",
-        headers,
-        body: data instanceof FormData ? data : JSON.stringify(data),
-      });
+      const response = await fetchWithTimeout(
+        buildRequestUrl(endpoint),
+        {
+          method: "POST",
+          headers,
+          body: data instanceof FormData ? data : JSON.stringify(data),
+        },
+        timeoutMs
+      );
       return parseResponse<T>(response);
     },
     put: async <T>(endpoint: string, data: T) => {
-      const response = await fetch(buildRequestUrl(endpoint), {
-        method: "PUT",
-        headers,
-        body: data instanceof FormData ? data : JSON.stringify(data),
-      });
+      const response = await fetchWithTimeout(
+        buildRequestUrl(endpoint),
+        {
+          method: "PUT",
+          headers,
+          body: data instanceof FormData ? data : JSON.stringify(data),
+        },
+        timeoutMs
+      );
       return parseResponse<T>(response);
     },
     delete: async <T>(endpoint: string) => {
-      const response = await fetch(buildRequestUrl(endpoint), {
-        method: "DELETE",
-        headers,
-      });
+      const response = await fetchWithTimeout(
+        buildRequestUrl(endpoint),
+        {
+          method: "DELETE",
+          headers,
+        },
+        timeoutMs
+      );
       return parseResponse<T>(response);
     },
   };
@@ -132,7 +193,7 @@ function getClient(token?: string) {
 }
 
 // Create authenticated client for server actions
-export async function getAuthenticatedClient() {
+export async function getAuthenticatedClient(timeoutMs?: number) {
   const authData = await auth();
   const token = await authData.getToken();
 
@@ -140,5 +201,5 @@ export async function getAuthenticatedClient() {
     throw new Error("Authentication required");
   }
 
-  return getClient(token);
+  return getClient(token, timeoutMs);
 }

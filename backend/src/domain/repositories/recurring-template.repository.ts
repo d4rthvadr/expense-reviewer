@@ -5,21 +5,14 @@ import {
   mapRecurringTemplate,
   RecurringTemplateEntity,
 } from './helpers/map-recurring-template';
-import { PaginatedResultDto } from '../../api/controllers/dtos/response/paginated-response.dto';
 import {
   RecurringTemplateType as PrismaRecurringTemplateType,
   RecurringPeriod as PrismaRecurringPeriod,
   Category as PrismaCategory,
   Currency as PrismaCurrency,
 } from '../../../generated/prisma';
-
-interface ListRecurringTemplateDto {
-  userId?: string;
-  type?: string;
-  isActive?: boolean;
-  limit?: number;
-  offset?: number;
-}
+import { QueryParams } from '@domain/services/interfaces/query-params';
+import { RecurringTemplateFilters } from '@domain/services/interfaces/recurring-template-filters';
 
 export class RecurringTemplateRepository extends Database {
   async save(data: RecurringTemplateModel): Promise<RecurringTemplateModel> {
@@ -97,46 +90,28 @@ export class RecurringTemplateRepository extends Database {
   }
 
   async find(
-    params: ListRecurringTemplateDto
-  ): Promise<PaginatedResultDto<RecurringTemplateModel>> {
+    data: QueryParams<RecurringTemplateFilters>,
+    userId: string
+  ): Promise<{ data: RecurringTemplateModel[]; total: number }> {
     try {
-      const { userId, type, isActive, limit = 10, offset = 0 } = params;
-
-      interface WhereClause {
-        userId?: string;
-        type?: PrismaRecurringTemplateType;
-        isActive?: boolean;
-      }
-      const where: WhereClause = {};
-      if (userId) where.userId = userId;
-      if (type) where.type = type as PrismaRecurringTemplateType;
-      if (isActive !== undefined) where.isActive = isActive;
-
       const [templates, total] = await Promise.all([
         this.recurringTemplate.findMany({
-          where,
-          take: limit,
-          skip: offset,
+          where: {
+            ...data.filters,
+            userId,
+          },
+          take: data.limit,
+          skip: data.offset,
           orderBy: {
-            createdAt: 'desc',
+            [data.sort.sortBy]: data.sort.sortDir,
           },
         }),
-        this.recurringTemplate.count({
-          where,
-        }),
+        this.recurringTemplate.count(),
       ]);
 
-      const mappedTemplates = templates
-        .map(mapRecurringTemplate)
-        .filter(
-          (template): template is RecurringTemplateModel => template !== null
-        );
-
       return {
-        data: mappedTemplates,
+        data: templates.map((template) => mapRecurringTemplate(template)),
         total,
-        limit,
-        offset,
       };
     } catch (error) {
       log.error({

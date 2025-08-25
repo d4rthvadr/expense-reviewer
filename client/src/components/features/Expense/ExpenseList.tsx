@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "@/components/features/Datatable/DataTable";
 import { columns } from "@/components/features/Expense/ExpenseTable/ExpenseTableColumns";
 import { getExpenses } from "@/actions/expense";
@@ -10,12 +10,17 @@ import { useExpenseStore } from "@/stores/expenseStore";
 import ExpenseEditForm from "./ExpenseEditForm";
 import { Toaster } from "@/components/ui/sonner";
 
-const ExpenseList = ({
-  expenses: initialExpenses,
-}: {
-  expenses: Expense[];
-}) => {
-  const [expenses, setExpense] = useState<Expense[]>(initialExpenses);
+const ExpenseList = () => {
+  const [expenses, setExpense] = useState<Expense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [paginationMeta, setPaginationMeta] = useState({
+    page: 1,
+    totalPages: 1,
+    hasNext: false,
+    hasPrevious: false,
+    total: 0,
+    limit: 10,
+  });
 
   const { selectedExpense, isEditSheetOpen, openEditSheet, closeEditSheet } =
     useExpenseStore();
@@ -25,14 +30,29 @@ const ExpenseList = ({
     refreshExpenses(); // Refresh data after editing
   };
 
-  const refreshExpenses = async () => {
+  const refreshExpenses = async (
+    page: number = 1,
+    newPageSize: number = 10
+  ) => {
     try {
-      const response = await getExpenses();
-      setExpense(response.data);
+      const response = await getExpenses(page, newPageSize);
+
+      const { data, ...pagination } = response;
+
+      setExpense(data);
+      setPaginationMeta((prev) => {
+        return { ...prev, ...pagination };
+      });
     } catch (error) {
       console.error("Error refreshing expenses:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    refreshExpenses();
+  }, []);
 
   return (
     <>
@@ -55,6 +75,16 @@ const ExpenseList = ({
             >[]
           }
           data={expenses}
+          pagination={{
+            page: paginationMeta.page,
+            totalPages: paginationMeta.totalPages,
+            limit: paginationMeta.limit,
+            hasNext: paginationMeta.hasNext,
+            hasPrevious: paginationMeta.hasPrevious,
+            total: paginationMeta.total,
+            onPageChange: refreshExpenses,
+            isLoading,
+          }}
         />
       </div>
 

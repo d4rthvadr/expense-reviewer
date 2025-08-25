@@ -3,17 +3,8 @@ import { BudgetModel } from '@domain/models/budget.model';
 import { log } from '@infra/logger';
 import { mapBudget } from './helpers/map-budget';
 import { Database } from '@infra/db/database';
-
-// TODO: Make this interface generic and shared
-interface ListBudgetDto {
-  filters: Record<string, unknown>;
-  sort: {
-    sortBy: string;
-    sortDir: string;
-  };
-  limit: number;
-  offset: number;
-}
+import { QueryParams } from '@domain/services/interfaces/query-params';
+import { BudgetFindFilters } from '@domain/services/interfaces/budget-filters';
 
 export class BudgetRepository extends Database {
   async findById(
@@ -41,27 +32,29 @@ export class BudgetRepository extends Database {
   }
 
   async find(
-    data: ListBudgetDto
+    data: QueryParams<BudgetFindFilters>,
+    userId: string
   ): Promise<{ data: BudgetModel[]; total: number }> {
     log.info(`Finding budgets with filters: ${JSON.stringify(data)}`);
     const { filters, limit, offset } = data;
+
+    const whereQuery = {
+      ...filters,
+      userId,
+    };
 
     try {
       const [records, total]: [BudgetEntity[], number] =
         await this.$transaction([
           this.budget.findMany({
-            where: filters,
+            where: whereQuery,
             take: limit,
-            skip: offset * limit,
+            skip: offset,
             orderBy: {
               [data.sort.sortBy]: data.sort.sortDir,
             },
           }),
-          this.budget.count({
-            where: filters,
-            take: limit,
-            skip: offset,
-          }),
+          this.budget.count(),
         ]);
 
       const budgets = records.map((expense: BudgetEntity) =>
@@ -126,11 +119,12 @@ export class BudgetRepository extends Database {
     }
   }
 
-  async delete(id: string): Promise<BudgetModel> {
+  async delete(id: string, userId: string): Promise<BudgetModel> {
     try {
       const deletedBudget = await this.budget.delete({
         where: {
           id,
+          userId,
         },
       });
 

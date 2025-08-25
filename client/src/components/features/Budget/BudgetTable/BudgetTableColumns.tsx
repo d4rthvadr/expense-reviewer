@@ -1,8 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit } from "lucide-react";
-import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
 import { Budget } from "@/constants/budget";
@@ -16,12 +14,11 @@ const EditButton = ({ budget }: { budget: Budget }) => {
 
   return (
     <Button
-      variant="ghost"
+      variant="secondary"
       size="sm"
       onClick={() => openEditSheet(budget)}
       className="text-blue-500 hover:text-blue-700"
     >
-      <Edit className="h-4 w-4 mr-1" />
       <span>Edit</span>
     </Button>
   );
@@ -39,24 +36,6 @@ export type BudgetColumns = {
 };
 
 export const columns: ColumnDef<BudgetColumns>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant={"ghost"}
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-          <span>Name</span>
-        </Button>
-      );
-    },
-  },
   {
     accessorKey: "category",
     header: "Category",
@@ -78,20 +57,6 @@ export const columns: ColumnDef<BudgetColumns>[] = [
     cell: ({ row }) => {
       const { amount = 0, currency = Currency.USD } = row.original;
       return formatCurrency(amount, currency);
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      const description = row.original.description;
-      return description ? (
-        <span className="max-w-[200px] truncate" title={description}>
-          {description}
-        </span>
-      ) : (
-        <span className="text-gray-400">-</span>
-      );
     },
   },
   {
