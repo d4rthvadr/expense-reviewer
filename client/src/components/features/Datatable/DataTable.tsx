@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import DataTablePagination from "./DataTablePagination";
+import TableSkeleton from "./TableSkeleton";
 
 export interface PaginationProps {
   page: number;
@@ -80,6 +81,13 @@ const DataTable = <TData, TValue>({
     manualPagination: isServerSidePagination,
     pageCount: pagination?.totalPages || -1,
   });
+
+  // Show skeleton when loading
+  if (pagination?.isLoading) {
+    return (
+      <TableSkeleton rows={pagination.limit || 5} columns={columns.length} />
+    );
+  }
 
   if (!table) {
     console.error("Table is not initialized properly.");

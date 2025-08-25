@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 const ExpenseList = () => {
   const [expenses, setExpense] = useState<Expense[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [paginationMeta, setPaginationMeta] = useState({
     page: 1,
     totalPages: 1,
@@ -34,7 +34,6 @@ const ExpenseList = () => {
     page: number = 1,
     newPageSize: number = 10
   ) => {
-    setIsLoading(true);
     try {
       const response = await getExpenses(page, newPageSize);
 

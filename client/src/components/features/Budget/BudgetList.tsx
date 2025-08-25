@@ -11,7 +11,7 @@ import { getBudgets } from "@/actions/budget";
 
 const BudgetList = () => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [paginationMeta, setPaginationMeta] = useState({
     page: 1,
