@@ -1,7 +1,6 @@
 import { log } from '@infra/logger';
 import { cronServiceQueue, CRON_NAME } from './cron/cron-service-queue';
 import './transaction-review.queue';
-import './send-email.queue';
 import { ProcessorNames } from './cron/processors';
 
 export const startQueuesAndCrons = async () => {
