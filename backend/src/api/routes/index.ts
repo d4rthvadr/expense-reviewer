@@ -6,6 +6,8 @@ import analyticsRoutes from './analytics.routes';
 import recurringTemplateRoutes from './recurring-template.route';
 import webhookRoutes from './webhook.route';
 import expenseReviewRoutes from './expense-review.route';
+import { transactionRoute as transactionRoutes } from './transaction.route';
+import { transactionReviewRoute as transactionReviewRoutes } from './transaction-review.route';
 
 export {
   agentRoutes,
@@ -16,4 +18,6 @@ export {
   recurringTemplateRoutes,
   webhookRoutes,
   expenseReviewRoutes,
+  transactionRoutes,
+  transactionReviewRoutes,
 };
