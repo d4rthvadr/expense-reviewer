@@ -1,6 +1,10 @@
 import { log } from '@infra/logger';
 import { TransactionReviewModel } from '@domain/models/transaction-review.model';
-import { transactionReviewRepository } from '@domain/repositories/transaction-review.repository';
+import {
+  TransactionReviewRepository,
+  transactionReviewRepository,
+} from '@domain/repositories/transaction-review.repository';
+import { TransactionReviewFactory } from '@domain/factories/transaction-review.factory';
 
 interface CreateTransactionReviewDto {
   reviewText: string;
@@ -35,6 +39,10 @@ interface FindTransactionReviewsQuery {
 }
 
 export class TransactionReviewService {
+  #transactionReviewRepository: TransactionReviewRepository;
+  constructor(transactionReviewRepository: TransactionReviewRepository) {
+    this.#transactionReviewRepository = transactionReviewRepository;
+  }
   async find(
     data: GetTransactionReviewsDto,
     pagination: PaginationDto
@@ -201,9 +209,25 @@ export class TransactionReviewService {
       throw error;
     }
   }
+
+  async createReview(
+    reviewText: string,
+    userId: string
+  ): Promise<TransactionReviewModel> {
+    log.info(`Creating transaction review for user ID: ${userId}`);
+
+    const newReview = TransactionReviewFactory.createNew({
+      reviewText,
+      userId,
+    });
+
+    return await this.#transactionReviewRepository.save(newReview);
+  }
 }
 
 // Create singleton instance
-const transactionReviewService = new TransactionReviewService();
+const transactionReviewService = new TransactionReviewService(
+  transactionReviewRepository
+);
 
 export { transactionReviewService };

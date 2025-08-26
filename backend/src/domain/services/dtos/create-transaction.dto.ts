@@ -11,7 +11,7 @@ interface Transaction {
   amountUsd: number;
   type: TransactionType;
   userId?: string;
-  qty: number;
+  qty?: number;
   createdAt?: string;
 }
 

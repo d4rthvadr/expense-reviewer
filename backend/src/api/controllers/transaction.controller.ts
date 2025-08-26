@@ -26,7 +26,7 @@ interface UpdateTransactionRequestDto {
   name: string;
   description?: string;
   category: Category;
-  qty: number;
+  qty?: number;
   amount: number;
   currency: Currency;
   type: TransactionType;

@@ -8,27 +8,27 @@ import {
   analyticsService,
 } from '@domain/services/analytics.service';
 import {
-  expenseReviewService,
-  ExpenseReviewService,
-} from '@domain/services/expense-review.service';
+  transactionReviewService,
+  TransactionReviewService,
+} from '@domain/services/transaction-review.service';
 import { userService } from '@domain/services/user.service';
 
 const connection = getRedisInstance();
 
-const QUEUE_NAME = 'expense-review-queue';
+const QUEUE_NAME = 'transaction-review-queue';
 
-export type ExpenseReviewJobData = {
+export type TransactionReviewJobData = {
   dateTo: Date;
   dateFrom: Date;
   userId: string;
   lastRecurSyncDate?: Date;
 };
 
-class ExpenseReviewQueueService extends Worker {
+class TransactionReviewQueueService extends Worker {
   #queue: Queue;
   #agentService: AgentService;
   #analyticsService: AnalyticsService;
-  #expenseReviewService: ExpenseReviewService;
+  #transactionReviewService: TransactionReviewService;
 
   defaultJobOptions: JobsOptions = {
     attempts: 3,
@@ -42,7 +42,7 @@ class ExpenseReviewQueueService extends Worker {
   constructor(
     queue: Queue,
     agentService: AgentService,
-    expenseReviewService: ExpenseReviewService,
+    transactionReviewService: TransactionReviewService,
     analyticsService: AnalyticsService
   ) {
     super(
@@ -56,7 +56,7 @@ class ExpenseReviewQueueService extends Worker {
     this.#queue = queue;
     this.#agentService = agentService;
     this.#analyticsService = analyticsService;
-    this.#expenseReviewService = expenseReviewService;
+    this.#transactionReviewService = transactionReviewService;
 
     this.on('completed', (job) => {
       log.info(
@@ -73,7 +73,7 @@ class ExpenseReviewQueueService extends Worker {
     });
   }
 
-  async handleJob(job: Job<ExpenseReviewJobData>) {
+  async handleJob(job: Job<TransactionReviewJobData>) {
     try {
       log.info({
         message: `Processing job in ${this.constructor.name} |  meta: ${JSON.stringify({ jobId: job.id, data: job.data })}`,
@@ -81,21 +81,23 @@ class ExpenseReviewQueueService extends Worker {
 
       const { userId, dateFrom, dateTo, lastRecurSyncDate } = job.data;
 
-      const budgetWithExpenses =
-        await this.#analyticsService.getBudgetVsExpenses(
+      const budgetWithTransactions =
+        await this.#analyticsService.getBudgetVsTransactions(
           dateFrom,
           dateTo,
           userId
         );
       log.info(
-        `Processing expense review for user: ${userId} with budget data: ${JSON.stringify(budgetWithExpenses.length)}`
+        `Processing transaction review for user: ${userId} with budget data: ${JSON.stringify(budgetWithTransactions.length)}`
       );
 
-      const promptText = buildPrompt.reviewUserExpense(budgetWithExpenses);
+      const promptText = buildPrompt.reviewUserTransaction(
+        budgetWithTransactions
+      );
 
       const review = await this.#agentService.generateAIResponse(promptText);
 
-      const savedReview = await this.#expenseReviewService.createReview(
+      const savedReview = await this.#transactionReviewService.createReview(
         review,
         userId
       );
@@ -116,26 +118,26 @@ class ExpenseReviewQueueService extends Worker {
     }
   }
 
-  async addJob(data: ExpenseReviewJobData) {
+  async addJob(data: TransactionReviewJobData) {
     log.info(`Adding job to queue with data: ${JSON.stringify(data)}`);
 
-    const jobName = `expense-review-${data.userId}`;
+    const jobName = `transaction-review-${data.userId}`;
     await this.#queue.add(jobName, data, this.defaultJobOptions);
   }
 }
 
 // Create a new BullMQ queue
-// This queue will be used to process expense review jobs
-const expenseReviewQueue = new Queue(QUEUE_NAME, {
+// This queue will be used to process transaction review jobs
+const transactionReviewQueue = new Queue(QUEUE_NAME, {
   connection,
 });
 
 // Create a new instance of QueueService
-const expenseReviewQueueService = new ExpenseReviewQueueService(
-  expenseReviewQueue,
+const transactionReviewQueueService = new TransactionReviewQueueService(
+  transactionReviewQueue,
   agentService,
-  expenseReviewService,
+  transactionReviewService,
   analyticsService
 );
 
-export { expenseReviewQueueService, QUEUE_NAME };
+export { transactionReviewQueueService, QUEUE_NAME };

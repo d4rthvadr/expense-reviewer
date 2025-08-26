@@ -191,7 +191,9 @@ export class AnalyticsRepository {
     userId: string
   ): Promise<BudgetVsTransactionRawResult[]> {
     try {
-      log.info('Fetching budget vs expense comparison data using USD amounts');
+      log.info(
+        'Fetching budget vs transaction comparison data using USD amounts'
+      );
 
       const query = `
         WITH budget_totals AS (

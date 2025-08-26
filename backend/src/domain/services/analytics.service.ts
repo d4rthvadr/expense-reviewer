@@ -166,9 +166,9 @@ export class AnalyticsService {
       return sortedData;
     } catch (error) {
       log.error({
-        message: 'Error in budget vs expense service',
+        message: 'Error in budget vs transaction service',
         error,
-        code: 'BUDGET_VS_EXPENSE_SERVICE_ERROR',
+        code: 'BUDGET_VS_TRANSACTION_SERVICE_ERROR',
       });
       throw error;
     }

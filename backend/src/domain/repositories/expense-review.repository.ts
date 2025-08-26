@@ -1,11 +1,12 @@
-import { ExpenseReview as ExpenseReviewEntity } from '../../../generated/prisma';
+import { TransactionReview as TransactionReviewEntity } from '../../../generated/prisma';
 import {
   ExpenseItem,
   ExpenseReviewModel,
 } from '@domain/models/expense-review.model';
 import { log } from '@infra/logger';
-import { mapExpenseReview } from './helpers/map-expense-review';
+import { mapTransactionReview } from './helpers/map-transaction-review';
 import { Database } from '@infra/db/database';
+import { TransactionReviewModel } from '@domain/models/transaction-review.model';
 
 interface FindExpenseReviewsDto {
   userId: string;
@@ -16,25 +17,25 @@ interface FindExpenseReviewsDto {
   includeExpenses: boolean;
 }
 
-export type ExpenseReviewFullEntity = ExpenseReviewEntity & {
+export type ExpenseReviewFullEntity = TransactionReviewEntity & {
   expenses?: ExpenseItem[];
 };
 
-export class ExpenseReviewRepository extends Database {
+export class TransactionReviewRepository extends Database {
   async findById(
     expenseReviewId: string,
     userId: string
-  ): Promise<ExpenseReviewModel | null> {
+  ): Promise<TransactionReviewModel | null> {
     try {
       const expenseReview: ExpenseReviewFullEntity | null =
-        await this.expenseReview.findFirst({
+        await this.transactionReview.findFirst({
           where: {
             id: expenseReviewId,
             userId,
           },
         });
 
-      return mapExpenseReview(expenseReview);
+      return mapTransactionReview(expenseReview);
     } catch (error) {
       log.error({
         message: `An error occurred while fetching expense review with ID ${expenseReviewId}:`,
@@ -48,7 +49,7 @@ export class ExpenseReviewRepository extends Database {
 
   async find(
     data: FindExpenseReviewsDto
-  ): Promise<{ data: ExpenseReviewModel[]; total: number }> {
+  ): Promise<{ data: TransactionReviewModel[]; total: number }> {
     log.info(`Finding expense reviews with data: ${JSON.stringify(data)}`);
     const { userId, dateFrom, dateTo, limit, offset, includeExpenses } = data;
 
@@ -63,7 +64,7 @@ export class ExpenseReviewRepository extends Database {
 
       const include = includeExpenses
         ? {
-            expenses: {
+            transactions: {
               select: {
                 category: true,
                 qty: true,
@@ -76,19 +77,19 @@ export class ExpenseReviewRepository extends Database {
 
       const [records, total]: [ExpenseReviewFullEntity[], number] =
         await this.$transaction([
-          this.expenseReview.findMany({
+          this.transactionReview.findMany({
             where,
             include,
             orderBy: { createdAt: 'desc' },
             take: limit,
             skip: offset,
           }),
-          this.expenseReview.count({ where }),
+          this.transactionReview.count({ where }),
         ]);
 
       log.info(`Found ${records.length} expense reviews out of ${total} total`);
 
-      return { data: records.map((item) => mapExpenseReview(item)), total };
+      return { data: records.map((item) => mapTransactionReview(item)), total };
     } catch (error) {
       log.error({
         message: 'An error occurred while finding expense reviews:',
@@ -100,9 +101,9 @@ export class ExpenseReviewRepository extends Database {
     }
   }
 
-  async save(data: ExpenseReviewModel): Promise<ExpenseReviewModel> {
+  async save(data: ExpenseReviewModel): Promise<TransactionReviewModel> {
     try {
-      const expenseReview = await this.expenseReview.upsert({
+      const expenseReview = await this.transactionReview.upsert({
         where: { id: data.id },
         create: {
           id: data.id,
@@ -115,7 +116,7 @@ export class ExpenseReviewRepository extends Database {
         },
       });
 
-      return mapExpenseReview(expenseReview);
+      return mapTransactionReview(expenseReview);
     } catch (error) {
       log.error({
         message: 'An error occurred while saving expense review:',
@@ -128,5 +129,5 @@ export class ExpenseReviewRepository extends Database {
   }
 }
 
-const expenseReviewRepository = new ExpenseReviewRepository();
-export { expenseReviewRepository };
+const transactionReviewRepository = new TransactionReviewRepository();
+export { transactionReviewRepository };

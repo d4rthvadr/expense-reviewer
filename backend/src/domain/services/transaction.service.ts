@@ -154,7 +154,9 @@ class TransactionService {
     existingTransaction.category = data.category;
     existingTransaction.currency = data.currency;
     existingTransaction.type = data.type;
-    existingTransaction.qty = data.qty;
+    if (data.qty) {
+      existingTransaction.qty = data.qty;
+    }
 
     const updatedTransaction =
       await this.#transactionRepository.save(existingTransaction);

@@ -4,11 +4,11 @@ import { Job } from 'bullmq';
 import { UserService } from '@domain/services/user.service';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import {
-  ExpenseReviewJobData,
-  expenseReviewQueueService,
-} from '@infra/queues/expense-review.queue';
+  TransactionReviewJobData,
+  transactionReviewQueueService,
+} from '@infra/queues/transaction-review.queue';
 
-export class ExpenseReviewProcessor implements CronServiceProcessor {
+export class TransactionReviewProcessor implements CronServiceProcessor {
   #userService: UserService;
 
   constructor(userService: UserService) {
@@ -43,7 +43,7 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
   }
   async process(job: Job) {
     log.info({
-      message: `Processing expense review job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`,
+      message: `Processing transaction review job with ID: ${job.id} and data: ${JSON.stringify(job.data)}`,
     });
 
     const { dateFrom, dateTo } = this.calculateSyncPeriod();
@@ -64,14 +64,14 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
       const eligibleUsers = await this.#userService.find(searchQuery);
 
       log.info(
-        `Found: ${eligibleUsers.length} users for expense review using query: ${JSON.stringify(searchQuery)}`
+        `Found: ${eligibleUsers.length} users for transaction review using query: ${JSON.stringify(searchQuery)}`
       );
 
       const now = new Date();
       now.setHours(23, 59, 59, 999); // Set to end of day
 
       for (const user of eligibleUsers) {
-        const jobData: ExpenseReviewJobData = {
+        const jobData: TransactionReviewJobData = {
           userId: user.id,
           dateFrom,
           dateTo,
@@ -79,19 +79,19 @@ export class ExpenseReviewProcessor implements CronServiceProcessor {
         };
 
         log.info(
-          `Adding expense to review queue | meta: ${JSON.stringify(jobData)}`
+          `Adding transaction to review queue | meta: ${JSON.stringify(jobData)}`
         );
 
-        await expenseReviewQueueService.addJob(jobData);
+        await transactionReviewQueueService.addJob(jobData);
         log.info(
-          `Job added to expense review queue for user: ${user.id} | meta: ${JSON.stringify(jobData)}`
+          `Job added to transaction review queue for user: ${user.id} | meta: ${JSON.stringify(jobData)}`
         );
       }
     } catch (error) {
       log.error({
-        message: `An error occurred while processing expense review job with ID: ${job.id}`,
+        message: `An error occurred while processing transaction review job with ID: ${job.id}`,
         error,
-        code: 'EXPENSE_REVIEW_PROCESSING_ERROR',
+        code: 'TRANSACTION_REVIEW_PROCESSING_ERROR',
       });
       throw error;
     }
