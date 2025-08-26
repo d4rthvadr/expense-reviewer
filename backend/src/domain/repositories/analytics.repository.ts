@@ -7,10 +7,10 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 // Configure Day.js plugins
 dayjs.extend(isoWeek);
 
-export interface ExpenseAnalyticsData {
+export interface TransactionAnalyticsData {
   period: string;
   totalAmount: number;
-  expenseCount: number;
+  transactionCount: number;
 }
 
 export interface BudgetData {
@@ -20,10 +20,10 @@ export interface BudgetData {
   createdAt: Date;
 }
 
-export interface BudgetVsExpenseData {
+export interface BudgetVsTransactionData {
   category: string;
   budgetAmount: number;
-  expenseAmount: number;
+  transactionAmount: number;
   currency: Currency;
   utilizationPercentage: number;
   remaining: number;
@@ -34,37 +34,39 @@ export interface AnalyticsFilters {
   dateFrom: Date;
   dateTo: Date;
   groupBy: 'day' | 'week' | 'month';
-  userId: string; // Will be used later when you add it to Expense
+  userId: string;
+  transactionType?: 'EXPENSE' | 'INCOME'; // Optional filter for transaction type
 }
 
 // Interface for raw SQL results
 interface RawAnalyticsResult {
   period_date: Date;
   total_amount: number;
-  expense_count: bigint; // PostgreSQL COUNT returns bigint
+  transaction_count: bigint; // PostgreSQL COUNT returns bigint
 }
 
-interface BudgetVsExpenseRawResult {
+interface BudgetVsTransactionRawResult {
   category: string;
   budget_amount_usd: number;
-  expense_amount_usd: number;
+  transaction_amount_usd: number;
 }
 
 export class AnalyticsRepository {
   constructor(private db: Database) {}
 
-  async getTotalExpensesOverTime(
+  async getTotalTransactionsOverTime(
     filters: AnalyticsFilters
-  ): Promise<ExpenseAnalyticsData[]> {
+  ): Promise<TransactionAnalyticsData[]> {
     const { dateFrom, dateTo, groupBy, userId } = filters;
 
     try {
       // Use SQL aggregation for efficient database-level processing
-      const sqlResults = await this.getExpenseAggregatedDataFromDB(
-        dateFrom,
-        dateTo,
-        groupBy,
-        userId
+      const sqlResults = await this.getTransactionAggregatedDataFromDB(
+        filters.dateFrom,
+        filters.dateTo,
+        filters.groupBy,
+        filters.userId,
+        filters.transactionType
       );
 
       log.info(
@@ -73,15 +75,15 @@ export class AnalyticsRepository {
 
       // Format periods using Day.js to maintain exact current behavior
       return sqlResults
-        .map((row) => ({
-          period: this.getPeriodKey(row.period_date, groupBy), // Reuse existing Day.js logic
-          totalAmount: Math.round(row.total_amount * 100) / 100, // Round to 2 decimal places
-          expenseCount: Number(row.expense_count), // Convert bigint to number
+        .map((row: RawAnalyticsResult) => ({
+          period: dayjs(row.period_date).format('YYYY-MM-DD'),
+          totalAmount: row.total_amount,
+          transactionCount: Number(row.transaction_count), // Convert bigint to number
         }))
         .sort((a, b) => a.period.localeCompare(b.period)); // Sort by period to maintain current sorting behavior
     } catch (error) {
       log.error({
-        message: 'Error fetching expense items analytics',
+        message: 'Error fetching transaction analytics',
         error,
         code: 'ANALYTICS_FETCH_ERROR',
       });
@@ -89,26 +91,33 @@ export class AnalyticsRepository {
     }
   }
 
-  private async getExpenseAggregatedDataFromDB(
+  private async getTransactionAggregatedDataFromDB(
     dateFrom: Date,
     dateTo: Date,
     groupBy: 'day' | 'week' | 'month',
-    userId?: string
+    userId?: string,
+    transactionType?: 'EXPENSE' | 'INCOME'
   ): Promise<RawAnalyticsResult[]> {
     const params: unknown[] = [dateFrom, dateTo];
     let query: string;
 
     if (userId) {
-      // Query with userId filtering directly on Expense table
+      // Query with userId filtering directly on Transaction table
       const truncateFunction = this.getSQLDateTruncateFunction(groupBy);
+
+      let whereClause = `"createdAt" >= $1 AND "createdAt" <= $2 AND "userId" = $3`;
+      if (transactionType) {
+        whereClause += ` AND "type" = $4`;
+        params.push(transactionType);
+      }
 
       query = `
         SELECT 
           ${truncateFunction} as period_date,
           SUM(amount) as total_amount,
-          COUNT(*) as expense_count
-        FROM "Expense" 
-        WHERE "createdAt" >= $1 AND "createdAt" <= $2 AND "userId" = $3
+          COUNT(*) as transaction_count
+        FROM "Transaction" 
+        WHERE ${whereClause}
         GROUP BY ${truncateFunction}
         ORDER BY period_date
       `;
@@ -117,13 +126,19 @@ export class AnalyticsRepository {
       // Simple query without userId filtering
       const truncateFunction = this.getSQLDateTruncateFunction(groupBy);
 
+      let whereClause = `"createdAt" >= $1 AND "createdAt" <= $2`;
+      if (transactionType) {
+        whereClause += ` AND "type" = $3`;
+        params.push(transactionType);
+      }
+
       query = `
         SELECT 
           ${truncateFunction} as period_date,
           SUM(amount) as total_amount,
-          COUNT(*) as expense_count
-        FROM "Expense" 
-        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+          COUNT(*) as transaction_count
+        FROM "Transaction" 
+        WHERE ${whereClause}
         GROUP BY ${truncateFunction}
         ORDER BY period_date
       `;
@@ -170,11 +185,11 @@ export class AnalyticsRepository {
     }
   }
 
-  async getBudgetVsExpenseData(
+  async getBudgetVsTransactionData(
     dateFrom: Date,
     dateTo: Date,
     userId: string
-  ): Promise<BudgetVsExpenseRawResult[]> {
+  ): Promise<BudgetVsTransactionRawResult[]> {
     try {
       log.info('Fetching budget vs expense comparison data using USD amounts');
 
@@ -192,36 +207,34 @@ export class AnalyticsRepository {
         expense_totals AS (
           SELECT 
             category,
-            SUM("amountUsd") as expense_amount_usd
-          FROM "Expense"
+            SUM("amountUsd") as transaction_amount_usd
+          FROM "Transaction"
           WHERE "createdAt" >= $1 
             AND "createdAt" <= $2
             AND "userId" = $3
+            AND "type" = 'EXPENSE'
           GROUP BY category
         )
         SELECT 
           COALESCE(bt.category, et.category) as category,
           COALESCE(bt.budget_amount_usd, 0) as budget_amount_usd,
-          COALESCE(et.expense_amount_usd, 0) as expense_amount_usd
+          COALESCE(et.transaction_amount_usd, 0) as transaction_amount_usd
         FROM budget_totals bt
         FULL OUTER JOIN expense_totals et ON bt.category = et.category
         ORDER BY category;
       `;
 
-      const results = await this.db.$queryRawUnsafe<BudgetVsExpenseRawResult[]>(
-        query,
-        dateFrom,
-        dateTo,
-        userId
-      );
+      const results = await this.db.$queryRawUnsafe<
+        BudgetVsTransactionRawResult[]
+      >(query, dateFrom, dateTo, userId);
 
       log.info(
-        `Retrieved ${results.length} budget vs expense comparisons using USD amounts for user ${userId}`
+        `Retrieved ${results.length} budget vs transaction comparisons using USD amounts for user ${userId}`
       );
       return results;
     } catch (error) {
       log.error({
-        message: 'Error fetching budget vs expense data',
+        message: 'Error fetching budget vs transaction data',
         error,
         code: 'BUDGET_VS_EXPENSE_FETCH_ERROR',
       });

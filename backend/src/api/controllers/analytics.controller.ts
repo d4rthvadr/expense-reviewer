@@ -7,20 +7,23 @@ import {
 import { log } from '@infra/logger';
 
 export class AnalyticsController {
-  async getExpensesOverTime(req: Request, res: Response): Promise<void> {
+  async getTransactionsOverTime(req: Request, res: Response): Promise<void> {
     try {
-      const { dateFrom, dateTo, groupBy } =
-        req.query as Partial<AnalyticsRequestDto>;
+      const { dateFrom, dateTo, groupBy, transactionType } =
+        req.query as Partial<
+          AnalyticsRequestDto & { transactionType?: 'EXPENSE' | 'INCOME' }
+        >;
 
       // Parse dates (validation already handled by middleware)
       const parsedDateFrom = new Date(dateFrom!);
       const parsedDateTo = new Date(dateTo!);
 
-      const data = await analyticsService.getExpensesOverTime(
+      const data = await analyticsService.getTransactionsOverTime(
         parsedDateFrom,
         parsedDateTo,
         groupBy as 'day' | 'week' | 'month',
-        req.user.id
+        req.user.id,
+        transactionType
       );
 
       const response: AnalyticsApiResponse = {
@@ -69,7 +72,7 @@ export class AnalyticsController {
     }
   }
 
-  async getBudgetVsExpenses(req: Request, res: Response): Promise<void> {
+  async getBudgetVsTransactions(req: Request, res: Response): Promise<void> {
     try {
       const { dateFrom, dateTo } = req.query as {
         dateFrom?: string;
@@ -104,7 +107,7 @@ export class AnalyticsController {
         return;
       }
 
-      const data = await analyticsService.getBudgetVsExpenses(
+      const data = await analyticsService.getBudgetVsTransactions(
         parsedDateFrom,
         parsedDateTo,
         req.user.id
@@ -113,7 +116,7 @@ export class AnalyticsController {
       const response = {
         success: true,
         data,
-        message: `Budget vs expense comparison retrieved for ${data.length} categories`,
+        message: `Budget vs transaction comparison retrieved for ${data.length} categories`,
       };
 
       res.status(200).json(response);
