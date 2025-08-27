@@ -153,7 +153,9 @@ export class UserModel {
    * @returns {string} The current status of the user.
    */
   get status(): UserStatus | undefined {
-    return this.#status;
+    if (this.#status) {
+      return this.#status;
+    }
   }
 
   /**
@@ -161,8 +163,10 @@ export class UserModel {
    *
    * @param value - The new status to be set for the user.
    */
-  set status(value: UserStatus) {
-    this.#status = value;
+  set status(value: UserStatus | undefined) {
+    if (value) {
+      this.#status = value;
+    }
   }
   /**
    * Gets the creation date of the user.

@@ -105,11 +105,15 @@ export class TransactionModel {
   }
 
   get qty(): number | undefined {
-    return this.#qty;
+    if (this.#qty) {
+      return this.#qty;
+    }
   }
 
-  set qty(value: number) {
-    this.#qty = value;
+  set qty(value: number | undefined) {
+    if (value) {
+      this.#qty = value;
+    }
   }
 
   get currency(): Currency | undefined {
