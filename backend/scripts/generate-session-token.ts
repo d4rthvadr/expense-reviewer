@@ -8,6 +8,7 @@ import { db } from '../src/infra/db/database';
 
 import { createClerkClient } from '@clerk/backend';
 
+const EXPIRATION_TIME_S = 3600; // 1 hour in seconds
 interface TokenPayload {
   sub: string; // user ID
   email: string;
@@ -78,9 +79,18 @@ class TokenGenerator {
 
       console.log('✅ Clerk session created successfully!');
 
-      const tokenRes = await clerk.sessions.getToken(session.id);
+      // Get token - session duration is controlled by Clerk settings
+      // Default session tokens typically last 1 hour
+      const tokenRes = await clerk.sessions.getToken(
+        session.id,
+        undefined, // No custom template
+        EXPIRATION_TIME_S // Optional: specify expiration in seconds (e.g., 3600 = 1 hour)
+      );
 
       console.log('✅ Clerk session token created successfully!');
+      console.log(
+        'ℹ️  Session duration is controlled by your Clerk dashboard settings'
+      );
 
       return tokenRes.jwt;
     } catch (error) {
