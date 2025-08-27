@@ -1,10 +1,10 @@
 import express from 'express';
 import { analyticsController } from '../controllers/analytics.controller';
 import {
-  getBudgetVsExpensesValidators,
-  getExpensesOverTimeValidators,
   validateRequest,
-} from '../middlewares/utils/validators';
+  getBudgetVsTransactionsValidators,
+  getTransactionsOverTimeValidators,
+} from '@api/middlewares/utils/validators/';
 
 const router = express.Router();
 
@@ -71,7 +71,7 @@ const router = express.Router();
  */
 router.get(
   '/transactions-over-time',
-  getExpensesOverTimeValidators,
+  getTransactionsOverTimeValidators,
   validateRequest,
   analyticsController.getTransactionsOverTime
 );
@@ -188,7 +188,7 @@ router.get('/budgets', analyticsController.getBudgets);
  */
 router.get(
   '/budget-vs-transactions',
-  getBudgetVsExpensesValidators,
+  getBudgetVsTransactionsValidators,
   validateRequest,
   analyticsController.getBudgetVsTransactions
 );

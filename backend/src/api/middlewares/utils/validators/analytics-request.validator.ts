@@ -1,6 +1,6 @@
 import { query } from 'express-validator';
 
-export const getExpensesOverTimeValidators = [
+export const getTransactionsOverTimeValidators = [
   query('dateFrom')
     .notEmpty()
     .withMessage('dateFrom is required')
@@ -19,10 +19,15 @@ export const getExpensesOverTimeValidators = [
     .isIn(['day', 'week', 'month'])
     .withMessage('groupBy must be one of: day, week, month'),
 
+  query('transactionType')
+    .optional()
+    .isIn(['EXPENSE', 'INCOME'])
+    .withMessage('transactionType must be either EXPENSE or INCOME'),
+
   query('userId').optional().isString().withMessage('userId must be a string'),
 ];
 
-export const getBudgetVsExpensesValidators = [
+export const getBudgetVsTransactionsValidators = [
   query('dateFrom')
     .notEmpty()
     .withMessage('dateFrom is required')

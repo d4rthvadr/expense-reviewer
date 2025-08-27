@@ -11,7 +11,7 @@ import { userService } from '@domain/services/user.service';
 
 const connection = getRedisInstance();
 
-const CRON_NAME = 'expense-review-cron';
+const CRON_NAME = 'transaction-review-cron';
 
 export interface CronJobData {
   processorName: ProcessorNames;
