@@ -36,27 +36,6 @@ export type TransactionColumns = {
 
 export const columns: ColumnDef<TransactionColumns>[] = [
   {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }) => {
-      const type = row.original.type;
-      return (
-        <span
-          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-            type === "EXPENSE"
-              ? "bg-red-50 text-red-700 ring-red-700/10"
-              : "bg-green-50 text-green-700 ring-green-700/10"
-          }`}
-        >
-          <span className="mr-1 text-sm">
-            {type === "EXPENSE" ? "💸" : "💰"}
-          </span>
-          {type === "EXPENSE" ? "Expense" : "Income"}
-        </span>
-      );
-    },
-  },
-  {
     accessorKey: "category",
     header: "Category",
     cell: ({ row }) => {
@@ -75,10 +54,27 @@ export const columns: ColumnDef<TransactionColumns>[] = [
     accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => {
-      const { amount = 0, currency = "USD" } = row.original;
+      const { amount = 0, currency = "USD", type } = row.original;
 
       const totalAmount = amount * (row.original.qty || 1);
-      return formatCurrency(totalAmount, currency);
+      const formattedAmount = formatCurrency(totalAmount, currency);
+
+      // Color code based on transaction type with more specific styling
+      const isExpense = type === "EXPENSE";
+      const colorClass = isExpense
+        ? "text-red-500 font-semibold"
+        : "text-green-500 font-semibold";
+
+      return (
+        <span
+          className={colorClass}
+          style={{
+            color: isExpense ? "#ef4444" : "#10b981",
+          }}
+        >
+          {isExpense ? `-${formattedAmount}` : `+${formattedAmount}`}
+        </span>
+      );
     },
   },
 

@@ -199,13 +199,9 @@ const BudgetVsTransactionsChart = () => {
         dateRange.dateTo
       );
 
-      console.log("API Response:", response); // Debug log
-
       if (response.success && response.data) {
-        console.log("Setting data:", response.data); // Debug log
         setData(response.data);
       } else {
-        console.log("API Error:", response.error); // Debug log
         setError(response.error || "Failed to load budget vs expense data");
         setData([]);
       }

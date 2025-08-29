@@ -89,8 +89,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
 
     const { data, success } = await createTransaction(transaction);
 
-    console.log("Create transaction response:", { data, success });
-
     if (!success) {
       // Handle error case
       toast.error("Failed to create transaction");
@@ -124,7 +122,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
       transactionId
     );
 
-    console.log("Update transaction response:", { data, success });
     if (!success) {
       // Handle error case
       toast.error("Failed to update transaction");
@@ -138,8 +135,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
       } updated successfully`
     );
     callback?.();
-
-    console.log("Update transaction response:", { data, success, callback });
 
     set(() => ({ transaction: data, isSubmitting: false }));
   },
