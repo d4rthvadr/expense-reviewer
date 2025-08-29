@@ -40,7 +40,14 @@ export class TransactionController {
   }
 
   find = async (req: Request, res: Response) => {
-    const parsedQuery = parseQueryParams<TransactionFindFilters>(req);
+    const parsedQuery = parseQueryParams<TransactionFindFilters>(req, (req) => {
+      const filters: TransactionFindFilters = {};
+      if (req.query.type) {
+        filters.type = req.query.type as TransactionType;
+      }
+
+      return filters;
+    });
 
     const transactionListResult = await this.#transactionService.find(
       parsedQuery,

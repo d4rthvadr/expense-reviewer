@@ -15,7 +15,7 @@ const EditButton = ({ expense }: { expense: Transaction }) => {
     <Button
       variant="secondary"
       size="sm"
-      onClick={() => openEditSheet({ ...expense, type: "EXPENSE" as const })}
+      onClick={() => openEditSheet(expense)} // Use the transaction as-is, preserving its original type
       className="text-blue-500 hover:text-blue-700"
     >
       <span>Edit</span>
@@ -23,7 +23,7 @@ const EditButton = ({ expense }: { expense: Transaction }) => {
   );
 };
 
-export type ExpenseColumns = {
+export type TransactionColumns = {
   id?: string;
   name: string;
   amount: number;
@@ -34,7 +34,7 @@ export type ExpenseColumns = {
   createdAt: string;
 };
 
-export const columns: ColumnDef<ExpenseColumns>[] = [
+export const columns: ColumnDef<TransactionColumns>[] = [
   {
     accessorKey: "category",
     header: "Category",
@@ -54,10 +54,27 @@ export const columns: ColumnDef<ExpenseColumns>[] = [
     accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => {
-      const { amount = 0, currency = "USD" } = row.original;
+      const { amount = 0, currency = "USD", type } = row.original;
 
       const totalAmount = amount * (row.original.qty || 1);
-      return formatCurrency(totalAmount, currency);
+      const formattedAmount = formatCurrency(totalAmount, currency);
+
+      // Color code based on transaction type with more specific styling
+      const isExpense = type === "EXPENSE";
+      const colorClass = isExpense
+        ? "text-red-500 font-semibold"
+        : "text-green-500 font-semibold";
+
+      return (
+        <span
+          className={colorClass}
+          style={{
+            color: isExpense ? "#ef4444" : "#10b981",
+          }}
+        >
+          {isExpense ? `-${formattedAmount}` : `+${formattedAmount}`}
+        </span>
+      );
     },
   },
 

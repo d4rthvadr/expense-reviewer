@@ -44,6 +44,10 @@ type TransactionActions = {
   // logic for handling sheet state
   openEditSheet: (transaction: Transaction | null) => void;
   closeEditSheet: () => void;
+
+  // filter actions
+  setTransactionTypeFilter: (filter: "ALL" | "EXPENSE" | "INCOME") => void;
+  clearFilters: () => void;
 };
 
 export type TransactionState = {
@@ -53,6 +57,8 @@ export type TransactionState = {
   // transaction state
   selectedTransaction: Transaction | null;
   isEditSheetOpen: boolean;
+  // filter state
+  transactionTypeFilter: "ALL" | "EXPENSE" | "INCOME";
 };
 
 export type TransactionStore = TransactionState & TransactionActions;
@@ -66,6 +72,7 @@ const defaultTransactionState = {
 export const useTransactionStore = create<TransactionStore>()((set) => ({
   transaction: defaultTransactionState.transaction,
   selectedTransaction: null,
+  transactionTypeFilter: "ALL",
 
   getTransactionById: async (transactionId: string) => {
     set(() => ({ isLoading: true }));
@@ -88,8 +95,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
     set(() => ({ isSubmitting: true }));
 
     const { data, success } = await createTransaction(transaction);
-
-    console.log("Create transaction response:", { data, success });
 
     if (!success) {
       // Handle error case
@@ -124,7 +129,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
       transactionId
     );
 
-    console.log("Update transaction response:", { data, success });
     if (!success) {
       // Handle error case
       toast.error("Failed to update transaction");
@@ -139,8 +143,6 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
     );
     callback?.();
 
-    console.log("Update transaction response:", { data, success, callback });
-
     set(() => ({ transaction: data, isSubmitting: false }));
   },
 
@@ -150,15 +152,9 @@ export const useTransactionStore = create<TransactionStore>()((set) => ({
     set({ selectedTransaction: transaction, isEditSheetOpen: true }),
   closeEditSheet: () =>
     set({ selectedTransaction: null, isEditSheetOpen: false }),
-}));
 
-// Backward compatibility - re-export as expense store with deprecation warning
-/**
- * @deprecated Use useTransactionStore instead. This will be removed in a future version.
- */
-export const useExpenseStore = () => {
-  console.warn(
-    "useExpenseStore is deprecated. Use useTransactionStore instead."
-  );
-  return useTransactionStore();
-};
+  // filter actions
+  setTransactionTypeFilter: (filter: "ALL" | "EXPENSE" | "INCOME") =>
+    set({ transactionTypeFilter: filter }),
+  clearFilters: () => set({ transactionTypeFilter: "ALL" }),
+}));

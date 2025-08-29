@@ -1,3 +1,4 @@
+import { TransactionType } from '@domain/enum/transaction-type.enum';
 import { query } from 'express-validator';
 
 export const paginationQueryParamsValidators = [
@@ -21,4 +22,10 @@ export const paginationQueryParamsValidators = [
     .optional()
     .isString()
     .withMessage('SortDir must be a string'),
+  query('type')
+    .optional()
+    .isString()
+    .withMessage('Type must be a string')
+    .isIn(Object.values(TransactionType))
+    .default('ALL'),
 ];
