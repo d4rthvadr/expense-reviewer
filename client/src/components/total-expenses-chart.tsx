@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  getExpensesOverTime,
+  getTransactionsOverTime,
   type AnalyticsFilters,
 } from "@/actions/analytics";
 import ErrorBoundary from "@/components/error-boundary";
@@ -93,14 +93,14 @@ const TotalExpenseChart = () => {
     setError(null);
 
     try {
-      const response = await getExpensesOverTime(currentFilters);
+      const response = await getTransactionsOverTime(currentFilters);
 
       if (response.success && response.data) {
         const chartData: ChartData[] = response.data.map((item) => ({
           period: item.period,
           periodLabel: formatPeriodLabel(item.period, currentFilters.groupBy),
           totalAmount: item.totalAmount,
-          expenseCount: item.expenseCount,
+          expenseCount: item.transactionCount,
         }));
 
         setData(chartData);

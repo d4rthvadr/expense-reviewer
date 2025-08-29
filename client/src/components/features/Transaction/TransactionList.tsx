@@ -1,17 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import DataTable from "@/components/features/Datatable/DataTable";
-import { columns } from "@/components/features/Expense/ExpenseTable/ExpenseTableColumns";
-import { getExpenses } from "@/actions/expense";
+import { columns } from "@/components/features/Transaction/TransactionTable/TransactionTableColumns";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
-import { Expense } from "@/constants/expense";
-import { useExpenseStore } from "@/stores/expenseStore";
-import ExpenseEditForm from "./ExpenseEditForm";
+import { Transaction } from "@/constants/transaction";
+import { useTransactionStore } from "@/stores/transactionStore";
+import TransactionEditForm from "./TransactionEditForm";
 import { Toaster } from "@/components/ui/sonner";
+import { getTransactions } from "@/actions/transaction";
 
-const ExpenseList = () => {
-  const [expenses, setExpense] = useState<Expense[]>([]);
+const TransactionList = () => {
+  const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [paginationMeta, setPaginationMeta] = useState({
     page: 1,
@@ -22,36 +22,42 @@ const ExpenseList = () => {
     limit: 10,
   });
 
-  const { selectedExpense, isEditSheetOpen, openEditSheet, closeEditSheet } =
-    useExpenseStore();
+  const {
+    selectedTransaction,
+    isEditSheetOpen,
+    openEditSheet,
+    closeEditSheet,
+  } = useTransactionStore();
 
   const handleCloseEditSheet = () => {
     closeEditSheet();
-    refreshExpenses(); // Refresh data after editing
+    refreshTransactions(); // Refresh data after editing
   };
 
-  const refreshExpenses = async (
+  const refreshTransactions = async (
     page: number = 1,
     newPageSize: number = 10
   ) => {
     try {
-      const response = await getExpenses(page, newPageSize);
+      const response = await getTransactions(page, newPageSize);
 
       const { data, ...pagination } = response;
 
-      setExpense(data);
+      console.log("[PEEK] Fetched transactions:", { data, pagination });
+
+      setTransaction(data);
       setPaginationMeta((prev) => {
         return { ...prev, ...pagination };
       });
     } catch (error) {
-      console.error("Error refreshing expenses:", error);
+      console.error("Error refreshing transactions:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    refreshExpenses();
+    refreshTransactions();
   }, []);
 
   return (
@@ -59,22 +65,31 @@ const ExpenseList = () => {
       <Toaster />
       <div className="w-full py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-8 py-2 flex  justify-between  rounded-md">
-          <h1 className="text-2xl font-bold mb-4">Expenses</h1>
-          <Button
-            variant="outline"
-            onClick={() => openEditSheet({} as Expense)}
-          >
-            Add Expense
-          </Button>
+          <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => openEditSheet({ type: "EXPENSE" } as Transaction)}
+            >
+              Add Expense
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => openEditSheet({ type: "INCOME" } as Transaction)}
+            >
+              Add Income
+            </Button>
+          </div>
         </div>
         <DataTable
           columns={
             columns as import("@tanstack/react-table").ColumnDef<
-              Expense,
+              Transaction,
               unknown
             >[]
           }
-          data={expenses}
+          data={transactions}
           pagination={{
             page: paginationMeta.page,
             totalPages: paginationMeta.totalPages,
@@ -82,16 +97,16 @@ const ExpenseList = () => {
             hasNext: paginationMeta.hasNext,
             hasPrevious: paginationMeta.hasPrevious,
             total: paginationMeta.total,
-            onPageChange: refreshExpenses,
+            onPageChange: refreshTransactions,
             isLoading,
           }}
         />
       </div>
 
       <Sheet open={isEditSheetOpen} onOpenChange={closeEditSheet}>
-        {selectedExpense && (
-          <ExpenseEditForm
-            expense={selectedExpense}
+        {selectedTransaction && (
+          <TransactionEditForm
+            expense={selectedTransaction}
             onClose={handleCloseEditSheet}
           />
         )}
@@ -100,6 +115,6 @@ const ExpenseList = () => {
   );
 };
 
-export default ExpenseList;
+export default TransactionList;
 
-ExpenseList.displayName = "ExpenseList";
+TransactionList.displayName = "TransactionList";

@@ -3,19 +3,19 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/money.util";
-import { Expense } from "@/constants/expense";
-import { useExpenseStore } from "@/stores/expenseStore";
+import { useTransactionStore } from "@/stores/transactionStore";
 import { Currency } from "@/constants/currency.enum";
 import { Category } from "@/constants/category.enum";
+import { Transaction, TransactionType } from "@/constants/transaction";
 
-const EditButton = ({ expense }: { expense: Expense }) => {
-  const openEditSheet = useExpenseStore((state) => state.openEditSheet);
+const EditButton = ({ expense }: { expense: Transaction }) => {
+  const openEditSheet = useTransactionStore((state) => state.openEditSheet);
 
   return (
     <Button
       variant="secondary"
       size="sm"
-      onClick={() => openEditSheet(expense)}
+      onClick={() => openEditSheet({ ...expense, type: "EXPENSE" as const })}
       className="text-blue-500 hover:text-blue-700"
     >
       <span>Edit</span>
@@ -29,6 +29,7 @@ export type ExpenseColumns = {
   amount: number;
   currency: Currency;
   category: Category;
+  type: TransactionType;
   qty: number;
   createdAt: string;
 };

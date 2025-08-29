@@ -22,10 +22,10 @@ import {
 
 import { Input } from "@/components/ui/input";
 import SelectComponent from "@/components/form/SelectComponent";
-import { CategoryValues, Expense } from "@/constants/expense";
-import { useExpenseStore } from "@/stores/expenseStore";
+import { useTransactionStore } from "@/stores/transactionStore";
 import { Currency } from "@/constants/currency.enum";
 import { Category } from "@/constants/category.enum";
+import { CategoryValues, Transaction } from "@/constants/transaction";
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -44,10 +44,11 @@ const ExpenseEditForm = ({
   expense,
   onClose,
 }: {
-  expense: Expense;
+  expense: Transaction;
   onClose: () => void;
 }) => {
-  const { updateExpense, createExpense, isSubmitting } = useExpenseStore();
+  const { updateTransaction, createTransaction, isLoading } =
+    useTransactionStore();
 
   const sheetTitle = expense.id ? "Edit Expense Item" : "Add Expense Item";
 
@@ -74,29 +75,21 @@ const ExpenseEditForm = ({
       return;
     }
 
+    const transactionData = {
+      ...expense, // Spread existing expense data
+      ...data,
+      category: data.category as unknown as Category,
+      type: "EXPENSE" as const, // Ensure type is set for transaction
+    };
+
     if (expense.id) {
       // Update existing expense
-      await updateExpense(
-        {
-          ...expense, // Spread existing expense data
-          ...data,
-          category: data.category as unknown as Category,
-        },
-        expense.id,
-        onSheetClose
-      );
+      await updateTransaction(transactionData, expense.id, onSheetClose);
       console.log("Expense updated successfully");
       return;
     }
 
-    await createExpense(
-      {
-        ...expense, // Spread existing expense data
-        ...data,
-        category: data.category as unknown as Category,
-      },
-      onSheetClose
-    );
+    await createTransaction(transactionData, onSheetClose);
 
     console.log("Expense created successfully");
   }
@@ -216,9 +209,9 @@ const ExpenseEditForm = ({
                     type="submit"
                     className="w-full"
                     variant={"default"}
-                    disabled={isSubmitting}
+                    disabled={isLoading}
                   >
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                    {isLoading ? "Submitting..." : "Submit"}
                   </Button>
                 </form>
               </Form>
