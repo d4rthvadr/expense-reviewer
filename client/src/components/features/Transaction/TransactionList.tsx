@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import DataTable from "@/components/features/Datatable/DataTable";
 import { columns } from "@/components/features/Transaction/TransactionTable/TransactionTableColumns";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { Transaction } from "@/constants/transaction";
 import { useTransactionStore } from "@/stores/transactionStore";
 import TransactionEditForm from "./TransactionEditForm";
+import TransactionFilterToolbar from "./TransactionFilterToolbar";
 import { Toaster } from "@/components/ui/sonner";
 import { getTransactions } from "@/actions/transaction";
 
@@ -27,6 +28,7 @@ const TransactionList = () => {
     isEditSheetOpen,
     openEditSheet,
     closeEditSheet,
+    transactionTypeFilter,
   } = useTransactionStore();
 
   const handleCloseEditSheet = () => {
@@ -34,31 +36,33 @@ const TransactionList = () => {
     refreshTransactions(); // Refresh data after editing
   };
 
-  const refreshTransactions = async (
-    page: number = 1,
-    newPageSize: number = 10
-  ) => {
-    try {
-      const response = await getTransactions(page, newPageSize);
+  const refreshTransactions = useCallback(
+    async (page: number = 1, newPageSize: number = 10) => {
+      setIsLoading(true);
+      try {
+        // Convert filter to API type
+        const filterType =
+          transactionTypeFilter === "ALL" ? undefined : transactionTypeFilter;
+        const response = await getTransactions(page, newPageSize, filterType);
 
-      const { data, ...pagination } = response;
+        const { data, ...pagination } = response;
 
-      console.log("[PEEK] Fetched transactions:", { data, pagination });
-
-      setTransaction(data);
-      setPaginationMeta((prev) => {
-        return { ...prev, ...pagination };
-      });
-    } catch (error) {
-      console.error("Error refreshing transactions:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        setTransaction(data);
+        setPaginationMeta((prev) => {
+          return { ...prev, ...pagination };
+        });
+      } catch (error) {
+        console.error("Error refreshing transactions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [transactionTypeFilter]
+  );
 
   useEffect(() => {
     refreshTransactions();
-  }, []);
+  }, [refreshTransactions]); // Now includes transactionTypeFilter via useCallback dependency
 
   return (
     <>
@@ -73,6 +77,9 @@ const TransactionList = () => {
             Add Transaction
           </Button>
         </div>
+
+        {/* Filter Toolbar */}
+        <TransactionFilterToolbar />
         <DataTable
           columns={
             columns as import("@tanstack/react-table").ColumnDef<
