@@ -24,7 +24,7 @@ const Navbar = () => {
 
       <div className="flex items-center gap-8">
         <Link href="/dashboard">Dashboard</Link>
-        <Link href="/dashboard/expenses">Expenses</Link>
+        <Link href="/dashboard/transactions">Transactions</Link>
         <Link href="/dashboard/budgets">Budgets</Link>
         <Link href="/dashboard/reports">Reports</Link>
 

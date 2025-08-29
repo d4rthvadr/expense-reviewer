@@ -1,20 +1,20 @@
-import { BudgetVsExpenseData } from '@domain/repositories/analytics.repository';
+import { BudgetVsTransactionData } from '@domain/repositories/analytics.repository';
 
-const getItemInTextFormat = (items: BudgetVsExpenseData[]): string => {
+const getItemInTextFormat = (items: BudgetVsTransactionData[]): string => {
   return items
     .map((item, i) => {
-      return `${i + 1}.  Expense Amount: (${item.expenseAmount.toFixed(2)}) §BudgetAmount: ${item.budgetAmount.toFixed(2)}. Remaining: ${item.remaining.toFixed(2)}. Category: ${item.category}.
+      return `${i + 1}.  Transaction Amount: (${item.transactionAmount.toFixed(2)}) §BudgetAmount: ${item.budgetAmount.toFixed(2)}. Remaining: ${item.remaining.toFixed(2)}. Category: ${item.category}.
   `;
     })
     .join('\n');
 };
 
-const reviewUserExpense = (items: BudgetVsExpenseData[]) => {
+const reviewUserTransaction = (items: BudgetVsTransactionData[]) => {
   const itemsText = getItemInTextFormat(items);
 
-  const template = `You are a financial assistant that analyzes a user’s budget and expenses. 
-Your job is to review spending data by category, compare expenses to budgets, and provide clear, human-readable insights and recommendations.
-Here is the user's **monthly budget with expenses**:
+  const template = `You are a financial assistant that analyzes a user’s budget and transactions. 
+Your job is to review spending data by category, compare transactions to budgets, and provide clear, human-readable insights and recommendations.
+Here is the user's **monthly budget with transactions**:
 
 Input:
 \n\n${itemsText}
@@ -72,7 +72,7 @@ Output Requirements:
 };
 
 const buildPrompt = {
-  reviewUserExpense,
+  reviewUserTransaction,
   // Add more prompt builders here as needed
 };
 

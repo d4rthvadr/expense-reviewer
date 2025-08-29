@@ -15,8 +15,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  getBudgetVsExpenseData,
-  type BudgetVsExpenseData,
+  BudgetVsTransactionData,
+  getBudgetVsTransactionData,
 } from "@/actions/analytics";
 import ErrorBoundary from "@/components/error-boundary";
 import ChartSkeleton from "@/components/chart-skeleton";
@@ -156,14 +156,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   return null;
 };
 
-const BudgetVsExpensesChart = () => {
-  const [data, setData] = useState<BudgetVsExpenseData[]>([]);
+const BudgetVsTransactionsChart = () => {
+  const [data, setData] = useState<BudgetVsTransactionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState(getDefaultDateRange());
 
   // Calculate status summary
-  const getStatusSummary = (data: BudgetVsExpenseData[]): StatusSummary => {
+  const getStatusSummary = (data: BudgetVsTransactionData[]): StatusSummary => {
     return data.reduce(
       (acc, item) => {
         switch (item.status) {
@@ -194,7 +194,7 @@ const BudgetVsExpensesChart = () => {
     console.log("Fetching budget vs expense data for:", dateRange); // Debug log
 
     try {
-      const response = await getBudgetVsExpenseData(
+      const response = await getBudgetVsTransactionData(
         dateRange.dateFrom,
         dateRange.dateTo
       );
@@ -232,14 +232,14 @@ const BudgetVsExpensesChart = () => {
     // For categories with no budget, we'll show only expenses
     const remainingBudget =
       item.budgetAmount > 0
-        ? Math.max(0, item.budgetAmount - item.expenseAmount)
+        ? Math.max(0, item.budgetAmount - item.transactionAmount)
         : 0;
-    const totalBudget = Math.max(item.budgetAmount, item.expenseAmount); // Show at least the expense amount
+    const totalBudget = Math.max(item.budgetAmount, item.transactionAmount); // Show at least the expense amount
 
     return {
       category: item.category,
       categoryLabel: formatCategoryName(item.category),
-      expenseAmount: item.expenseAmount,
+      expenseAmount: item.transactionAmount,
       remainingBudget,
       totalBudget,
       status: item.status,
@@ -396,5 +396,5 @@ const BudgetVsExpensesChart = () => {
   );
 };
 
-BudgetVsExpensesChart.displayName = "BudgetVsExpensesChart";
-export default BudgetVsExpensesChart;
+BudgetVsTransactionsChart.displayName = "BudgetVsTransactionsChart";
+export default BudgetVsTransactionsChart;

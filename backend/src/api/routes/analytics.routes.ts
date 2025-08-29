@@ -1,18 +1,18 @@
 import express from 'express';
 import { analyticsController } from '../controllers/analytics.controller';
 import {
-  getBudgetVsExpensesValidators,
-  getExpensesOverTimeValidators,
   validateRequest,
-} from '../middlewares/utils/validators';
+  getBudgetVsTransactionsValidators,
+  getTransactionsOverTimeValidators,
+} from '@api/middlewares/utils/validators/';
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/analytics/expenses-over-time:
+ * /api/analytics/transactions-over-time:
  *   get:
- *     summary: Get expense analytics over time
+ *     summary: Get transaction analytics over time
  *     tags: [Analytics]
  *     parameters:
  *       - in: query
@@ -70,10 +70,10 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.get(
-  '/expenses-over-time',
-  getExpensesOverTimeValidators,
+  '/transactions-over-time',
+  getTransactionsOverTimeValidators,
   validateRequest,
-  analyticsController.getExpensesOverTime
+  analyticsController.getTransactionsOverTime
 );
 
 /**
@@ -121,7 +121,7 @@ router.get('/budgets', analyticsController.getBudgets);
 
 /**
  * @swagger
- * /api/analytics/budget-vs-expenses:
+ * /api/analytics/budget-vs-transactions:
  *   get:
  *     summary: Get budget vs expense comparison by category with currency conversion
  *     tags: [Analytics]
@@ -187,10 +187,10 @@ router.get('/budgets', analyticsController.getBudgets);
  *         description: Internal server error
  */
 router.get(
-  '/budget-vs-expenses',
-  getBudgetVsExpensesValidators,
+  '/budget-vs-transactions',
+  getBudgetVsTransactionsValidators,
   validateRequest,
-  analyticsController.getBudgetVsExpenses
+  analyticsController.getBudgetVsTransactions
 );
 
 export default router;

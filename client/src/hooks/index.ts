@@ -1,3 +1,4 @@
-export { useCreateExpense } from "./useCreateExpense";
-export { useGetExpense } from "./useGetExpense";
-export { useUpdateExpense } from "./useUpdateExpense";
+// New transaction hooks
+export { useCreateTransaction } from "./useCreateTransaction";
+export { useGetTransaction } from "./useGetTransaction";
+export { useUpdateTransaction } from "./useUpdateTransaction";

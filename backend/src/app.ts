@@ -5,11 +5,11 @@ import { clerkMiddleware, getAuth } from '@clerk/express';
 import {
   agentRoutes,
   budgetRoutes,
-  expenseRoutes,
   analyticsRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
-  expenseReviewRoutes,
+  transactionRoutes,
+  transactionReviewRoutes,
 } from './api/routes';
 import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
@@ -22,10 +22,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  log.info({
-    message: `Headers: ${JSON.stringify(req.headers)}`,
-  });
+app.use((req, _, next) => {
   log.info({
     message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body)} | headers: ${JSON.stringify(req.headers)}`,
   });
@@ -41,7 +38,7 @@ app.use(
   })
 );
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _: Response, next: NextFunction) => {
   const { userId } = getAuth(req);
 
   if (userId) {
@@ -64,9 +61,8 @@ const apiAuth = (req: Request, res: Response, next: NextFunction): void => {
 };
 
 // Root route for health check
-app.get('/', (req: Request, res: Response) => {
+app.get('/health', (_: Request, res: Response) => {
   res.json({
-    message: 'Expense Tracker API is running',
     version: '1.0.0',
   });
 });
@@ -83,11 +79,11 @@ app.use('/api/webhooks', webhookRoutes);
 
 // Protected API routes - custom auth middleware ensures proper 401 responses
 app.use('/api/agents', apiAuth, agentRoutes);
-app.use('/api/expenses', apiAuth, expenseRoutes);
+app.use('/api/transactions', apiAuth, transactionRoutes);
 app.use('/api/budgets', apiAuth, budgetRoutes);
 app.use('/api/analytics', apiAuth, analyticsRoutes);
 app.use('/api/recurring-templates', apiAuth, recurringTemplateRoutes);
-app.use('/api/expense-reviews', apiAuth, expenseReviewRoutes);
+app.use('/api/transaction-reviews', apiAuth, transactionReviewRoutes);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);

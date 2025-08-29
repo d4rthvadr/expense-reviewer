@@ -2,7 +2,7 @@ import { Queue, Worker, Job, JobsOptions } from 'bullmq';
 import { log } from '@infra/logger';
 import {
   CronServiceProcessor,
-  ExpenseReviewProcessor,
+  TransactionReviewProcessor,
   NullDefaultProcessor,
   ProcessorNames,
 } from './processors';
@@ -11,7 +11,7 @@ import { userService } from '@domain/services/user.service';
 
 const connection = getRedisInstance();
 
-const CRON_NAME = 'expense-review-cron';
+const CRON_NAME = 'transaction-review-cron';
 
 export interface CronJobData {
   processorName: ProcessorNames;
@@ -22,7 +22,7 @@ type CronServiceProcessorMap = {
 };
 
 const cronServiceProcessors: CronServiceProcessorMap = {
-  expenseReviewProcessor: new ExpenseReviewProcessor(userService),
+  transactionReviewProcessor: new TransactionReviewProcessor(userService),
 };
 
 class CronServiceQueue extends Worker {

@@ -1,8 +1,8 @@
 import {
   AnalyticsRepository,
-  ExpenseAnalyticsData,
+  TransactionAnalyticsData,
   BudgetData,
-  BudgetVsExpenseData,
+  BudgetVsTransactionData,
   AnalyticsFilters,
   analyticsRepository,
 } from '@domain/repositories/analytics.repository';
@@ -13,12 +13,13 @@ import { log } from '@infra/logger';
 export class AnalyticsService {
   constructor(private analyticsRepository: AnalyticsRepository) {}
 
-  async getExpensesOverTime(
+  async getTransactionsOverTime(
     dateFrom: Date,
     dateTo: Date,
     groupBy: 'day' | 'week' | 'month',
-    userId: string
-  ): Promise<ExpenseAnalyticsData[]> {
+    userId: string,
+    transactionType?: 'EXPENSE' | 'INCOME'
+  ): Promise<TransactionAnalyticsData[]> {
     try {
       // Validate date range
       if (dateFrom > dateTo) {
@@ -37,17 +38,14 @@ export class AnalyticsService {
         dateTo: adjustedDateTo,
         groupBy,
         userId,
+        transactionType,
       };
 
-      log.info(
-        `Fetching expenses over time with filters ${JSON.stringify(filters)}`
-      );
-
       const data =
-        await this.analyticsRepository.getTotalExpensesOverTime(filters);
+        await this.analyticsRepository.getTotalTransactionsOverTime(filters);
 
       log.info(
-        `Expenses analytics data retrieved successfully: ${data.length} periods`
+        `Transaction analytics data retrieved successfully: ${data.length} periods using filters ${JSON.stringify(filters)}`
       );
 
       return data;
@@ -61,11 +59,11 @@ export class AnalyticsService {
     }
   }
 
-  async getBudgetVsExpenses(
+  async getBudgetVsTransactions(
     dateFrom: Date,
     dateTo: Date,
     userId: string
-  ): Promise<BudgetVsExpenseData[]> {
+  ): Promise<BudgetVsTransactionData[]> {
     try {
       // Validate date range
       if (dateFrom > dateTo) {
@@ -80,11 +78,11 @@ export class AnalyticsService {
       adjustedDateTo.setHours(23, 59, 59, 999);
 
       log.info(
-        `Fetching budget vs expense data from ${adjustedDateFrom.toISOString()} to ${adjustedDateTo.toISOString()}`
+        `Fetching budget vs transaction data from ${adjustedDateFrom.toISOString()} to ${adjustedDateTo.toISOString()}`
       );
 
       // Get raw USD data from repository
-      const rawData = await this.analyticsRepository.getBudgetVsExpenseData(
+      const rawData = await this.analyticsRepository.getBudgetVsTransactionData(
         adjustedDateFrom,
         adjustedDateTo,
         userId
@@ -99,10 +97,10 @@ export class AnalyticsService {
       }
 
       // Transform raw USD data to user's preferred currency
-      const data: BudgetVsExpenseData[] = await Promise.all(
+      const data: BudgetVsTransactionData[] = await Promise.all(
         rawData.map(async (item) => {
           const budgetAmountUsd = Number(item.budget_amount_usd);
-          const expenseAmountUsd = Number(item.expense_amount_usd);
+          const transactionAmountUsd = Number(item.transaction_amount_usd);
 
           // Convert from USD to user's preferred currency
           const budgetAmount = await currencyConversionService.convertCurrency(
@@ -111,21 +109,23 @@ export class AnalyticsService {
             userCurrency
           );
 
-          const expenseAmount = await currencyConversionService.convertCurrency(
-            expenseAmountUsd,
-            Currency.USD,
-            userCurrency
-          );
+          const transactionAmount =
+            await currencyConversionService.convertCurrency(
+              transactionAmountUsd,
+              Currency.USD,
+              userCurrency
+            );
 
           const remaining =
-            budgetAmount.convertedAmount - expenseAmount.convertedAmount;
+            budgetAmount.convertedAmount - transactionAmount.convertedAmount;
 
           let utilizationPercentage = 0;
-          let status: BudgetVsExpenseData['status'] = 'NO_BUDGET';
+          let status: BudgetVsTransactionData['status'] = 'NO_BUDGET';
 
           if (budgetAmount.convertedAmount > 0) {
             utilizationPercentage =
-              (expenseAmount.convertedAmount / budgetAmount.convertedAmount) *
+              (transactionAmount.convertedAmount /
+                budgetAmount.convertedAmount) *
               100;
 
             if (utilizationPercentage < 100) {
@@ -140,8 +140,8 @@ export class AnalyticsService {
           return {
             category: item.category,
             budgetAmount: Math.round(budgetAmount.convertedAmount * 100) / 100,
-            expenseAmount:
-              Math.round(expenseAmount.convertedAmount * 100) / 100,
+            transactionAmount:
+              Math.round(transactionAmount.convertedAmount * 100) / 100,
             currency: userCurrency,
             utilizationPercentage:
               Math.round(utilizationPercentage * 100) / 100,
@@ -151,24 +151,24 @@ export class AnalyticsService {
         })
       );
 
-      // Sort by expense amount descending, then by category name
+      // Sort by transaction amount descending, then by category name
       const sortedData = data.sort((a, b) => {
-        if (b.expenseAmount !== a.expenseAmount) {
-          return b.expenseAmount - a.expenseAmount;
+        if (b.transactionAmount !== a.transactionAmount) {
+          return b.transactionAmount - a.transactionAmount;
         }
         return a.category.localeCompare(b.category);
       });
 
       log.info(
-        `Budget vs expense data retrieved successfully: ${sortedData.length} categories`
+        `Budget vs transaction data retrieved successfully: ${sortedData.length} categories`
       );
 
       return sortedData;
     } catch (error) {
       log.error({
-        message: 'Error in budget vs expense service',
+        message: 'Error in budget vs transaction service',
         error,
-        code: 'BUDGET_VS_EXPENSE_SERVICE_ERROR',
+        code: 'BUDGET_VS_TRANSACTION_SERVICE_ERROR',
       });
       throw error;
     }

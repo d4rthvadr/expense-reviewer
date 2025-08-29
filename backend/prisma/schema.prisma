@@ -49,6 +49,11 @@ enum RecurringTemplateType {
   EXPENSE
 }
 
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
 model User {
   id                String              @id
   name              String?
@@ -63,30 +68,31 @@ model User {
   updatedAt         DateTime            @updatedAt
   Budget            Budget[]
   RecurringTemplate RecurringTemplate[]
-  Expense           Expense[]
+  Transaction       Transaction[]
 
-  ExpenseReview ExpenseReview[]
+  TransactionReview TransactionReview[]
 }
 
-model Expense {
-  id              String    @id
-  name            String
-  description     String?
-  qty             Int?
-  category        Category  @default(OTHER)
-  userId          String?
-  amount          Float
-  amountUsd       Float // Amount converted to USD at creation
-  currency        Currency? @default(USD)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  expenseReviewId String?
-  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+model Transaction {
+  id                  String          @id
+  name                String
+  description         String?
+  qty                 Int?
+  category            Category        @default(OTHER)
+  userId              String?
+  amount              Float
+  amountUsd           Float // Amount converted to USD at creation
+  currency            Currency?       @default(USD)
+  type                TransactionType @default(EXPENSE)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  transactionReviewId String?
+  user                User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  expenseReview ExpenseReview? @relation(fields: [expenseReviewId], references: [id], onDelete: SetNull)
+  transactionReview TransactionReview? @relation(fields: [transactionReviewId], references: [id], onDelete: SetNull)
 }
 
-model ExpenseReview {
+model TransactionReview {
   id         String   @id
   userId     String?
   reviewText String
@@ -95,7 +101,7 @@ model ExpenseReview {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  expenses Expense[]
+  transactions Transaction[]
 }
 
 model Budget {

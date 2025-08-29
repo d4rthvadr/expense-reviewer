@@ -13,10 +13,16 @@ export interface AnalyticsFilters {
   groupBy: "day" | "week" | "month";
 }
 
-export interface ExpenseAnalyticsData {
+/**
+ * Interface representing transaction analytics data structure returned from the server.
+ */
+export interface TransactionAnalyticsData {
   period: string;
   totalAmount: number;
-  expenseCount: number;
+  transactionCount: number;
+  avgTransactionAmount: number;
+  isCurrentPeriod: boolean;
+  type?: "EXPENSE" | "INCOME"; // Optional type filter
 }
 
 export interface BudgetData {
@@ -26,25 +32,27 @@ export interface BudgetData {
   createdAt: string;
 }
 
-export interface BudgetVsExpenseData {
+/**
+ * Interface representing budget vs transaction comparison data.
+ */
+export interface BudgetVsTransactionData {
   category: string;
+  status: "UNDER_BUDGET" | "ON_BUDGET" | "OVER_BUDGET" | "NO_BUDGET";
   budgetAmount: number;
-  expenseAmount: number;
-  currency: string;
+  transactionAmount: number;
+  difference: number;
   utilizationPercentage: number;
-  remaining: number;
-  status: "UNDER_BUDGET" | "OVER_BUDGET" | "ON_BUDGET" | "NO_BUDGET";
 }
 
 /**
- * Fetches expense analytics over time from the server.
+ * Fetches transaction analytics over time from the server.
  *
- * @param filters - The analytics filters including date range and groupBy
- * @returns {Promise<TListResponse<ExpenseAnalyticsData>>} A promise that resolves to analytics data and any error information.
+ * @param filters - The analytics filters including date range, groupBy, and optional transaction type
+ * @returns {Promise<TListResponse<TransactionAnalyticsData>>} A promise that resolves to analytics data and any error information.
  */
-export async function getExpensesOverTime(
-  filters: AnalyticsFilters
-): Promise<TListResponse<ExpenseAnalyticsData>> {
+export async function getTransactionsOverTime(
+  filters: AnalyticsFilters & { transactionType?: "EXPENSE" | "INCOME" }
+): Promise<TListResponse<TransactionAnalyticsData>> {
   try {
     const searchParams = new URLSearchParams({
       dateFrom: filters.dateFrom,
@@ -52,20 +60,27 @@ export async function getExpensesOverTime(
       groupBy: filters.groupBy,
     });
 
-    console.log("Fetching analytics with filters:", searchParams.toString());
+    if (filters.transactionType) {
+      searchParams.set("transactionType", filters.transactionType);
+    }
+
+    console.log(
+      "Fetching transaction analytics with filters:",
+      searchParams.toString()
+    );
     const client = await getAuthenticatedClient();
 
-    const response = await client.get<TListResponse<ExpenseAnalyticsData>>(
-      `/analytics/expenses-over-time?${searchParams.toString()}`
+    const response = await client.get<TListResponse<TransactionAnalyticsData>>(
+      `/analytics/transactions-over-time?${searchParams.toString()}`
     );
 
     return response;
   } catch (error) {
-    console.error("Error fetching analytics:", error);
+    console.error("Error fetching transaction analytics:", error);
     return {
       ...defaultListResponse,
       ...clientErrorHandler(error),
-      message: "Failed to fetch analytics data",
+      message: "Failed to fetch transaction analytics data",
     };
   }
 }
@@ -100,39 +115,79 @@ export async function getBudgetData(): Promise<TListResponse<BudgetData>> {
 }
 
 /**
- * Fetches budget vs expense comparison data from the server.
+ * Fetches budget vs transaction comparison data from the server.
  *
  * @param dateFrom - Start date in YYYY-MM-DD format
  * @param dateTo - End date in YYYY-MM-DD format
- * @returns {Promise<BudgetVsExpenseResponse>} A promise that resolves to budget vs expense data and any error information.
+ * @param transactionType - Optional filter for transaction type (defaults to EXPENSE for backward compatibility)
+ * @returns {Promise<TListResponse<BudgetVsTransactionData>>} A promise that resolves to budget vs transaction data and any error information.
  */
-export async function getBudgetVsExpenseData(
+export async function getBudgetVsTransactionData(
   dateFrom: string,
-  dateTo: string
-): Promise<TListResponse<BudgetVsExpenseData>> {
+  dateTo: string,
+  transactionType: "EXPENSE" | "INCOME" = "EXPENSE"
+): Promise<TListResponse<BudgetVsTransactionData>> {
   try {
     const searchParams = new URLSearchParams({
       dateFrom,
       dateTo,
+      transactionType,
     });
 
     console.log(
-      "Fetching budget vs expense data with filters:",
+      "Fetching budget vs transaction data with filters:",
       searchParams.toString()
     );
 
     const client = await getAuthenticatedClient();
-    const response = await client.get<TListResponse<BudgetVsExpenseData>>(
-      `/analytics/budget-vs-expenses?${searchParams.toString()}`
+    const response = await client.get<TListResponse<BudgetVsTransactionData>>(
+      `/analytics/budget-vs-transactions?${searchParams.toString()}`
     );
 
     return response;
   } catch (error) {
-    console.error("Error fetching budget vs expense data:", error);
+    console.error("Error fetching budget vs transaction data:", error);
     return {
       ...defaultListResponse,
       ...clientErrorHandler(error),
-      message: "Failed to fetch budget vs expense data",
+      message: "Failed to fetch budget vs transaction data",
     };
   }
 }
+
+// Backward compatibility exports with deprecation warnings
+/**
+ * @deprecated Use getTransactionsOverTime instead. This function will be removed in a future version.
+ */
+export async function getExpensesOverTime(
+  filters: AnalyticsFilters
+): Promise<TListResponse<TransactionAnalyticsData>> {
+  console.warn(
+    "getExpensesOverTime is deprecated. Use getTransactionsOverTime instead."
+  );
+  return getTransactionsOverTime({ ...filters, transactionType: "EXPENSE" });
+}
+
+/**
+ * @deprecated Use getBudgetVsTransactionData instead. This function will be removed in a future version.
+ */
+export async function getBudgetVsExpenseData(
+  dateFrom: string,
+  dateTo: string
+): Promise<TListResponse<BudgetVsTransactionData>> {
+  console.warn(
+    "getBudgetVsExpenseData is deprecated. Use getBudgetVsTransactionData instead."
+  );
+  return getBudgetVsTransactionData(dateFrom, dateTo, "EXPENSE");
+}
+
+// Type aliases for backward compatibility
+/**
+ * @deprecated Use TransactionAnalyticsData instead
+ */
+export type ExpenseAnalyticsData = TransactionAnalyticsData;
+
+/**
+ * @deprecated Use BudgetVsTransactionData instead
+ */
+export type BudgetVsExpenseData = BudgetVsTransactionData;

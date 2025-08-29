@@ -57,9 +57,7 @@ export class BudgetRepository extends Database {
           this.budget.count(),
         ]);
 
-      const budgets = records.map((expense: BudgetEntity) =>
-        mapBudget(expense)
-      );
+      const budgets = records.map((budget: BudgetEntity) => mapBudget(budget));
 
       return {
         data: budgets,

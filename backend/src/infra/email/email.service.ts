@@ -33,7 +33,7 @@ export class EmailService {
     );
 
     await this.#transporter.sendMail({
-      from: '"Expense Tracker" <no-reply@expensetracker.com>',
+      from: '"Expense Tracker" <no-reply@expensereviewer.com>',
       to,
       subject,
       html: htmlContent,
