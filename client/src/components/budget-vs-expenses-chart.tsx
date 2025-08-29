@@ -64,7 +64,7 @@ interface ChartData {
   totalBudget: number;
   status: string;
   utilizationPercentage: number;
-  currency: string;
+  currency: string; // TODO: Use actual currency type
 }
 
 interface StatusSummary {

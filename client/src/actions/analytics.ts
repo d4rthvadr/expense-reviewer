@@ -42,6 +42,7 @@ export interface BudgetVsTransactionData {
   transactionAmount: number;
   difference: number;
   utilizationPercentage: number;
+  currency: string; // TODO: Use actual currency type
 }
 
 /**
