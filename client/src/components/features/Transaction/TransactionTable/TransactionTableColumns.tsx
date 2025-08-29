@@ -15,7 +15,7 @@ const EditButton = ({ expense }: { expense: Transaction }) => {
     <Button
       variant="secondary"
       size="sm"
-      onClick={() => openEditSheet({ ...expense, type: "EXPENSE" as const })}
+      onClick={() => openEditSheet(expense)} // Use the transaction as-is, preserving its original type
       className="text-blue-500 hover:text-blue-700"
     >
       <span>Edit</span>
@@ -23,7 +23,7 @@ const EditButton = ({ expense }: { expense: Transaction }) => {
   );
 };
 
-export type ExpenseColumns = {
+export type TransactionColumns = {
   id?: string;
   name: string;
   amount: number;
@@ -34,7 +34,28 @@ export type ExpenseColumns = {
   createdAt: string;
 };
 
-export const columns: ColumnDef<ExpenseColumns>[] = [
+export const columns: ColumnDef<TransactionColumns>[] = [
+  {
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.original.type;
+      return (
+        <span
+          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+            type === "EXPENSE"
+              ? "bg-red-50 text-red-700 ring-red-700/10"
+              : "bg-green-50 text-green-700 ring-green-700/10"
+          }`}
+        >
+          <span className="mr-1 text-sm">
+            {type === "EXPENSE" ? "💸" : "💰"}
+          </span>
+          {type === "EXPENSE" ? "Expense" : "Income"}
+        </span>
+      );
+    },
+  },
   {
     accessorKey: "category",
     header: "Category",

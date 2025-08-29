@@ -68,7 +68,7 @@ const TransactionList = () => {
           <h1 className="text-2xl font-bold mb-4">Transactions</h1>
           <Button
             variant="outline"
-            onClick={() => openEditSheet({ type: "EXPENSE" } as Transaction)}
+            onClick={() => openEditSheet(null)} // Remove hardcoded type - let user choose in form
           >
             Add Transaction
           </Button>
@@ -95,12 +95,10 @@ const TransactionList = () => {
       </div>
 
       <Sheet open={isEditSheetOpen} onOpenChange={closeEditSheet}>
-        {selectedTransaction && (
-          <TransactionEditForm
-            expense={selectedTransaction}
-            onClose={handleCloseEditSheet}
-          />
-        )}
+        <TransactionEditForm
+          expense={selectedTransaction || undefined} // Handle null case
+          onClose={handleCloseEditSheet}
+        />
       </Sheet>
     </>
   );
