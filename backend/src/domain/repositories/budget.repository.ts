@@ -54,7 +54,9 @@ export class BudgetRepository extends Database {
               [data.sort.sortBy]: data.sort.sortDir,
             },
           }),
-          this.budget.count(),
+          this.budget.count({
+            where: whereQuery,
+          }),
         ]);
 
       const budgets = records.map((budget: BudgetEntity) => mapBudget(budget));

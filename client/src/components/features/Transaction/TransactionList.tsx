@@ -66,21 +66,12 @@ const TransactionList = () => {
       <div className="w-full py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-8 py-2 flex  justify-between  rounded-md">
           <h1 className="text-2xl font-bold mb-4">Transactions</h1>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => openEditSheet({ type: "EXPENSE" } as Transaction)}
-            >
-              Add Expense
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => openEditSheet({ type: "INCOME" } as Transaction)}
-            >
-              Add Income
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => openEditSheet({ type: "EXPENSE" } as Transaction)}
+          >
+            Add Transaction
+          </Button>
         </div>
         <DataTable
           columns={

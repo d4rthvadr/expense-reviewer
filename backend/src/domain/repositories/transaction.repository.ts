@@ -69,7 +69,9 @@ export class TransactionRepository extends Database {
               [data.sort.sortBy]: data.sort.sortDir,
             },
           }),
-          this.transaction.count(),
+          this.transaction.count({
+            where: whereQuery,
+          }),
         ]);
 
       return {

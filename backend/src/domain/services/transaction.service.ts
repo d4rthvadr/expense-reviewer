@@ -112,10 +112,13 @@ class TransactionService {
       Currency.USD
     );
 
-    const transaction = TransactionFactory.createTransaction({
-      ...data,
-      amountUsd: conversion.convertedAmount,
-    });
+    const transaction = TransactionFactory.createTransaction(
+      {
+        ...data,
+        amountUsd: conversion.convertedAmount,
+      },
+      data.userId
+    );
 
     const createdTransaction =
       await this.#transactionRepository.save(transaction);
