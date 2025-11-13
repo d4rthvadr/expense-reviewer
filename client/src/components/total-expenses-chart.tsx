@@ -28,6 +28,7 @@ import {
 } from "@/actions/analytics";
 import ErrorBoundary from "@/components/error-boundary";
 import ChartSkeleton from "@/components/chart-skeleton";
+import { toast } from "sonner";
 
 const chartConfig = {
   totalAmount: {
@@ -105,12 +106,11 @@ const TotalExpenseChart = () => {
 
         setData(chartData);
       } else {
-        setError(response.error || "Failed to load data");
+        const errMessage = response.error || "Failed to fetch data";
+        setError(errMessage);
+        toast.error(errMessage);
         setData([]);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
-      setData([]);
     } finally {
       setLoading(false);
     }
@@ -182,9 +182,8 @@ const TotalExpenseChart = () => {
       return (
         <div className="flex flex-col items-center justify-center min-h-[200px] text-center">
           <p className="text-sm text-muted-foreground mb-2">
-            Failed to load expenses data
+            {error ?? "Failed to load expenses data"}
           </p>
-          <p className="text-xs text-muted-foreground mb-4">{error}</p>
           <Button
             variant="outline"
             size="sm"

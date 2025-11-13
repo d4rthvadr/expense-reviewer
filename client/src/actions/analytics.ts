@@ -80,8 +80,10 @@ export async function getTransactionsOverTime(
     console.error("Error fetching transaction analytics:", error);
     return {
       ...defaultListResponse,
-      ...clientErrorHandler(error),
-      message: "Failed to fetch transaction analytics data",
+      ...clientErrorHandler(
+        error,
+        "Failed to fetch transaction analytics data"
+      ),
     };
   }
 }
@@ -109,8 +111,7 @@ export async function getBudgetData(): Promise<TListResponse<BudgetData>> {
     console.error("Error fetching budget data:", error);
     return {
       ...defaultListResponse,
-      ...clientErrorHandler(error),
-      message: "Failed to fetch budget data",
+      ...clientErrorHandler(error, "Failed to fetch budget data"),
     };
   }
 }
@@ -150,8 +151,10 @@ export async function getBudgetVsTransactionData(
     console.error("Error fetching budget vs transaction data:", error);
     return {
       ...defaultListResponse,
-      ...clientErrorHandler(error),
-      message: "Failed to fetch budget vs transaction data",
+      ...clientErrorHandler(
+        error,
+        "Failed to fetch budget vs transaction data"
+      ),
     };
   }
 }
