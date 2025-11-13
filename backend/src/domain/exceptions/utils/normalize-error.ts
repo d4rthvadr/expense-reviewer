@@ -1,7 +1,7 @@
 interface errorDataInput {
   data?: any;
   success?: boolean;
-  status: number;
+  status?: number;
   message: string;
 }
 
@@ -31,7 +31,7 @@ export const normalizeError = ({
   success = false,
 }: errorDataInput): ErrorResponse => {
   return {
-    status,
+    status: status || 500,
     error: {
       data,
       message,

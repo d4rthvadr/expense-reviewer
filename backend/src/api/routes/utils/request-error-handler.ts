@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { log } from '@infra/logger';
 import { ApplicationException } from '@domain/exceptions/application.exception';
 import { NextFunction, Response, Request } from 'express';
+import { normalizeError } from '@domain/exceptions/utils/normalize-error';
 
 export const requestErrorHandler = (
   error: Error | ApplicationException,
@@ -10,7 +10,6 @@ export const requestErrorHandler = (
   // eslint-disable-next-line no-unused-vars
   _next: NextFunction
 ) => {
-  log.error({ message: 'Error occurred:', code: '', error });
   if (error instanceof ApplicationException) {
     const { status, error: errorData } = error.toJSON();
     res.status(status);
@@ -20,9 +19,5 @@ export const requestErrorHandler = (
 
   const errMessage = error?.message ?? 'Internal Server Error';
 
-  res.status(500).json({
-    message: errMessage,
-    data: null,
-    success: false,
-  });
+  res.status(500).json(normalizeError({ message: errMessage }).error);
 };
