@@ -276,9 +276,8 @@ const BudgetVsTransactionsChart = () => {
       return (
         <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
           <p className="text-sm text-muted-foreground mb-2">
-            Failed to load budget vs expense data
+            {error ?? "Failed to load budget vs expense data"}
           </p>
-          <p className="text-xs text-muted-foreground mb-4">{error}</p>
           <button
             className="px-3 py-1 text-xs border rounded hover:bg-gray-50"
             onClick={fetchData}

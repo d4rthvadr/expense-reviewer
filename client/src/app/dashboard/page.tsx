@@ -2,6 +2,7 @@ import TotalExpensesChart from "@/components/total-expenses-chart";
 import React from "react";
 import BudgetOverviewChart from "@/components/budget-overview-chart";
 import BudgetVsExpensesChart from "@/components/budget-vs-expenses-chart";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function Dashboard() {
   return (
@@ -9,6 +10,8 @@ export default function Dashboard() {
       <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 lg:mb-8">
         Dashboard
       </h1>
+
+      <Toaster />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         {/* Total Expenses Chart - Takes full width on mobile, spans 2 cols on tablet+ */}
