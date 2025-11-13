@@ -45,13 +45,20 @@ export const defaultListResponse = {
  *   - `error`: The error message if the error is an instance of `Error`, otherwise a generic message.
  *   - `authError`: `true` if the error is an authentication error, otherwise `false`.
  */
-export const clientErrorHandler = (error: unknown): ResponseWithError => {
-  console.error("Error:", error);
+export const clientErrorHandler = (
+  error: unknown,
+  defaultMessage?: string
+): ResponseWithError => {
+  const errMessage =
+    error instanceof Error
+      ? error.message
+      : defaultMessage || "Unknown error occurred";
+
   const isAuthError =
     error instanceof Error && error.message === "Authentication required";
   return {
     success: false,
-    error: error instanceof Error ? error.message : "Unknown error occurred",
+    error: errMessage,
     authError: isAuthError,
   };
 };
