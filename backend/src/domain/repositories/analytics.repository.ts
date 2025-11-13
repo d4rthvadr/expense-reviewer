@@ -52,13 +52,12 @@ interface BudgetVsTransactionRawResult {
 }
 
 export class AnalyticsRepository {
+  // eslint-disable-next-line no-unused-vars
   constructor(private db: Database) {}
 
   async getTotalTransactionsOverTime(
     filters: AnalyticsFilters
   ): Promise<TransactionAnalyticsData[]> {
-    const { dateFrom, dateTo, groupBy, userId } = filters;
-
     try {
       // Use SQL aggregation for efficient database-level processing
       const sqlResults = await this.getTransactionAggregatedDataFromDB(
@@ -274,6 +273,94 @@ export class AnalyticsRepository {
         message: 'Error fetching budgets',
         error,
         code: 'BUDGET_FETCH_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  async getExpensesVsIncomeData(
+    dateFrom: Date,
+    dateTo: Date,
+    groupBy: 'week' | 'month',
+    userId: string
+  ): Promise<
+    {
+      period_date: Date;
+      period_expenses: number;
+      period_income: number;
+    }[]
+  > {
+    try {
+      const truncateFunction = this.getSQLDateTruncateFunction(groupBy);
+      const params = [dateFrom, dateTo, userId];
+
+      const query = `
+        SELECT 
+          ${truncateFunction} as period_date,
+          SUM(CASE WHEN "type" = 'EXPENSE' THEN "amountUsd" ELSE 0 END) as period_expenses,
+          SUM(CASE WHEN "type" = 'INCOME' THEN "amountUsd" ELSE 0 END) as period_income
+        FROM "Transaction" 
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2 AND "userId" = $3
+        GROUP BY ${truncateFunction}
+        ORDER BY period_date
+      `;
+
+      const results = await this.db.$queryRawUnsafe<
+        {
+          period_date: Date;
+          period_expenses: number;
+          period_income: number;
+        }[]
+      >(query, ...params);
+
+      log.info(
+        `Retrieved ${results.length} periods for expenses vs income analysis`
+      );
+      return results;
+    } catch (error) {
+      log.error({
+        message: 'Error fetching expenses vs income data',
+        error,
+        code: 'EXPENSES_VS_INCOME_FETCH_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  async getExpensesVsIncomeTotal(
+    dateFrom: Date,
+    dateTo: Date,
+    userId: string
+  ): Promise<{
+    expense_count: bigint;
+    income_count: bigint;
+  }> {
+    try {
+      const params = [dateFrom, dateTo, userId];
+
+      const query = `
+        SELECT 
+          COUNT(CASE WHEN "type" = 'EXPENSE' THEN 1 END) as expense_count,
+          COUNT(CASE WHEN "type" = 'INCOME' THEN 1 END) as income_count
+        FROM "Transaction" 
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2 AND "userId" = $3
+      `;
+
+      const results = await this.db.$queryRawUnsafe<
+        {
+          expense_count: bigint;
+          income_count: bigint;
+        }[]
+      >(query, ...params);
+
+      return (
+        results[0] || { expense_count: BigInt(0), income_count: BigInt(0) }
+      );
+    } catch (error) {
+      log.error({
+        message: 'Error fetching expenses vs income totals',
+        error,
+        code: 'EXPENSES_VS_INCOME_TOTAL_ERROR',
       });
       throw error;
     }

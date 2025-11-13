@@ -194,6 +194,160 @@ export class AnalyticsService {
       throw error;
     }
   }
+
+  async getExpensesVsIncomeAnalytics(
+    dateFrom: Date,
+    dateTo: Date,
+    groupBy: 'week' | 'month',
+    userId: string,
+    currency?: string
+  ): Promise<{
+    data: {
+      period: string;
+      periodLabel: string;
+      cumulativeExpenses: number;
+      cumulativeIncome: number;
+      cumulativeNet: number;
+      periodExpenses: number;
+      periodIncome: number;
+      periodNet: number;
+    }[];
+    meta: {
+      currency: string;
+      period: {
+        from: string;
+        to: string;
+      };
+      groupBy: string;
+      totalExpenses: number;
+      totalIncome: number;
+      totalNet: number;
+      totalExpenseCount: number;
+      totalIncomeCount: number;
+    };
+  }> {
+    try {
+      // Validate date range
+      if (dateFrom > dateTo) {
+        throw new Error('Start date cannot be after end date');
+      }
+
+      // Set date to beginning and end of day for proper querying
+      const adjustedDateFrom = new Date(dateFrom);
+      adjustedDateFrom.setHours(0, 0, 0, 0);
+
+      const adjustedDateTo = new Date(dateTo);
+      adjustedDateTo.setHours(23, 59, 59, 999);
+
+      // Get user's preferred currency (default to USD)
+      const targetCurrency = currency || Currency.USD;
+      if (userId) {
+        // TODO: Fetch user and get their preferred currency
+        // const user = await this.userRepository.findById(userId);
+        // targetCurrency = user?.currency || Currency.USD;
+      }
+
+      // Get raw period data from repository
+      const rawData = await this.analyticsRepository.getExpensesVsIncomeData(
+        adjustedDateFrom,
+        adjustedDateTo,
+        groupBy,
+        userId
+      );
+
+      // Calculate cumulative data
+      let cumulativeExpenses = 0;
+      let cumulativeIncome = 0;
+
+      const periodData = rawData.map(
+        (item: {
+          period_date: Date;
+          period_expenses: number;
+          period_income: number;
+        }) => {
+          const periodExpenses = Number(item.period_expenses);
+          const periodIncome = Number(item.period_income);
+          const periodNet = periodIncome - periodExpenses;
+
+          cumulativeExpenses += periodExpenses;
+          cumulativeIncome += periodIncome;
+          const cumulativeNet = cumulativeIncome - cumulativeExpenses;
+
+          // Format period label
+          const periodDate = new Date(item.period_date);
+          let periodLabel: string;
+
+          if (groupBy === 'week') {
+            const weekNum = Math.ceil(periodDate.getDate() / 7);
+            const monthName = periodDate.toLocaleDateString('en-US', {
+              month: 'short',
+            });
+            const year = periodDate.getFullYear();
+            periodLabel = `Week ${weekNum}, ${monthName} ${year}`;
+          } else {
+            periodLabel = periodDate.toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+            });
+          }
+
+          return {
+            period: item.period_date.toISOString().split('T')[0],
+            periodLabel,
+            cumulativeExpenses: Math.round(cumulativeExpenses * 100) / 100,
+            cumulativeIncome: Math.round(cumulativeIncome * 100) / 100,
+            cumulativeNet: Math.round(cumulativeNet * 100) / 100,
+            periodExpenses: Math.round(periodExpenses * 100) / 100,
+            periodIncome: Math.round(periodIncome * 100) / 100,
+            periodNet: Math.round(periodNet * 100) / 100,
+          };
+        }
+      );
+
+      // Calculate totals for meta
+      const totalExpenses = cumulativeExpenses;
+      const totalIncome = cumulativeIncome;
+      const totalNet = totalIncome - totalExpenses;
+
+      // Get total counts
+      const totalCounts =
+        await this.analyticsRepository.getExpensesVsIncomeTotal(
+          adjustedDateFrom,
+          adjustedDateTo,
+          userId
+        );
+
+      const meta = {
+        currency: targetCurrency,
+        period: {
+          from: adjustedDateFrom.toISOString(),
+          to: adjustedDateTo.toISOString(),
+        },
+        groupBy,
+        totalExpenses: Math.round(totalExpenses * 100) / 100,
+        totalIncome: Math.round(totalIncome * 100) / 100,
+        totalNet: Math.round(totalNet * 100) / 100,
+        totalExpenseCount: Number(totalCounts.expense_count),
+        totalIncomeCount: Number(totalCounts.income_count),
+      };
+
+      log.info(
+        `Expenses vs income analytics retrieved successfully: ${periodData.length} periods`
+      );
+
+      return {
+        data: periodData,
+        meta,
+      };
+    } catch (error) {
+      log.error({
+        message: 'Error in expenses vs income analytics service',
+        error,
+        code: 'EXPENSES_VS_INCOME_SERVICE_ERROR',
+      });
+      throw error;
+    }
+  }
 }
 
 export const analyticsService = new AnalyticsService(analyticsRepository);

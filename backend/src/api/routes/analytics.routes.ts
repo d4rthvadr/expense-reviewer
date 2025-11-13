@@ -193,4 +193,107 @@ router.get(
   analyticsController.getBudgetVsTransactions
 );
 
+/**
+ * @swagger
+ * /api/analytics/expenses-vs-income:
+ *   get:
+ *     summary: Get expenses vs income analytics over time
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (ISO format). Defaults to current month start if not provided.
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (ISO format). Defaults to current month end if not provided.
+ *       - in: query
+ *         name: groupBy
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [week, month]
+ *         description: Time period grouping for line chart data
+ *       - in: query
+ *         name: currency
+ *         schema:
+ *           type: string
+ *         description: Target currency for conversion (defaults to user's primary currency)
+ *     responses:
+ *       200:
+ *         description: Expenses vs income analytics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       period:
+ *                         type: string
+ *                         description: Period date in YYYY-MM-DD format
+ *                       periodLabel:
+ *                         type: string
+ *                         description: Human-readable period label
+ *                       cumulativeExpenses:
+ *                         type: number
+ *                         description: Running total of expenses from start date
+ *                       cumulativeIncome:
+ *                         type: number
+ *                         description: Running total of income from start date
+ *                       cumulativeNet:
+ *                         type: number
+ *                         description: Running total of net (income - expenses)
+ *                       periodExpenses:
+ *                         type: number
+ *                         description: Expenses for this period only
+ *                       periodIncome:
+ *                         type: number
+ *                         description: Income for this period only
+ *                       periodNet:
+ *                         type: number
+ *                         description: Net amount for this period only
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     currency:
+ *                       type: string
+ *                     period:
+ *                       type: object
+ *                       properties:
+ *                         from:
+ *                           type: string
+ *                         to:
+ *                           type: string
+ *                     groupBy:
+ *                       type: string
+ *                     totalExpenses:
+ *                       type: number
+ *                     totalIncome:
+ *                       type: number
+ *                     totalNet:
+ *                       type: number
+ *                     totalExpenseCount:
+ *                       type: number
+ *                     totalIncomeCount:
+ *                       type: number
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request - missing or invalid parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/expenses-vs-income', analyticsController.getExpensesVsIncome);
+
 export default router;
