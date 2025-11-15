@@ -17,7 +17,7 @@ export const requestErrorHandler = (
     return;
   }
 
-  const errMessage = error?.message ?? 'Internal Server Error';
+  const errMessage = error?.message ?? new ApplicationException().message;
 
   res.status(500).json(normalizeError({ message: errMessage }).error);
 };

@@ -1,5 +1,5 @@
 interface errorDataInput {
-  data?: any;
+  data?: unknown;
   success?: boolean;
   status?: number;
   message: string;
