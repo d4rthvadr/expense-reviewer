@@ -5,6 +5,7 @@ import {
   getBudgetVsTransactionsValidators,
   getTransactionsOverTimeValidators,
 } from '@api/middlewares/utils/validators/';
+import { asyncHandler } from './utils/async-handler';
 
 const router = express.Router();
 
@@ -294,6 +295,9 @@ router.get(
  *       500:
  *         description: Internal server error
  */
-router.get('/expenses-vs-income', analyticsController.getExpensesVsIncome);
+router.get(
+  '/expenses-vs-income',
+  asyncHandler(analyticsController.getExpensesVsIncome)
+);
 
 export default router;
