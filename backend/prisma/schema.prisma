@@ -70,7 +70,8 @@ model User {
   RecurringTemplate RecurringTemplate[]
   Transaction       Transaction[]
 
-  TransactionReview TransactionReview[]
+  TransactionReview  TransactionReview[]
+  UserCategoryWeight UserCategoryWeight[]
 }
 
 model Transaction {
@@ -141,4 +142,25 @@ model RecurringTemplate {
 
   user   User?    @relation(fields: [userId], references: [id])
   Budget Budget[]
+}
+
+model DefaultCategoryWeight {
+  id        String   @id @default(cuid())
+  category  Category @unique
+  weight    Decimal  @db.Decimal(5, 4) // Stores values 0.0000 to 1.0000
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserCategoryWeight {
+  id        String   @id @default(cuid())
+  userId    String
+  category  Category
+  weight    Decimal  @db.Decimal(5, 4) // Stores values 0.0000 to 1.0000
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
 }
