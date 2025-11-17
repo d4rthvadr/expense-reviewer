@@ -6,6 +6,7 @@ import {
   agentRoutes,
   budgetRoutes,
   analyticsRoutes,
+  categoryWeightRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
   transactionRoutes,
@@ -82,6 +83,7 @@ app.use('/api/agents', apiAuth, agentRoutes);
 app.use('/api/transactions', apiAuth, transactionRoutes);
 app.use('/api/budgets', apiAuth, budgetRoutes);
 app.use('/api/analytics', apiAuth, analyticsRoutes);
+app.use('/api/preferences/category-weights', apiAuth, categoryWeightRoutes);
 app.use('/api/recurring-templates', apiAuth, recurringTemplateRoutes);
 app.use('/api/transaction-reviews', apiAuth, transactionReviewRoutes);
 

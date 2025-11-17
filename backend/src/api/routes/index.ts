@@ -2,6 +2,7 @@ import agentRoutes from './agent.route';
 import userRoutes from './user.route';
 import budgetRoutes from './budget.route';
 import analyticsRoutes from './analytics.routes';
+import categoryWeightRoutes from './category-weight.route';
 import recurringTemplateRoutes from './recurring-template.route';
 import webhookRoutes from './webhook.route';
 import { transactionRoute as transactionRoutes } from './transaction.route';
@@ -12,6 +13,7 @@ export {
   userRoutes,
   budgetRoutes,
   analyticsRoutes,
+  categoryWeightRoutes,
   recurringTemplateRoutes,
   webhookRoutes,
   transactionRoutes,
