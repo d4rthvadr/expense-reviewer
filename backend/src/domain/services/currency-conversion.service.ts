@@ -34,6 +34,9 @@ export class CurrencyConversionService {
     toCurrency: Currency
   ): Promise<CurrencyConversionResult> {
     try {
+      if (isNaN(amount) || amount < 0) {
+        throw new Error(`Invalid amount for conversion: ${amount}`);
+      }
       log.info(`Converting ${amount} from ${fromCurrency} to ${toCurrency}`);
 
       // If same currency, no conversion needed

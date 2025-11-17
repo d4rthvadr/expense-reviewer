@@ -4,7 +4,6 @@ import {
   AnalyticsRequestDto,
   AnalyticsApiResponse,
 } from './dtos/analytics.dto';
-import { log } from '@infra/logger';
 
 export class AnalyticsController {
   async getTransactionsOverTime(req: Request, res: Response): Promise<void> {
@@ -51,6 +50,7 @@ export class AnalyticsController {
       dateTo?: string;
     };
 
+    // TODO: should go into middleware
     if (!dateFrom || !dateTo) {
       res.status(400).json({
         success: false,

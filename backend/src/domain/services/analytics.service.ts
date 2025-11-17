@@ -103,11 +103,12 @@ export class AnalyticsService {
           const transactionAmountUsd = Number(item.transaction_amount_usd);
 
           // Convert from USD to user's preferred currency
-          const budgetAmount = await currencyConversionService.convertCurrency(
-            budgetAmountUsd,
-            Currency.USD,
-            userCurrency
-          );
+          const budgetAmountConversion =
+            await currencyConversionService.convertCurrency(
+              budgetAmountUsd,
+              Currency.USD,
+              userCurrency
+            );
 
           const transactionAmount =
             await currencyConversionService.convertCurrency(
@@ -117,15 +118,16 @@ export class AnalyticsService {
             );
 
           const remaining =
-            budgetAmount.convertedAmount - transactionAmount.convertedAmount;
+            budgetAmountConversion.convertedAmount -
+            transactionAmount.convertedAmount;
 
           let utilizationPercentage = 0;
           let status: BudgetVsTransactionData['status'] = 'NO_BUDGET';
 
-          if (budgetAmount.convertedAmount > 0) {
+          if (budgetAmountConversion.convertedAmount > 0) {
             utilizationPercentage =
               (transactionAmount.convertedAmount /
-                budgetAmount.convertedAmount) *
+                budgetAmountConversion.convertedAmount) *
               100;
 
             if (utilizationPercentage < 100) {
@@ -139,7 +141,8 @@ export class AnalyticsService {
 
           return {
             category: item.category,
-            budgetAmount: Math.round(budgetAmount.convertedAmount * 100) / 100,
+            budgetAmount:
+              Math.round(budgetAmountConversion.convertedAmount * 100) / 100,
             transactionAmount:
               Math.round(transactionAmount.convertedAmount * 100) / 100,
             currency: userCurrency,
