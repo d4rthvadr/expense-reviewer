@@ -8,6 +8,7 @@ import {
   analyticsRoutes,
   categoryWeightRoutes,
   recurringTemplateRoutes,
+  notificationRoutes,
   webhookRoutes,
   transactionRoutes,
   transactionReviewRoutes,
@@ -85,6 +86,7 @@ app.use('/api/budgets', apiAuth, budgetRoutes);
 app.use('/api/analytics', apiAuth, analyticsRoutes);
 app.use('/api/preferences/category-weights', apiAuth, categoryWeightRoutes);
 app.use('/api/recurring-templates', apiAuth, recurringTemplateRoutes);
+app.use('/api/notifications', apiAuth, notificationRoutes);
 app.use('/api/transaction-reviews', apiAuth, transactionReviewRoutes);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
