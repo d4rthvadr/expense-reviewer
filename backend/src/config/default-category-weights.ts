@@ -24,6 +24,21 @@ export const DEFAULT_CATEGORY_WEIGHTS: Record<Category, number> = {
 } as const;
 
 /**
+ * Tolerance for weight sum validation (0.1%)
+ * Allows small floating-point arithmetic differences
+ */
+export const WEIGHT_SUM_TOLERANCE = 0.001;
+
+/**
+ * Validates that a sum of weights equals 1.0 (within tolerance)
+ * @param sum - The total sum of weights to validate
+ * @returns true if sum is approximately 1.0, false otherwise
+ */
+export function validateWeightsSum(sum: number): boolean {
+  return Math.abs(sum - 1.0) < WEIGHT_SUM_TOLERANCE;
+}
+
+/**
  * Validates that the sum of default weights equals 1.0 (within tolerance)
  */
 export function validateDefaultWeights(): boolean {
@@ -31,8 +46,7 @@ export function validateDefaultWeights(): boolean {
     (acc, weight) => acc + weight,
     0
   );
-  const tolerance = 0.001; // Allow small floating-point differences
-  return Math.abs(sum - 1.0) < tolerance;
+  return validateWeightsSum(sum);
 }
 
 /**
