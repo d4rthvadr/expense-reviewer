@@ -28,6 +28,10 @@ export const updateCategoryWeightsValidators = [
         throw new Error('Duplicate categories are not allowed');
       }
 
+      return true;
+    })
+    .withMessage('Duplicate categories are not allowed')
+    .custom((weights: Array<{ category: string; weight: number }>) => {
       // If all categories are provided, validate sum
       if (weights.length === Object.keys(Category).length) {
         const sum = weights.reduce((acc, w) => acc + w.weight, 0);
@@ -41,5 +45,5 @@ export const updateCategoryWeightsValidators = [
 
       return true;
     })
-    .withMessage('Invalid weights configuration'),
+    .withMessage('weights must sum to 1.0 (100%)'),
 ];

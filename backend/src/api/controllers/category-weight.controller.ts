@@ -46,20 +46,6 @@ export class CategoryWeightController {
 
     res.status(200).json(response);
   };
-
-  /**
-   * POST /api/preferences/category-weights/reset
-   * Reset user's category weights to system defaults
-   */
-  resetCategoryWeights = async (req: Request, res: Response): Promise<void> => {
-    const userId = req.user.id;
-
-    log.info(`Resetting category weights to defaults for userId: ${userId}`);
-
-    const response = await this.#service.resetUserWeights(userId);
-
-    res.status(200).json(response);
-  };
 }
 
 export const categoryWeightController = new CategoryWeightController(

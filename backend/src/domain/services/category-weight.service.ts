@@ -124,29 +124,6 @@ export class CategoryWeightService {
   }
 
   /**
-   * Reset user weights to defaults (delete all overrides)
-   * Returns effective weights as DTO
-   */
-  async resetUserWeights(
-    userId: string
-  ): Promise<GetCategoryWeightsResponseDto> {
-    try {
-      log.info(`Resetting category weights to defaults for userId: ${userId}`);
-
-      await this.#repository.deleteAllUserWeights(userId);
-
-      return await this.getEffectiveWeightsDto(userId);
-    } catch (error) {
-      log.error({
-        message: `Error resetting user weights for userId: ${userId}`,
-        error,
-        code: 'RESET_USER_WEIGHTS_ERROR',
-      });
-      throw error;
-    }
-  }
-
-  /**
    * Get default weight for a specific category
    */
   getDefaultWeightForCategory(category: Category): number {

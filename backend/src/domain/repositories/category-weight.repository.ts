@@ -109,24 +109,18 @@ export class CategoryWeightRepository extends Database {
         `Upserting ${weights.length} category weights for userId: ${userId}`
       );
 
-      // Use transaction to ensure atomicity
-      const result = await this.$transaction(
+      // Use Promise.all with upsert for efficient parallel processing
+      const result = await Promise.all(
         weights.map((item) =>
           this.userCategoryWeight.upsert({
-            where: {
-              userId_category: {
-                userId,
-                category: item.category,
-              },
-            },
+            where: { userId_category: { userId, category: item.category } },
+
             create: {
               userId,
               category: item.category,
               weight: item.weight.toString(),
             },
-            update: {
-              weight: item.weight.toString(),
-            },
+            update: { weight: item.weight.toString() },
           })
         )
       );
@@ -167,27 +161,6 @@ export class CategoryWeightRepository extends Database {
         code: 'DELETE_USER_WEIGHT_ERROR',
       });
       return false;
-    }
-  }
-
-  /**
-   * Delete all user weight overrides for a user
-   */
-  async deleteAllUserWeights(userId: string): Promise<number> {
-    try {
-      const result = await this.userCategoryWeight.deleteMany({
-        where: { userId },
-      });
-
-      log.info(`Deleted ${result.count} user weights for userId: ${userId}`);
-      return result.count;
-    } catch (error) {
-      log.error({
-        message: `Error deleting all user weights for userId: ${userId}`,
-        error,
-        code: 'DELETE_ALL_USER_WEIGHTS_ERROR',
-      });
-      throw error;
     }
   }
 }

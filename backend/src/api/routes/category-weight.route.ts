@@ -180,27 +180,4 @@ route.patch(
   asyncHandler(categoryWeightController.updateCategoryWeights)
 );
 
-/**
- * @swagger
- * /api/preferences/category-weights/reset:
- *   post:
- *     summary: Reset category weights to system defaults
- *     description: Removes all user customizations and reverts to system default category weights.
- *     tags:
- *       - Preferences
- *     responses:
- *       200:
- *         description: Weights reset successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/responses/GetCategoryWeightsResponse'
- *       401:
- *         description: Unauthorized - authentication required
- */
-route.post(
-  '/reset',
-  asyncHandler(categoryWeightController.resetCategoryWeights)
-);
-
 export default route;
