@@ -15,17 +15,24 @@ import { Currency } from '@domain/enum/currency.enum';
 import { TransactionModel } from '@domain/models/transaction.model';
 import { paginateDataResult } from '@api/controllers/utils/paginate-response';
 import { TransactionFindFilters } from './interfaces/transaction-filters';
+import {
+  SpendingAnalysisService,
+  spendingAnalysisService,
+} from './spending-analysis.service';
 
 class TransactionService {
   #transactionRepository: TransactionRepository;
   #currencyConversionService: CurrencyConversionService;
+  #spendingAnalysisService: SpendingAnalysisService;
 
   constructor(
     transactionRepository: TransactionRepository,
-    currencyConversionService: CurrencyConversionService
+    currencyConversionService: CurrencyConversionService,
+    spendingAnalysisService: SpendingAnalysisService
   ) {
     this.#transactionRepository = transactionRepository;
     this.#currencyConversionService = currencyConversionService;
+    this.#spendingAnalysisService = spendingAnalysisService;
   }
 
   /**
@@ -98,6 +105,29 @@ class TransactionService {
   }
 
   /**
+   * Asynchronously evaluate spending thresholds for a user
+   * This runs in the background and doesn't block the transaction response
+   */
+  #evaluateThresholdsAsync(userId: string): void {
+    // Run threshold evaluation in background
+    this.#spendingAnalysisService
+      .getCurrentMonthAnalysis(userId, true)
+      .then((analysis) => {
+        log.info(
+          `Background threshold evaluation completed for userId: ${userId}. ` +
+            `Categories over threshold: ${analysis.overThresholdCategories.length}`
+        );
+      })
+      .catch((error) => {
+        log.error({
+          message: `Background threshold evaluation failed for userId: ${userId}`,
+          error,
+          code: 'THRESHOLD_EVALUATION_ERROR',
+        });
+      });
+  }
+
+  /**
    * Creates a new transaction record using the provided data.
    *
    * @param data - The data required to create a new transaction.
@@ -122,6 +152,11 @@ class TransactionService {
 
     const createdTransaction =
       await this.#transactionRepository.save(transaction);
+
+    // Trigger threshold evaluation for expense transactions
+    if (data.type === 'EXPENSE' && data.userId) {
+      this.#evaluateThresholdsAsync(data.userId);
+    }
 
     return this.#toTransactionDto(createdTransaction);
   }
@@ -163,6 +198,11 @@ class TransactionService {
 
     const updatedTransaction =
       await this.#transactionRepository.save(existingTransaction);
+
+    // Trigger threshold evaluation for expense transactions
+    if (data.type === 'EXPENSE') {
+      this.#evaluateThresholdsAsync(userId);
+    }
 
     return this.#toTransactionDto(updatedTransaction);
   }
@@ -208,7 +248,8 @@ class TransactionService {
 // Create singleton instance
 const transactionService = new TransactionService(
   new TransactionRepository(),
-  currencyConversionService
+  currencyConversionService,
+  spendingAnalysisService
 );
 
 export { transactionService, TransactionService };
