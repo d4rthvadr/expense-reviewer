@@ -187,27 +187,6 @@ export class NotificationRepository extends Database {
   }
 
   /**
-   * Delete notification by ID
-   */
-  async delete(id: string): Promise<boolean> {
-    try {
-      await this.notification.delete({
-        where: { id },
-      });
-
-      log.info(`Deleted notification ${id}`);
-      return true;
-    } catch (error) {
-      log.error({
-        message: `Error deleting notification: ${id}`,
-        error,
-        code: 'DELETE_NOTIFICATION_ERROR',
-      });
-      return false;
-    }
-  }
-
-  /**
    * Get count of unread notifications for a user
    */
   async getUnreadCount(userId: string): Promise<number> {

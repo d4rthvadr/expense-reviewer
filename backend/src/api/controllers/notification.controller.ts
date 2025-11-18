@@ -4,10 +4,8 @@ import {
   NotificationService,
 } from '../../domain/services/notification.service';
 import { Request, Response } from 'express';
-import { CreateNotificationRequestDto } from './dtos/request/create-notification-request.dto';
 import { NotificationFiltersRequestDto } from './dtos/request/notification-filters-request.dto';
 import { NotificationResponseDto } from './dtos/response/notification-response.dto';
-import { RequestBodyType } from '../types/request-body.type';
 import { NotificationModel } from '@domain/models/notification.model';
 import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
@@ -19,37 +17,6 @@ export class NotificationController {
   constructor(notificationService: NotificationService) {
     this.#notificationService = notificationService;
   }
-
-  /**
-   * Create a new notification
-   */
-  create = async (
-    req: RequestBodyType<CreateNotificationRequestDto>,
-    res: Response
-  ) => {
-    log.info(
-      `Creating notification with data: ${JSON.stringify({
-        type: req.body.type,
-        severity: req.body.severity,
-        resourceType: req.body.resourceType,
-        resourceId: req.body.resourceId,
-        title: req.body.title,
-      })}`
-    );
-
-    // Extract userId from request context (set by auth middleware)
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    const notification = await this.#notificationService.publish({
-      ...req.body,
-      userId,
-    });
-
-    return res.status(201).json(this.#toNotificationResponseDto(notification));
-  };
 
   /**
    * List notifications for the authenticated user
@@ -126,42 +93,6 @@ export class NotificationController {
   };
 
   /**
-   * Mark all notifications as read for the user
-   */
-  acknowledgeAll = async (req: Request, res: Response) => {
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    log.info(`Acknowledging all notifications for userId: ${userId}`);
-
-    const count =
-      await this.#notificationService.acknowledgeAllNotifications(userId);
-
-    return res.status(200).json({ acknowledgedCount: count });
-  };
-
-  /**
-   * Delete a notification
-   */
-  delete = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    log.info(`Deleting notification ${id} for userId: ${userId}`);
-
-    await this.#notificationService.deleteNotification(id, userId);
-
-    return res.status(204).send();
-  };
-
-  /**
    * Convert NotificationModel to NotificationResponseDto
    */
   #toNotificationResponseDto(
@@ -176,7 +107,7 @@ export class NotificationController {
       resourceId: notification.resourceId,
       title: notification.title,
       message: notification.message,
-      meta: notification.meta,
+      meta: notification.meta as Record<string, unknown> | undefined,
       isRead: notification.isRead,
       dedupeKey: notification.dedupeKey,
       createdAt: notification.createdAt,

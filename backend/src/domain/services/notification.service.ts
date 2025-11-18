@@ -182,22 +182,6 @@ export class NotificationService {
   }
 
   /**
-   * Mark all notifications as read for a user
-   */
-  async acknowledgeAllNotifications(userId: string): Promise<number> {
-    try {
-      return await this.#repository.markAllAsRead(userId);
-    } catch (error) {
-      log.error({
-        message: `Error acknowledging all notifications for user: ${userId}`,
-        error,
-        code: 'ACKNOWLEDGE_ALL_NOTIFICATIONS_ERROR',
-      });
-      throw error;
-    }
-  }
-
-  /**
    * Get count of unread notifications for a user
    */
   async getUnreadCount(userId: string): Promise<number> {
@@ -208,34 +192,6 @@ export class NotificationService {
         message: `Error getting unread count for user: ${userId}`,
         error,
         code: 'GET_UNREAD_COUNT_ERROR',
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Delete a notification (with user ownership check)
-   */
-  async deleteNotification(
-    userId: string,
-    notificationId: string
-  ): Promise<boolean> {
-    try {
-      // Verify ownership
-      const notification = await this.#repository.findById(notificationId);
-      if (!notification || notification.userId !== userId) {
-        log.warn(
-          `User ${userId} attempted to delete notification ${notificationId} they don't own`
-        );
-        return false;
-      }
-
-      return await this.#repository.delete(notificationId);
-    } catch (error) {
-      log.error({
-        message: `Error deleting notification ${notificationId} for user: ${userId}`,
-        error,
-        code: 'DELETE_NOTIFICATION_ERROR',
       });
       throw error;
     }
