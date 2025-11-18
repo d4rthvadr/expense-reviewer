@@ -46,6 +46,50 @@ export interface BudgetVsTransactionData {
 }
 
 /**
+ * Interface representing expenses vs income data over time.
+ */
+export interface ExpensesVsIncomeData {
+  period: string; // YYYY-MM-DD format
+  periodLabel: string; // Human-readable label
+  cumulativeExpenses: number;
+  cumulativeIncome: number;
+  cumulativeNet: number;
+  periodExpenses: number;
+  periodIncome: number;
+  periodNet: number;
+}
+
+export interface ExpensesVsIncomeFilters {
+  dateFrom?: string; // ISO date string
+  dateTo?: string; // ISO date string
+  groupBy: "week" | "month";
+  currency?: string;
+}
+
+/**
+ * Response type for expenses vs income with additional meta information
+ */
+export interface ExpensesVsIncomeResponse {
+  success: boolean;
+  data: ExpensesVsIncomeData[];
+  meta?: {
+    currency: string;
+    period: {
+      from: string;
+      to: string;
+    };
+    groupBy: string;
+    totalExpenses: number;
+    totalIncome: number;
+    totalNet: number;
+    totalExpenseCount: number;
+    totalIncomeCount: number;
+  };
+  message?: string;
+  error?: string;
+}
+
+/**
  * Fetches transaction analytics over time from the server.
  *
  * @param filters - The analytics filters including date range, groupBy, and optional transaction type
@@ -155,6 +199,54 @@ export async function getBudgetVsTransactionData(
         error,
         "Failed to fetch budget vs transaction data"
       ),
+    };
+  }
+}
+
+/**
+ * Fetches expenses vs income comparison data over time from the server.
+ *
+ * @param filters - The analytics filters including optional date range, groupBy (week or month), and currency
+ * @returns {Promise<ExpensesVsIncomeResponse>} A promise that resolves to expenses vs income data and any error information.
+ */
+export async function getExpensesVsIncome(
+  filters: ExpensesVsIncomeFilters
+): Promise<ExpensesVsIncomeResponse> {
+  try {
+    const searchParams = new URLSearchParams({
+      groupBy: filters.groupBy,
+    });
+
+    if (filters.dateFrom) {
+      searchParams.set("dateFrom", filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      searchParams.set("dateTo", filters.dateTo);
+    }
+    if (filters.currency) {
+      searchParams.set("currency", filters.currency);
+    }
+
+    console.log(
+      "Fetching expenses vs income data with filters:",
+      searchParams.toString()
+    );
+
+    const client = await getAuthenticatedClient();
+    const response = await client.get<ExpensesVsIncomeResponse>(
+      `/analytics/expenses-vs-income?${searchParams.toString()}`
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching expenses vs income data:", error);
+    const errorResult = clientErrorHandler(
+      error,
+      "Failed to fetch expenses vs income data"
+    );
+    return {
+      data: [],
+      ...errorResult,
     };
   }
 }
