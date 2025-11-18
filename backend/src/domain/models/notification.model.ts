@@ -2,6 +2,7 @@ import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
 import { NotificationResourceType } from '@domain/enum/notification-resource-type.enum';
 import { v4 as uuidv4 } from 'uuid';
+import { JSONValue } from '@domain/types/json';
 
 interface NotificationDataInput {
   id?: string;
@@ -12,7 +13,7 @@ interface NotificationDataInput {
   resourceId: string;
   title: string;
   message: string;
-  meta?: Record<string, unknown> | null;
+  meta?: JSONValue | undefined;
   isRead?: boolean;
   dedupeKey?: string | null;
   createdAt?: Date;
@@ -28,7 +29,7 @@ export class NotificationModel {
   readonly #resourceId: string;
   #title: string;
   #message: string;
-  #meta?: Record<string, unknown> | null;
+  #meta?: JSONValue | null;
   #isRead: boolean;
   readonly #dedupeKey?: string | null;
   #createdAt: Date;
@@ -108,11 +109,11 @@ export class NotificationModel {
     this.#updatedAt = new Date();
   }
 
-  get meta(): Record<string, unknown> | null | undefined {
+  get meta(): JSONValue | undefined {
     return this.#meta;
   }
 
-  set meta(value: Record<string, unknown> | null | undefined) {
+  set meta(value: JSONValue | undefined) {
     this.#meta = value;
     this.#updatedAt = new Date();
   }

@@ -5,6 +5,7 @@ import { Notification as NotificationEntity } from '../../../../generated/prisma
 import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
 import { NotificationResourceType } from '@domain/enum/notification-resource-type.enum';
+import { JSONValue } from '@domain/types/json';
 
 // Overloads for mapNotification
 export function mapNotification(entity: NotificationEntity): NotificationModel;
@@ -28,7 +29,7 @@ export function mapNotification(
     resourceId: entity.resourceId,
     title: entity.title,
     message: entity.message,
-    meta: entity.meta as Record<string, unknown> | null,
+    meta: entity.meta as JSONValue,
     isRead: entity.isRead,
     dedupeKey: entity.dedupeKey,
     createdAt: entity.createdAt,

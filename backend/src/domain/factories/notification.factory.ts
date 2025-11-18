@@ -2,6 +2,7 @@ import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
 import { NotificationResourceType } from '@domain/enum/notification-resource-type.enum';
 import { NotificationModel } from '@domain/models/notification.model';
+import { JSONValue } from '@domain/types/json';
 
 export interface NotificationCreateDataDto {
   userId: string;
@@ -44,7 +45,7 @@ export class NotificationFactory {
       resourceId,
       title,
       message,
-      meta,
+      meta: meta as JSONValue,
       dedupeKey,
     });
   }
