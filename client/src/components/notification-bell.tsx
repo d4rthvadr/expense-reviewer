@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Bell, AlertCircle, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -238,6 +239,19 @@ export default function NotificationBell() {
             </>
           )}
         </div>
+
+        {/* View All Link */}
+        {notifications.length > 0 && (
+          <div className="border-t">
+            <Link
+              href="/dashboard/settings?section=notifications"
+              className="block px-4 py-3 text-sm text-center text-primary hover:bg-muted/50 transition-colors font-medium"
+              onClick={() => setIsOpen(false)}
+            >
+              View all notifications
+            </Link>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import CategoryWeightsManager from "@/components/category-weights-manager";
 import { Toaster } from "@/components/ui/sonner";
 import { Settings, Bell } from "lucide-react";
@@ -24,8 +25,18 @@ const settingsSections = [
 ];
 
 function SettingsPage() {
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get("section") as SettingsSection | null;
+  
   const [activeSection, setActiveSection] =
-    useState<SettingsSection>("category-weights");
+    useState<SettingsSection>(sectionParam || "category-weights");
+
+  // Update active section when URL parameter changes
+  useEffect(() => {
+    if (sectionParam && (sectionParam === "category-weights" || sectionParam === "notifications")) {
+      setActiveSection(sectionParam);
+    }
+  }, [sectionParam]);
 
   return (
     <div className="min-h-screen bg-background">
