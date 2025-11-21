@@ -15,5 +15,18 @@ export const startQueuesAndCrons = async () => {
         `Error adding job to the transaction review cron queue | meta:  ${JSON.stringify(error)}`
       );
     });
+
+  cronServiceQueue
+    .addCron('0 1 * * *', ProcessorNames.categoryWeightAnalysisProcessor) // Daily at 1:00 AM UTC
+    .then(() => {
+      log.info(
+        `Cron ${CRON_NAME} category weight analysis job created successfully.`
+      );
+    })
+    .catch((error: Error) => {
+      log.error(
+        `Error adding job to the category weight analysis cron queue | meta:  ${JSON.stringify(error)}`
+      );
+    });
   // queues
 };

@@ -256,6 +256,89 @@ export class SpendingAnalysisService {
       }
     }
   }
+
+  /**
+   * Analyze spending for a specific period (rolling window)
+   * Returns structured analysis data without triggering notifications
+   */
+  async analyzePeriod(
+    userId: string,
+    dateFrom: Date,
+    dateTo: Date,
+    options: { thresholdBuffer?: number } = {}
+  ): Promise<{
+    userId: string;
+    period: { from: Date; to: Date };
+    totalSpendingUsd: number;
+    categories: Array<{
+      category: Category;
+      weight: number;
+      spendUsd: number;
+      actualShare: number;
+      deltaPct: number;
+      breached: boolean;
+    }>;
+  }> {
+    try {
+      log.info(
+        `Analyzing period for userId: ${userId} from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`
+      );
+
+      // Get user's effective category weights
+      const categoryWeights =
+        await this.#categoryWeightService.getEffectiveWeights(userId);
+
+      // Get actual spending by category for the period
+      const spendingData = await this.#getSpendingByCategory(
+        userId,
+        dateFrom,
+        dateTo
+      );
+
+      // Calculate total spending
+      const totalSpendingUsd = spendingData.reduce((sum, item) => {
+        return sum + Number(item.transaction_amount_usd || 0);
+      }, 0);
+
+      // Analyze each category
+      const thresholdBuffer = options.thresholdBuffer || 0.05;
+      const categories = categoryWeights.map((weight) => {
+        const spending = spendingData.find(
+          (item: { category: string }) => item.category === weight.category
+        );
+        const spendUsd = Number(spending?.transaction_amount_usd || 0);
+        const actualShare =
+          totalSpendingUsd > 0 ? spendUsd / totalSpendingUsd : 0;
+
+        const threshold = weight.weight + thresholdBuffer;
+        const breached = actualShare > threshold;
+        const deltaPct = breached ? (actualShare - threshold) * 100 : 0;
+
+        return {
+          category: weight.category,
+          weight: weight.weight,
+          spendUsd,
+          actualShare,
+          deltaPct,
+          breached,
+        };
+      });
+
+      return {
+        userId,
+        period: { from: dateFrom, to: dateTo },
+        totalSpendingUsd,
+        categories,
+      };
+    } catch (error) {
+      log.error({
+        message: `Error analyzing period for userId: ${userId}`,
+        error,
+        code: 'PERIOD_ANALYSIS_ERROR',
+      });
+      throw error;
+    }
+  }
 }
 
 export const spendingAnalysisService = new SpendingAnalysisService(
