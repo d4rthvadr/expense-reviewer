@@ -171,11 +171,23 @@ function getClient(token?: string, timeoutMs: number = DEFAULT_TIMEOUT) {
       );
       return parseResponse<T>(response);
     },
-    put: async <T>(endpoint: string, data: T) => {
+    put: async <T>(endpoint: string, data: unknown) => {
       const response = await fetchWithTimeout(
         buildRequestUrl(endpoint),
         {
           method: "PUT",
+          headers,
+          body: data instanceof FormData ? data : JSON.stringify(data),
+        },
+        timeoutMs
+      );
+      return parseResponse<T>(response);
+    },
+    patch: async <T>(endpoint: string, data: unknown) => {
+      const response = await fetchWithTimeout(
+        buildRequestUrl(endpoint),
+        {
+          method: "PATCH",
           headers,
           body: data instanceof FormData ? data : JSON.stringify(data),
         },

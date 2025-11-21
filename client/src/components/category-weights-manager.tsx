@@ -1,24 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 import { Category } from "@/constants/category.enum";
+import {
+  getCategoryWeights,
+  updateCategoryWeights,
+} from "@/actions/category-weights";
 
 const CATEGORIES = Object.values(Category);
 
 interface CategoryWeight {
   category: Category;
   weight: number;
+  isCustom: boolean;
 }
 
 export default function CategoryWeightsManager() {
   const [weights, setWeights] = useState<CategoryWeight[]>(
-    CATEGORIES.map((cat) => ({ category: cat, weight: 0 }))
+    CATEGORIES.map((cat) => ({ category: cat, weight: 0, isCustom: false }))
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    loadWeights();
+  }, []);
+
+  const loadWeights = async () => {
+    setIsLoading(true);
+
+    const response = await getCategoryWeights();
+
+    if (response.success && response.data) {
+      setWeights(response.data.weights);
+    } else {
+      toast.error(response.error || "Failed to load category weights");
+    }
+
+    setIsLoading(false);
+  };
 
   const totalWeight = weights.reduce((sum, w) => sum + w.weight, 0);
   const isValidTotal = Math.abs(totalWeight - 1.0) < 0.01;
@@ -26,23 +50,46 @@ export default function CategoryWeightsManager() {
   const handleWeightChange = (category: Category, value: number) => {
     setWeights((prev) =>
       prev.map((w) =>
-        w.category === category ? { ...w, weight: value / 100 } : w
+        w.category === category
+          ? { ...w, weight: value / 100, isCustom: true }
+          : w
       )
     );
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    // TODO: Wire up API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const response = await updateCategoryWeights({
+      weights: weights.map(({ category, weight }) => ({ category, weight })),
+    });
+
+    if (response.success) {
+      toast.success("Category weights updated successfully!");
+      if (response.data) {
+        setWeights(response.data.weights);
+      }
+    } else {
+      toast.error(response.error || "Failed to save category weights");
+    }
+
     setIsSaving(false);
   };
 
   const handleReset = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to reset all category weights to defaults? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
     setIsLoading(true);
-    // TODO: Wire up API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+
+    // The backend doesn't have a reset endpoint yet, so we'll reload defaults
+    await loadWeights();
+    toast.success("Category weights reset to defaults");
   };
 
   const formatCategoryName = (category: string) => {
@@ -51,6 +98,14 @@ export default function CategoryWeightsManager() {
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase());
   };
+
+  if (isLoading && weights.every((w) => w.weight === 0)) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
