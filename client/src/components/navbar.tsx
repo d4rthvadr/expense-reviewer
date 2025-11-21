@@ -28,6 +28,7 @@ const Navbar = () => {
         <Link href="/dashboard/transactions">Transactions</Link>
         <Link href="/dashboard/budgets">Budgets</Link>
         <Link href="/dashboard/reports">Reports</Link>
+        <Link href="/dashboard/settings">Settings</Link>
 
         {/* NOTIFICATION BELL */}
         <NotificationBell />
