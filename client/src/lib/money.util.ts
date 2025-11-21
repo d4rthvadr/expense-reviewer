@@ -1,9 +1,8 @@
 import { Currency } from "@/constants/currency.enum";
 
+const ALLOWED_CURRENCIES = Object.values(Currency);
 export const formatCurrency = (value: string | number, currency: string) => {
-  const allowedCurrencies = Object.values(Currency);
-
-  const toCurrency = allowedCurrencies.includes(currency as Currency)
+  const toCurrency = ALLOWED_CURRENCIES.includes(currency as Currency)
     ? currency
     : Currency.USD;
 

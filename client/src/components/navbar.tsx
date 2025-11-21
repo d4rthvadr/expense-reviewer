@@ -12,6 +12,7 @@ import {
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import NotificationBell from "./notification-bell";
 
 const Navbar = () => {
   const { setTheme } = useTheme();
@@ -27,6 +28,9 @@ const Navbar = () => {
         <Link href="/dashboard/transactions">Transactions</Link>
         <Link href="/dashboard/budgets">Budgets</Link>
         <Link href="/dashboard/reports">Reports</Link>
+
+        {/* NOTIFICATION BELL */}
+        <NotificationBell />
 
         {/* THEME MENU */}
         <DropdownMenu>
