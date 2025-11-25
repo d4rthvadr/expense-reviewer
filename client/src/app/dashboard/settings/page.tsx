@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import CategoryWeightsManager from "@/components/category-weights-manager";
+import NotificationsList from "@/components/notifications-list";
 import { Toaster } from "@/components/ui/sonner";
 import { Settings, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,13 +28,17 @@ const settingsSections = [
 function SettingsPage() {
   const searchParams = useSearchParams();
   const sectionParam = searchParams.get("section") as SettingsSection | null;
-  
-  const [activeSection, setActiveSection] =
-    useState<SettingsSection>(sectionParam || "category-weights");
+
+  const [activeSection, setActiveSection] = useState<SettingsSection>(
+    sectionParam || "category-weights"
+  );
 
   // Update active section when URL parameter changes
   useEffect(() => {
-    if (sectionParam && (sectionParam === "category-weights" || sectionParam === "notifications")) {
+    if (
+      sectionParam &&
+      (sectionParam === "category-weights" || sectionParam === "notifications")
+    ) {
       setActiveSection(sectionParam);
     }
   }, [sectionParam]);
@@ -104,14 +109,12 @@ function SettingsPage() {
                 <div>
                   <h2 className="text-2xl font-semibold mb-2">Notifications</h2>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Configure how and when you receive notifications.
+                    View and manage all your notifications.
                   </p>
                 </div>
 
                 <div className="bg-card border rounded-lg p-6">
-                  <p className="text-muted-foreground">
-                    Notification settings coming soon...
-                  </p>
+                  <NotificationsList />
                 </div>
               </div>
             )}

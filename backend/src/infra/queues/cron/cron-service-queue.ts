@@ -3,11 +3,14 @@ import { log } from '@infra/logger';
 import {
   CronServiceProcessor,
   TransactionReviewProcessor,
+  CategoryWeightAnalysisProcessor,
   NullDefaultProcessor,
   ProcessorNames,
 } from './processors';
 import { getRedisInstance } from '@infra/db/cache';
 import { userService } from '@domain/services/user.service';
+import { spendingAnalysisService } from '@domain/services/spending-analysis.service';
+import { analysisRunRepository } from '@domain/repositories/analysis-run.repository';
 
 const connection = getRedisInstance();
 
@@ -17,12 +20,18 @@ export interface CronJobData {
   processorName: ProcessorNames;
 }
 
-type CronServiceProcessorMap = {
-  [key in keyof typeof ProcessorNames]: CronServiceProcessor;
-};
+type CronServiceProcessorMap = Record<
+  keyof typeof ProcessorNames,
+  CronServiceProcessor
+>;
 
 const cronServiceProcessors: CronServiceProcessorMap = {
   transactionReviewProcessor: new TransactionReviewProcessor(userService),
+  categoryWeightAnalysisProcessor: new CategoryWeightAnalysisProcessor(
+    userService,
+    spendingAnalysisService,
+    analysisRunRepository
+  ),
 };
 
 class CronServiceQueue extends Worker {
