@@ -13,7 +13,8 @@ export class UserRepository extends Database {
     log.info(`Finding users with data: ${JSON.stringify(data)}`);
     try {
       const users: UserEntity[] = await this.user.findMany({
-        where: data.where,
+        // where: data.where,
+        ...data,
       });
       return users.map((user) => mapUser(user));
     } catch (error) {

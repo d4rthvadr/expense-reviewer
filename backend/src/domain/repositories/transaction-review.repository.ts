@@ -3,6 +3,7 @@ import { TransactionReviewModel } from '@domain/models/transaction-review.model'
 import { log } from '@infra/logger';
 import { mapTransactionReview } from './helpers/map-transaction-review';
 import { Database } from '@infra/db/database';
+import { v4 as uuidv4 } from 'uuid';
 
 interface FindTransactionReviewsDto {
   userId: string;
@@ -127,6 +128,34 @@ export class TransactionReviewRepository extends Database {
         message: 'An error occurred while saving transaction review:',
         error,
         code: '',
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Saves multiple transaction reviews in a batch
+   * @returns Number of reviews created
+   */
+  async saveMany(
+    reviews: Array<{ userId: string; reviewText: string }>
+  ): Promise<number> {
+    try {
+      const result = await this.transactionReview.createMany({
+        data: reviews.map((review) => ({
+          id: uuidv4(),
+          userId: review.userId,
+          reviewText: review.reviewText,
+        })),
+      });
+
+      return result.count;
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while batch saving transaction reviews:',
+        error,
+        code: 'TRANSACTION_REVIEW_SAVE_MANY_ERROR',
       });
 
       throw error;

@@ -2,4 +2,5 @@
 export enum ProcessorNames {
   transactionReviewProcessor = 'transactionReviewProcessor',
   categoryWeightAnalysisProcessor = 'categoryWeightAnalysisProcessor',
+  staleAnalysisCleanupProcessor = 'staleAnalysisCleanupProcessor',
 }
