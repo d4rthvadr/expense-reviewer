@@ -4,42 +4,61 @@ import './transaction-review.queue';
 import { ProcessorNames } from './cron/processors';
 
 export const startQueuesAndCrons = async () => {
-  // crons
+  log.info('Starting queues and cron jobs...');
+
+  // All cron jobs are fire-and-forget with their own error handling
+  // Individual job failures won't crash the application
+
+  // Transaction review cron - Weekly Sunday at midnight
   cronServiceQueue
-    .addCron('0 0 * * 0', ProcessorNames.transactionReviewProcessor) // Every Sunday at midnight
+    .addCron('0 0 * * 0', ProcessorNames.transactionReviewProcessor)
     .then(() => {
-      log.info(`Cron ${CRON_NAME} job created successfully.`);
+      log.info(
+        `Cron ${CRON_NAME} transaction review job created successfully.`
+      );
     })
     .catch((error: Error) => {
-      log.error(
-        `Error adding job to the transaction review cron queue | meta:  ${JSON.stringify(error)}`
-      );
+      log.error({
+        message:
+          'Error adding transaction review cron job. Will retry on next schedule.',
+        error,
+        code: 'CRON_SETUP_ERROR',
+      });
     });
 
+  // Category weight analysis cron - Daily at 1:00 AM UTC
   cronServiceQueue
-    .addCron('0 1 * * *', ProcessorNames.categoryWeightAnalysisProcessor) // Daily at 1:00 AM UTC
+    .addCron('0 1 * * *', ProcessorNames.categoryWeightAnalysisProcessor)
     .then(() => {
       log.info(
         `Cron ${CRON_NAME} category weight analysis job created successfully.`
       );
     })
     .catch((error: Error) => {
-      log.error(
-        `Error adding job to the category weight analysis cron queue | meta:  ${JSON.stringify(error)}`
-      );
+      log.error({
+        message:
+          'Error adding category weight analysis cron job. Will retry on next schedule.',
+        error,
+        code: 'CRON_SETUP_ERROR',
+      });
     });
 
+  // Stale analysis cleanup cron - Every hour
   cronServiceQueue
-    .addCron('0 * * * *', ProcessorNames.staleAnalysisCleanupProcessor) // Every hour
+    .addCron('0 * * * *', ProcessorNames.staleAnalysisCleanupProcessor)
     .then(() => {
       log.info(
         `Cron ${CRON_NAME} stale analysis cleanup job created successfully.`
       );
     })
     .catch((error: Error) => {
-      log.error(
-        `Error adding job to the stale analysis cleanup cron queue | meta:  ${JSON.stringify(error)}`
-      );
+      log.error({
+        message:
+          'Error adding stale analysis cleanup cron job. Will retry on next schedule.',
+        error,
+        code: 'CRON_SETUP_ERROR',
+      });
     });
-  // queues
+
+  log.info('Queue and cron initialization completed (errors logged if any)');
 };

@@ -61,7 +61,18 @@ connectToDb()
 
 server = app.listen(PORT, () => {
   log.info(`Server is running on http://localhost:${PORT}`);
-  startQueuesAndCrons();
+
+  // Start queues and crons asynchronously without blocking server startup
+  startQueuesAndCrons().catch((error) => {
+    log.error({
+      message:
+        'Error starting queues and crons. Queues will retry in the background.',
+      error,
+      code: 'QUEUE_STARTUP_ERROR',
+    });
+    // Don't exit - let the application continue running
+    // Queues have their own retry mechanisms and will heal automatically
+  });
 });
 
 process.on('SIGINT', shutdown);
