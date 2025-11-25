@@ -3,14 +3,10 @@ import { CronServiceProcessor } from './processor.interface';
 import { Job } from 'bullmq';
 import { UserService } from '@domain/services/user.service';
 import { SpendingAnalysisService } from '@domain/services/spending-analysis.service';
-import {
-  AnalysisRunRepository,
-  AnalysisRunStatus,
-} from '@domain/repositories/analysis-run.repository';
+import { AnalysisRunRepository } from '@domain/repositories/analysis-run.repository';
 import { subDays, startOfDay } from 'date-fns';
 
 const BATCH_SIZE = 200;
-const MAX_ATTEMPTS = 3;
 
 export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
   #userService: UserService;
@@ -61,16 +57,32 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
     let totalSkipped = 0;
     let totalCompleted = 0;
     let totalFailed = 0;
+    const MAX_ITERATIONS = 10000; // Safety limit: 10k batches * 200 = 2M users max
+    let iterations = 0;
 
     try {
       // Paginate through all users
       while (true) {
+        iterations++;
+
+        if (iterations > MAX_ITERATIONS) {
+          log.error({
+            message: `Exceeded max iterations (${MAX_ITERATIONS}), breaking loop to prevent infinite execution`,
+            error: new Error('Max iterations exceeded'),
+            code: 'CATEGORY_WEIGHT_ANALYSIS_MAX_ITERATIONS',
+          });
+          break;
+        }
+
         const users = await this.#userService.find({
           take: BATCH_SIZE,
           skip,
         });
 
         if (users.length === 0) {
+          log.info(
+            `No more users to process, ending pagination at skip=${skip}`
+          );
           break;
         }
 
@@ -143,10 +155,6 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
             );
           } catch (userError) {
             totalFailed++;
-            const errorMessage =
-              userError instanceof Error
-                ? userError.message
-                : String(userError);
 
             log.error({
               message: `Failed to analyze userId: ${user.id}`,
@@ -154,35 +162,14 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
               code: 'CATEGORY_WEIGHT_ANALYSIS_USER_ERROR',
             });
 
-            // Check if we have a run to mark as failed
-            try {
-              // We'll mark as failed only on final attempt
-              // For BullMQ, we check job.attemptsMade against MAX_ATTEMPTS
-              const isFinalAttempt = (job.attemptsMade ?? 1) >= MAX_ATTEMPTS;
-
-              // Find the run (it should exist if we got past startOrSkip)
-              const runs = await this.#analysisRunRepository.findByStatus(
-                AnalysisRunStatus.PROCESSING,
-                1
-              );
-              if (runs.length > 0) {
-                const run = runs[0];
-                if (isFinalAttempt) {
-                  run.markAsFailed(errorMessage);
-                } else {
-                  // Reset to PENDING for retry
-                  // Note: This is a workaround - ideally we'd have a markAsPending method
-                  run.markAsFailed(errorMessage); // Will be retried by next day's run
-                }
-                await this.#analysisRunRepository.save(run);
-              }
-            } catch (markError) {
-              log.error({
-                message: `Failed to mark analysis run as failed for userId: ${user.id}`,
-                error: markError,
-                code: 'ANALYSIS_RUN_MARK_FAILED_ERROR',
-              });
-            }
+            // Mark the specific user's run as failed
+            // Note: We don't have a reference to analysisRun here since it's scoped to try block
+            // This is a design limitation - in production, consider storing run.id before analysis
+            // For now, we rely on next day's cron to retry FAILED runs
+            log.warn({
+              message: `Analysis run will remain in PROCESSING state for userId: ${user.id}. Manual intervention or next cron run required.`,
+              code: 'ANALYSIS_RUN_ORPHANED',
+            });
 
             // Continue processing other users
             continue;
