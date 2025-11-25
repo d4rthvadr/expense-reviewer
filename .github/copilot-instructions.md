@@ -367,3 +367,362 @@ Use TypeScript path aliases consistently:
 - Domain exceptions in `domain/exceptions/`
 - Global error handler in `api/routes/utils/request-error-handler`
 - Structured logging with winston: `log.info()`, `log.error()`
+
+## Queue & Background Job Patterns (BullMQ)
+
+### Queue Worker Pattern
+
+All queue workers follow this structure:
+
+```typescript
+import { Queue, Worker, Job, JobsOptions } from "bullmq";
+import { log } from "@infra/logger";
+import { getRedisInstance } from "@infra/db/cache";
+
+const connection = getRedisInstance();
+const QUEUE_NAME = "example-queue";
+
+export type ExampleJobData = {
+  userId: string;
+  // ... other fields
+};
+
+class ExampleQueueService extends Worker {
+  #queue: Queue;
+  #dependency: SomeService; // Inject dependencies
+
+  defaultJobOptions: JobsOptions = {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 1000,
+    },
+    removeOnComplete: true,
+    removeOnFail: true,
+  };
+
+  constructor(queue: Queue, dependency: SomeService) {
+    super(
+      QUEUE_NAME,
+      async (job: Job) => {
+        await this.handleJob(job);
+      },
+      { connection }
+    );
+
+    this.#queue = queue;
+    this.#dependency = dependency;
+
+    this.on("completed", (job) => {
+      log.info(
+        `Job ${job.name}:${job.id} successfully processed by ${this.constructor.name}`
+      );
+    });
+
+    this.on("failed", (job, err) => {
+      log.error({
+        message: `Job ${job?.name}:${job?.id} failed in ${this.constructor.name}`,
+        error: err,
+        code: "",
+      });
+    });
+  }
+
+  async handleJob(job: Job<ExampleJobData>) {
+    try {
+      log.info({
+        message: `Processing job in ${this.constructor.name}`,
+        meta: { jobId: job.id, data: job.data },
+      });
+
+      const { userId } = job.data;
+      // Process job logic
+    } catch (error) {
+      log.error({
+        message: `Error processing job ${job.id}`,
+        error,
+        code: "",
+      });
+      throw error; // Re-throw for BullMQ retry mechanism
+    }
+  }
+
+  async addJob(data: ExampleJobData) {
+    const jobName = `example-${data.userId}`;
+    await this.#queue.add(jobName, data, this.defaultJobOptions);
+  }
+}
+
+// Create queue and service instance
+const exampleQueue = new Queue(QUEUE_NAME, { connection });
+const exampleQueueService = new ExampleQueueService(exampleQueue, dependency);
+
+export { exampleQueueService, QUEUE_NAME };
+```
+
+**Key Rules:**
+
+- ✅ Extend `Worker` class from BullMQ
+- ✅ Use dependency injection via constructor
+- ✅ Always include `completed` and `failed` event handlers
+- ✅ Export singleton instance and QUEUE_NAME
+- ✅ Use exponential backoff for retries (attempts: 3)
+- ✅ Structure job data with TypeScript types
+- ❌ Don't handle errors silently - always log and re-throw
+
+### Cron Processor Pattern
+
+For scheduled jobs, implement processors:
+
+```typescript
+import { CronServiceProcessor } from "./processor.interface";
+import { Job } from "bullmq";
+import { log } from "@infra/logger";
+
+export class ExampleProcessor implements CronServiceProcessor {
+  #service: ExampleService;
+
+  constructor(service: ExampleService) {
+    this.#service = service;
+  }
+
+  async process(job: Job) {
+    try {
+      log.info({
+        message: `Processing ${this.constructor.name} job`,
+        jobId: job.id,
+      });
+
+      // Implement batch processing logic
+      // Use pagination for large datasets
+    } catch (error) {
+      log.error({
+        message: `Error in ${this.constructor.name}`,
+        error,
+        code: "PROCESSOR_ERROR",
+      });
+      throw error;
+    }
+  }
+}
+```
+
+**Register in `processor-names.ts` and `cron-service-queue.ts`**
+
+## Express Validator Pattern
+
+### Route Validation
+
+```typescript
+import { body, param, query } from "express-validator";
+import { validateRequest } from "@api/middlewares/utils/validators";
+
+// Define validators
+export const createResourceValidator = [
+  body("name").trim().notEmpty().isLength({ min: 2, max: 100 }),
+  body("amount")
+    .isNumeric()
+    .custom((value) => value >= 0),
+  body("category").isIn(CategoryValues),
+];
+
+export const updateResourceValidator = [
+  param("id").isUUID(),
+  body("name").optional().trim().isLength({ min: 2, max: 100 }),
+];
+
+// Apply in routes
+route.post(
+  "/",
+  createResourceValidator,
+  validateRequest,
+  asyncHandler(controller.create)
+);
+```
+
+**Key Rules:**
+
+- ✅ Create dedicated validator files per route group
+- ✅ Use `validateRequest` middleware after validators
+- ✅ Chain validators for complex validation
+- ✅ Use `.custom()` for complex business rules
+- ✅ Use `.optional()` for non-required fields
+- ❌ Don't validate in controllers - do it in middleware
+
+## Frontend Patterns (React/Next.js)
+
+### Component Structure
+
+Follow functional, declarative component design:
+
+```typescript
+"use client"; // Only for client components
+
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+interface ExampleProps {
+  title: string;
+  onAction: () => void;
+}
+
+export default function ExampleComponent({ title, onAction }: ExampleProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <h2>{title}</h2>
+      <Button onClick={onAction}>Action</Button>
+    </div>
+  );
+}
+
+ExampleComponent.displayName = "ExampleComponent";
+```
+
+**Key Rules:**
+
+- ✅ Use functional components with hooks
+- ✅ Define TypeScript interfaces for props
+- ✅ Set `displayName` for better debugging
+- ✅ Use `"use client"` directive only when needed (hooks, event handlers, browser APIs)
+- ✅ Keep components focused and single-responsibility
+- ❌ Avoid class components
+
+### Form Handling with react-hook-form + Zod
+
+```typescript
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+
+const formSchema = z.object({
+  name: z.string().min(2).max(100),
+  amount: z.number().min(0),
+});
+
+export default function ExampleForm() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      amount: 0,
+    },
+  });
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    try {
+      // Call server action or API
+      await someAction(data);
+    } catch (error) {
+      // Handle error
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+**Key Rules:**
+
+- ✅ Always use Zod for schema validation
+- ✅ Use `zodResolver` with react-hook-form
+- ✅ Define `defaultValues` for all fields
+- ✅ Use shadcn/ui Form components for consistent styling
+- ✅ Handle errors in `onSubmit` with try/catch
+- ❌ Don't use uncontrolled forms
+
+### State Management (Zustand)
+
+```typescript
+// Store definition (stores/example-store.ts)
+import { createStore } from "zustand/vanilla";
+
+export type ExampleState = {
+  items: Item[];
+  isLoading: boolean;
+};
+
+export type ExampleStore = ExampleState & {
+  fetchItems: () => Promise<void>;
+};
+
+export const createExampleStore = (initialState: ExampleState) => {
+  return createStore<ExampleStore>()((set) => ({
+    ...initialState,
+    fetchItems: async () => {
+      set({ isLoading: true });
+      // Fetch logic
+      set({ items: data, isLoading: false });
+    },
+  }));
+};
+
+// Provider (providers/example-store-provider.tsx)
+("use client");
+import { createContext, useRef, useContext } from "react";
+import { useStore } from "zustand";
+
+export const ExampleStoreProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const storeRef = useRef<ExampleStoreApi | null>(null);
+
+  if (storeRef.current === null) {
+    storeRef.current = createExampleStore(defaultState);
+  }
+
+  return (
+    <ExampleStoreContext.Provider value={storeRef.current}>
+      {children}
+    </ExampleStoreContext.Provider>
+  );
+};
+
+// Custom hook
+export const useExampleStore = <T>(selector: (store: ExampleStore) => T): T => {
+  const context = useContext(ExampleStoreContext);
+  if (!context) throw new Error("useExampleStore must be used within provider");
+  return useStore(context, selector);
+};
+```
+
+**Key Rules:**
+
+- ✅ Use vanilla Zustand with React context for SSR compatibility
+- ✅ Create provider components for stores
+- ✅ Export custom hooks for type-safe access
+- ✅ Keep stores focused on single domains
+- ✅ Use `useRef` to prevent store recreation on re-renders
+- ❌ Don't use Zustand persist in SSR contexts
