@@ -3,24 +3,80 @@ import { CronServiceProcessor } from './processor.interface';
 import { Job } from 'bullmq';
 import { UserService } from '@domain/services/user.service';
 import { SpendingAnalysisService } from '@domain/services/spending-analysis.service';
+import { TransactionReviewService } from '@domain/services/transaction-review.service';
 import { AnalysisRunRepository } from '@domain/repositories/analysis-run.repository';
-import { subDays, startOfDay } from 'date-fns';
+import { subDays, startOfDay, format } from 'date-fns';
 
 const BATCH_SIZE = 200;
 
 export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
   #userService: UserService;
   #spendingAnalysisService: SpendingAnalysisService;
+  #transactionReviewService: TransactionReviewService;
   #analysisRunRepository: AnalysisRunRepository;
 
   constructor(
     userService: UserService,
     spendingAnalysisService: SpendingAnalysisService,
+    transactionReviewService: TransactionReviewService,
     analysisRunRepository: AnalysisRunRepository
   ) {
     this.#userService = userService;
     this.#spendingAnalysisService = spendingAnalysisService;
+    this.#transactionReviewService = transactionReviewService;
     this.#analysisRunRepository = analysisRunRepository;
+  }
+
+  /**
+   * Formats analysis result into a human-readable review text
+   */
+  private formatReviewText(result: {
+    userId: string;
+    period: { from: Date; to: Date };
+    totalSpendingUsd: number;
+    categories: Array<{
+      category: string;
+      weight: number;
+      spendUsd: number;
+      actualShare: number;
+      deltaPct: number;
+      breached: boolean;
+    }>;
+  }): string {
+    const periodFrom = format(result.period.from, 'MMM dd, yyyy');
+    const periodTo = format(result.period.to, 'MMM dd, yyyy');
+    const breachedCategories = result.categories.filter((c) => c.breached);
+
+    let reviewText = `# Spending Analysis Report\n\n`;
+    reviewText += `**Period:** ${periodFrom} - ${periodTo}\n`;
+    reviewText += `**Total Spending:** $${result.totalSpendingUsd.toFixed(2)} USD\n\n`;
+
+    if (breachedCategories.length === 0) {
+      reviewText += `✅ **Great job!** All spending categories are within your target allocations.\n\n`;
+    } else {
+      reviewText += `⚠️ **Attention Required:** ${breachedCategories.length} ${breachedCategories.length === 1 ? 'category has' : 'categories have'} exceeded target allocations.\n\n`;
+      reviewText += `## Categories Over Budget\n\n`;
+
+      breachedCategories.forEach((cat) => {
+        reviewText += `### ${cat.category}\n`;
+        reviewText += `- **Target Allocation:** ${(cat.weight * 100).toFixed(1)}%\n`;
+        reviewText += `- **Actual Spending:** $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}%)\n`;
+        reviewText += `- **Overage:** ${cat.deltaPct.toFixed(1)}% above target\n\n`;
+      });
+    }
+
+    reviewText += `## All Categories Breakdown\n\n`;
+    result.categories
+      .sort((a, b) => b.spendUsd - a.spendUsd)
+      .forEach((cat) => {
+        const status = cat.breached ? '⚠️' : '✅';
+        reviewText += `${status} **${cat.category}:** $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}% vs ${(cat.weight * 100).toFixed(1)}% target)\n`;
+      });
+
+    reviewText += `\n---\n`;
+    reviewText += `*This report was automatically generated based on your spending patterns and category weight preferences.*`;
+
+    return reviewText;
   }
 
   /**
@@ -143,6 +199,18 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
             };
             log.info(
               `Category Weight Analysis Result | ${JSON.stringify(analysisResult)}`
+            );
+
+            // Create transaction review record
+            const reviewText = this.formatReviewText(result);
+            const transactionReview =
+              await this.#transactionReviewService.create(
+                { reviewText },
+                user.id
+              );
+
+            log.info(
+              `Created transaction review ${transactionReview.id} for userId: ${user.id}`
             );
 
             // Mark as completed

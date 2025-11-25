@@ -10,6 +10,7 @@ import {
 import { getRedisInstance } from '@infra/db/cache';
 import { userService } from '@domain/services/user.service';
 import { spendingAnalysisService } from '@domain/services/spending-analysis.service';
+import { transactionReviewService } from '@domain/services/transaction-review.service';
 import { analysisRunRepository } from '@domain/repositories/analysis-run.repository';
 
 const connection = getRedisInstance();
@@ -30,6 +31,7 @@ const cronServiceProcessors: CronServiceProcessorMap = {
   categoryWeightAnalysisProcessor: new CategoryWeightAnalysisProcessor(
     userService,
     spendingAnalysisService,
+    transactionReviewService,
     analysisRunRepository
   ),
 };

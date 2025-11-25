@@ -5,6 +5,7 @@ import { AnalysisRunStatus } from '@domain/repositories/analysis-run.repository'
 import {
   createMockUserService,
   createMockSpendingAnalysisService,
+  createMockTransactionReviewService,
   createMockAnalysisRunRepository,
 } from '@tests/__mocks__';
 
@@ -15,6 +16,9 @@ describe('CategoryWeightAnalysisProcessor', () => {
   let mockSpendingAnalysisService: ReturnType<
     typeof createMockSpendingAnalysisService
   >;
+  let mockTransactionReviewService: ReturnType<
+    typeof createMockTransactionReviewService
+  >;
   let mockAnalysisRunRepository: ReturnType<
     typeof createMockAnalysisRunRepository
   >;
@@ -23,12 +27,14 @@ describe('CategoryWeightAnalysisProcessor', () => {
     // Create fresh mock instances before each test
     mockUserService = createMockUserService();
     mockSpendingAnalysisService = createMockSpendingAnalysisService();
+    mockTransactionReviewService = createMockTransactionReviewService();
     mockAnalysisRunRepository = createMockAnalysisRunRepository();
 
     processor = new CategoryWeightAnalysisProcessor(
-      mockUserService,
-      mockSpendingAnalysisService,
-      mockAnalysisRunRepository
+      mockUserService as any,
+      mockSpendingAnalysisService as any,
+      mockTransactionReviewService as any,
+      mockAnalysisRunRepository as any
     );
 
     mockJob = {
@@ -272,6 +278,81 @@ describe('CategoryWeightAnalysisProcessor', () => {
       expect(mockUserService.find).toHaveBeenCalledTimes(1);
       expect(mockAnalysisRunRepository.startOrSkip).not.toHaveBeenCalled();
       expect(mockSpendingAnalysisService.analyzePeriod).not.toHaveBeenCalled();
+    });
+
+    it('should create transaction review after successful analysis', async () => {
+      // Arrange
+      const mockUsers = [{ id: 'user-1', email: 'user1@test.com' }];
+
+      const mockAnalysisRun = {
+        id: 'run-123',
+        userId: 'user-1',
+        status: AnalysisRunStatus.PROCESSING,
+        markAsCompleted: jest.fn(),
+      } as unknown as AnalysisRunModel;
+
+      const mockAnalysisResult = {
+        userId: 'user-1',
+        period: {
+          from: new Date('2025-11-11'),
+          to: new Date('2025-11-25'),
+        },
+        totalSpendingUsd: 1500,
+        categories: [
+          {
+            category: 'FOOD',
+            weight: 0.3,
+            actualShare: 0.35,
+            spendUsd: 525,
+            deltaPct: 0,
+            breached: false,
+          },
+          {
+            category: 'TRANSPORT',
+            weight: 0.2,
+            actualShare: 0.28,
+            spendUsd: 420,
+            deltaPct: 3,
+            breached: true,
+          },
+        ],
+      };
+
+      (mockUserService.find as jest.Mock)
+        .mockResolvedValueOnce(mockUsers)
+        .mockResolvedValueOnce([]);
+
+      (mockAnalysisRunRepository.startOrSkip as jest.Mock).mockResolvedValue(
+        mockAnalysisRun
+      );
+      (
+        mockSpendingAnalysisService.analyzePeriod as jest.Mock
+      ).mockResolvedValue(mockAnalysisResult);
+      (mockAnalysisRunRepository.save as jest.Mock).mockResolvedValue(
+        mockAnalysisRun
+      );
+
+      // Act
+      await processor.process(mockJob as Job);
+
+      // Assert
+      expect(mockTransactionReviewService.create).toHaveBeenCalledTimes(1);
+      expect(mockTransactionReviewService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reviewText: expect.stringContaining('Spending Analysis Report'),
+        }),
+        'user-1'
+      );
+
+      // Verify review text contains key information
+      const createCall = (mockTransactionReviewService.create as jest.Mock).mock
+        .calls[0];
+      const reviewText = createCall[0].reviewText;
+
+      expect(reviewText).toContain('$1500.00 USD');
+      expect(reviewText).toContain('FOOD');
+      expect(reviewText).toContain('TRANSPORT');
+      expect(reviewText).toContain('Categories Over Budget');
     });
 
     it('should propagate critical errors', async () => {

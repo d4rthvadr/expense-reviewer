@@ -3,3 +3,4 @@ export { createMockSpendingAnalysisService } from './spending-analysis-service.m
 export { createMockTransactionService } from './transaction-service.mock';
 export { createMockBudgetService } from './budget-service.mock';
 export { createMockNotificationService } from './notification-service.mock';
+export { createMockTransactionReviewService } from './transaction-review-service.mock';
