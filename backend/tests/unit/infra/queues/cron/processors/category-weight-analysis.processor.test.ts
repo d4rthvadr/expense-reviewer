@@ -1,4 +1,4 @@
-import { CategoryWeightAnalysisProcessor } from '../category-weight-analysis.processor';
+import { CategoryWeightAnalysisProcessor } from '../../../../../../src/infra/queues/cron/processors/category-weight-analysis.processor';
 import { Job } from 'bullmq';
 import { AnalysisRunModel } from '@domain/models/analysis-run.model';
 import { AnalysisRunStatus } from '@domain/repositories/analysis-run.repository';
