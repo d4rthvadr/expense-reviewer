@@ -6,6 +6,7 @@ import {
   createMockUserService,
   createMockSpendingAnalysisService,
   createMockTransactionReviewService,
+  createMockAgentService,
   createMockAnalysisRunRepository,
 } from '@tests/__mocks__';
 
@@ -19,6 +20,7 @@ describe('CategoryWeightAnalysisProcessor', () => {
   let mockTransactionReviewService: ReturnType<
     typeof createMockTransactionReviewService
   >;
+  let mockAgentService: ReturnType<typeof createMockAgentService>;
   let mockAnalysisRunRepository: ReturnType<
     typeof createMockAnalysisRunRepository
   >;
@@ -28,12 +30,14 @@ describe('CategoryWeightAnalysisProcessor', () => {
     mockUserService = createMockUserService();
     mockSpendingAnalysisService = createMockSpendingAnalysisService();
     mockTransactionReviewService = createMockTransactionReviewService();
+    mockAgentService = createMockAgentService();
     mockAnalysisRunRepository = createMockAnalysisRunRepository();
 
     processor = new CategoryWeightAnalysisProcessor(
       mockUserService as any,
       mockSpendingAnalysisService as any,
       mockTransactionReviewService as any,
+      mockAgentService as any,
       mockAnalysisRunRepository as any
     );
 
@@ -336,23 +340,87 @@ describe('CategoryWeightAnalysisProcessor', () => {
       await processor.process(mockJob as Job);
 
       // Assert
+      expect(mockAgentService.generateAIResponse).toHaveBeenCalledTimes(1);
       expect(mockTransactionReviewService.create).toHaveBeenCalledTimes(1);
       expect(mockTransactionReviewService.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          reviewText: expect.stringContaining('Spending Analysis Report'),
+          reviewText: 'AI-generated review text',
         }),
         'user-1'
       );
 
-      // Verify review text contains key information
+      // Verify review text is AI-generated
       const createCall = (mockTransactionReviewService.create as jest.Mock).mock
         .calls[0];
       const reviewText = createCall[0].reviewText;
 
+      expect(reviewText).toContain('AI-generated review text');
+    });
+
+    it('should fallback to formatted review when AI generation fails', async () => {
+      // Arrange
+      const mockUsers = [{ id: 'user-1', email: 'user1@test.com' }];
+
+      const mockAnalysisRun = {
+        id: 'run-123',
+        userId: 'user-1',
+        status: AnalysisRunStatus.PROCESSING,
+        markAsCompleted: jest.fn(),
+      } as unknown as AnalysisRunModel;
+
+      const mockAnalysisResult = {
+        userId: 'user-1',
+        period: {
+          from: new Date('2025-11-11'),
+          to: new Date('2025-11-25'),
+        },
+        totalSpendingUsd: 1500,
+        categories: [
+          {
+            category: 'FOOD',
+            weight: 0.3,
+            actualShare: 0.35,
+            spendUsd: 525,
+            deltaPct: 0,
+            breached: false,
+          },
+        ],
+      };
+
+      // Mock AI service to fail
+      (mockAgentService.generateAIResponse as jest.Mock).mockRejectedValue(
+        new Error('Ollama service unavailable')
+      );
+
+      (mockUserService.find as jest.Mock)
+        .mockResolvedValueOnce(mockUsers)
+        .mockResolvedValueOnce([]);
+
+      (mockAnalysisRunRepository.startOrSkip as jest.Mock).mockResolvedValue(
+        mockAnalysisRun
+      );
+      (
+        mockSpendingAnalysisService.analyzePeriod as jest.Mock
+      ).mockResolvedValue(mockAnalysisResult);
+      (mockAnalysisRunRepository.save as jest.Mock).mockResolvedValue(
+        mockAnalysisRun
+      );
+
+      // Act
+      await processor.process(mockJob as Job);
+
+      // Assert
+      expect(mockAgentService.generateAIResponse).toHaveBeenCalledTimes(1);
+      expect(mockTransactionReviewService.create).toHaveBeenCalledTimes(1);
+
+      // Verify it fell back to formatted review (should contain markdown headers)
+      const createCall = (mockTransactionReviewService.create as jest.Mock).mock
+        .calls[0];
+      const reviewText = createCall[0].reviewText;
+
+      expect(reviewText).toContain('# Spending Analysis Report');
       expect(reviewText).toContain('$1500.00 USD');
       expect(reviewText).toContain('FOOD');
-      expect(reviewText).toContain('TRANSPORT');
-      expect(reviewText).toContain('Categories Over Budget');
     });
 
     it('should propagate critical errors', async () => {
