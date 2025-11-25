@@ -1,6 +1,11 @@
 import { log } from '@infra/logger';
 import { Database } from '@infra/db/database';
-import { AnalysisRun, AnalysisRunStatus } from '../../../generated/prisma';
+import {
+  AnalysisRun as AnalysisRunEntity,
+  AnalysisRunStatus,
+} from '../../../generated/prisma';
+import { AnalysisRunModel } from '@domain/models/analysis-run.model';
+import { mapAnalysisRun } from './helpers/map-analysis-run';
 
 export { AnalysisRunStatus };
 
@@ -9,16 +14,16 @@ export class AnalysisRunRepository extends Database {
    * Attempts to start or skip an analysis run for a user and period.
    * Uses INSERT ... ON CONFLICT to handle concurrency via Postgres row locking.
    *
-   * @returns The AnalysisRun if successfully locked for processing, or null if already processing/completed
+   * @returns The AnalysisRunModel if successfully locked for processing, or null if already processing/completed
    */
   async startOrSkip(
     userId: string,
     periodStart: Date,
     periodEnd: Date
-  ): Promise<AnalysisRun | null> {
+  ): Promise<AnalysisRunModel | null> {
     try {
       // Try to insert new record or update existing PENDING/FAILED record to PROCESSING
-      const result = await this.$queryRaw<AnalysisRun[]>`
+      const result = await this.$queryRaw<AnalysisRunEntity[]>`
         INSERT INTO "AnalysisRun" ("id", "userId", "periodStart", "periodEnd", "status", "attemptCount", "createdAt", "updatedAt")
         VALUES (gen_random_uuid(), ${userId}, ${periodStart}, ${periodEnd}, ${AnalysisRunStatus.PROCESSING}::\"AnalysisRunStatus\", 1, NOW(), NOW())
         ON CONFLICT ("userId", "periodStart", "periodEnd")
@@ -45,7 +50,7 @@ export class AnalysisRunRepository extends Database {
         return null;
       }
 
-      return result[0];
+      return mapAnalysisRun(result[0]);
     } catch (error) {
       log.error({
         message: `Error starting analysis run for userId: ${userId}`,
@@ -57,33 +62,35 @@ export class AnalysisRunRepository extends Database {
   }
 
   /**
-   * Updates the status of an analysis run.
-   *
-   * @param id - The unique identifier of the analysis run to update
-   * @param status - The new status to set for the analysis run
-   * @param lastError - Optional error message to store if the run encountered an error
-   * @returns A promise that resolves to the updated AnalysisRun entity
-   * @throws Will throw an error if the database update operation fails
+   * Saves an analysis run model to the database
    */
-  async updateRunStatus(
-    id: string,
-    status: AnalysisRunStatus,
-    lastError?: string
-  ): Promise<AnalysisRun> {
+  async save(data: AnalysisRunModel): Promise<AnalysisRunModel> {
     try {
-      return await this.analysisRun.update({
-        where: { id },
-        data: {
-          status,
-          lastError,
+      const savedEntity: AnalysisRunEntity = await this.analysisRun.upsert({
+        where: { id: data.id },
+        create: {
+          id: data.id,
+          userId: data.userId,
+          periodStart: data.periodStart,
+          periodEnd: data.periodEnd,
+          status: data.status,
+          attemptCount: data.attemptCount,
+          lastError: data.lastError,
+        },
+        update: {
+          status: data.status,
+          attemptCount: data.attemptCount,
+          lastError: data.lastError,
           updatedAt: new Date(),
         },
       });
+
+      return mapAnalysisRun(savedEntity);
     } catch (error) {
       log.error({
-        message: `Error updating analysis run status: ${id}`,
+        message: 'An error occurred while saving analysis run:',
         error,
-        code: 'ANALYSIS_RUN_UPDATE_STATUS_ERROR',
+        code: 'ANALYSIS_RUN_SAVE_ERROR',
       });
       throw error;
     }
@@ -95,13 +102,15 @@ export class AnalysisRunRepository extends Database {
   async findByStatus(
     status: AnalysisRunStatus,
     limit = 100
-  ): Promise<AnalysisRun[]> {
+  ): Promise<AnalysisRunModel[]> {
     try {
-      return await this.analysisRun.findMany({
+      const entities: AnalysisRunEntity[] = await this.analysisRun.findMany({
         where: { status },
         take: limit,
         orderBy: { createdAt: 'asc' },
       });
+
+      return entities.map((entity) => mapAnalysisRun(entity));
     } catch (error) {
       log.error({
         message: `Error finding analysis runs by status: ${status}`,
