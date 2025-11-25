@@ -1,14 +1,20 @@
 import { log } from '@infra/logger';
 import { CronServiceProcessor } from './processor.interface';
 import { Job } from 'bullmq';
+import { AnalysisRunService } from '@domain/services/analysis-run.service';
 import { AnalysisRunRepository } from '@domain/repositories/analysis-run.repository';
 import { subHours } from 'date-fns';
 import { analysisConfig } from '@config/analysis.config';
 
 export class StaleAnalysisCleanupProcessor implements CronServiceProcessor {
+  #analysisRunService: AnalysisRunService;
   #analysisRunRepository: AnalysisRunRepository;
 
-  constructor(analysisRunRepository: AnalysisRunRepository) {
+  constructor(
+    analysisRunService: AnalysisRunService,
+    analysisRunRepository: AnalysisRunRepository
+  ) {
+    this.#analysisRunService = analysisRunService;
     this.#analysisRunRepository = analysisRunRepository;
   }
 
@@ -28,7 +34,7 @@ export class StaleAnalysisCleanupProcessor implements CronServiceProcessor {
 
     try {
       const staleRuns =
-        await this.#analysisRunRepository.findStale(staleThreshold);
+        await this.#analysisRunService.findStale(staleThreshold);
 
       if (staleRuns.length === 0) {
         log.info('No stale analysis runs found');

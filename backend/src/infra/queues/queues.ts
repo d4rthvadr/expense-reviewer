@@ -17,8 +17,7 @@ export const startQueuesAndCrons = async () => {
     });
 
   cronServiceQueue
-    // .addCron('0 1 * * *', ProcessorNames.categoryWeightAnalysisProcessor) // Daily at 1:00 AM UTC
-    .addCron('*/2 * * * *', ProcessorNames.categoryWeightAnalysisProcessor) // Every 2 minutes
+    .addCron('0 1 * * *', ProcessorNames.categoryWeightAnalysisProcessor) // Daily at 1:00 AM UTC
     .then(() => {
       log.info(
         `Cron ${CRON_NAME} category weight analysis job created successfully.`

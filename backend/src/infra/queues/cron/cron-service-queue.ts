@@ -13,6 +13,7 @@ import { userService } from '@domain/services/user.service';
 import { spendingAnalysisService } from '@domain/services/spending-analysis.service';
 import { transactionReviewService } from '@domain/services/transaction-review.service';
 import { reviewGenerationService } from '@domain/services/review-generation.service';
+import { analysisRunService } from '@domain/services/analysis-run.service';
 import { analysisRunRepository } from '@domain/repositories/analysis-run.repository';
 
 const connection = getRedisInstance();
@@ -38,6 +39,7 @@ const cronServiceProcessors: CronServiceProcessorMap = {
     analysisRunRepository
   ),
   staleAnalysisCleanupProcessor: new StaleAnalysisCleanupProcessor(
+    analysisRunService,
     analysisRunRepository
   ),
 };

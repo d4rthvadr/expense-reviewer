@@ -97,51 +97,26 @@ export class AnalysisRunRepository extends Database {
   }
 
   /**
-   * Finds analysis runs by status
+   * Generic find method for querying analysis runs with Prisma options
    */
-  async findByStatus(
-    status: AnalysisRunStatus,
-    limit = 100
-  ): Promise<AnalysisRunModel[]> {
+  async find(options: {
+    where?: {
+      status?: AnalysisRunStatus;
+      updatedAt?: { lt?: Date; gt?: Date };
+    };
+    take?: number;
+    orderBy?: { createdAt?: 'asc' | 'desc'; updatedAt?: 'asc' | 'desc' };
+  }): Promise<AnalysisRunModel[]> {
     try {
-      const entities: AnalysisRunEntity[] = await this.analysisRun.findMany({
-        where: { status },
-        take: limit,
-        orderBy: { createdAt: 'asc' },
-      });
+      const entities: AnalysisRunEntity[] =
+        await this.analysisRun.findMany(options);
 
       return entities.map((entity) => mapAnalysisRun(entity));
     } catch (error) {
       log.error({
-        message: `Error finding analysis runs by status: ${status}`,
+        message: 'Error finding analysis runs:',
         error,
         code: 'ANALYSIS_RUN_FIND_ERROR',
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Finds stale analysis runs still in PROCESSING status
-   * older than the specified date threshold
-   */
-  async findStale(beforeDate: Date): Promise<AnalysisRunModel[]> {
-    try {
-      const entities: AnalysisRunEntity[] = await this.analysisRun.findMany({
-        where: {
-          status: AnalysisRunStatus.PROCESSING,
-          updatedAt: {
-            lt: beforeDate,
-          },
-        },
-      });
-
-      return entities.map((entity) => mapAnalysisRun(entity));
-    } catch (error) {
-      log.error({
-        message: 'Error finding stale analysis runs:',
-        error,
-        code: 'ANALYSIS_RUN_FIND_STALE_ERROR',
       });
       throw error;
     }
