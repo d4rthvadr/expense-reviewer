@@ -4,6 +4,7 @@ import {
   CronServiceProcessor,
   TransactionReviewProcessor,
   CategoryWeightAnalysisProcessor,
+  StaleAnalysisCleanupProcessor,
   NullDefaultProcessor,
   ProcessorNames,
 } from './processors';
@@ -11,7 +12,7 @@ import { getRedisInstance } from '@infra/db/cache';
 import { userService } from '@domain/services/user.service';
 import { spendingAnalysisService } from '@domain/services/spending-analysis.service';
 import { transactionReviewService } from '@domain/services/transaction-review.service';
-import { agentService } from '@domain/services/agent.service';
+import { reviewGenerationService } from '@domain/services/review-generation.service';
 import { analysisRunRepository } from '@domain/repositories/analysis-run.repository';
 
 const connection = getRedisInstance();
@@ -33,7 +34,10 @@ const cronServiceProcessors: CronServiceProcessorMap = {
     userService,
     spendingAnalysisService,
     transactionReviewService,
-    agentService,
+    reviewGenerationService,
+    analysisRunRepository
+  ),
+  staleAnalysisCleanupProcessor: new StaleAnalysisCleanupProcessor(
     analysisRunRepository
   ),
 };

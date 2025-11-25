@@ -6,7 +6,7 @@ import {
   createMockUserService,
   createMockSpendingAnalysisService,
   createMockTransactionReviewService,
-  createMockAgentService,
+  createMockReviewGenerationService,
   createMockAnalysisRunRepository,
 } from '@tests/__mocks__';
 
@@ -20,7 +20,9 @@ describe('CategoryWeightAnalysisProcessor', () => {
   let mockTransactionReviewService: ReturnType<
     typeof createMockTransactionReviewService
   >;
-  let mockAgentService: ReturnType<typeof createMockAgentService>;
+  let mockReviewGenerationService: ReturnType<
+    typeof createMockReviewGenerationService
+  >;
   let mockAnalysisRunRepository: ReturnType<
     typeof createMockAnalysisRunRepository
   >;
@@ -30,14 +32,19 @@ describe('CategoryWeightAnalysisProcessor', () => {
     mockUserService = createMockUserService();
     mockSpendingAnalysisService = createMockSpendingAnalysisService();
     mockTransactionReviewService = createMockTransactionReviewService();
-    mockAgentService = createMockAgentService();
+    mockReviewGenerationService = createMockReviewGenerationService();
     mockAnalysisRunRepository = createMockAnalysisRunRepository();
 
     processor = new CategoryWeightAnalysisProcessor(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockUserService as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSpendingAnalysisService as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockTransactionReviewService as any,
-      mockAgentService as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockReviewGenerationService as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockAnalysisRunRepository as any
     );
 
@@ -114,6 +121,20 @@ describe('CategoryWeightAnalysisProcessor', () => {
       expect(mockSpendingAnalysisService.analyzePeriod).toHaveBeenCalledTimes(
         2
       );
+
+      // Expect createMany to be called once with batch of 2 reviews
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledTimes(1);
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledWith([
+        {
+          userId: 'user-1',
+          reviewText: 'AI-generated review text',
+        },
+        {
+          userId: 'user-2',
+          reviewText: 'AI-generated review text',
+        },
+      ]);
+
       expect(mockAnalysisRun.markAsCompleted).toHaveBeenCalledTimes(2);
       expect(mockAnalysisRunRepository.save).toHaveBeenCalledTimes(2);
     });
@@ -191,6 +212,8 @@ describe('CategoryWeightAnalysisProcessor', () => {
       // Only the second user should complete successfully
       expect(mockAnalysisRun.markAsCompleted).toHaveBeenCalledTimes(1);
       expect(mockAnalysisRunRepository.save).toHaveBeenCalledTimes(1);
+      // Should create batch with only successful user
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledTimes(1);
     });
 
     it('should break after max iterations to prevent infinite loops', async () => {
@@ -340,19 +363,21 @@ describe('CategoryWeightAnalysisProcessor', () => {
       await processor.process(mockJob as Job);
 
       // Assert
-      expect(mockAgentService.generateAIResponse).toHaveBeenCalledTimes(1);
-      expect(mockTransactionReviewService.create).toHaveBeenCalledTimes(1);
-      expect(mockTransactionReviewService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          reviewText: 'AI-generated review text',
-        }),
-        'user-1'
+      expect(mockReviewGenerationService.generateReview).toHaveBeenCalledTimes(
+        1
       );
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledTimes(1);
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledWith([
+        {
+          userId: 'user-1',
+          reviewText: 'AI-generated review text',
+        },
+      ]);
 
       // Verify review text is AI-generated
-      const createCall = (mockTransactionReviewService.create as jest.Mock).mock
-        .calls[0];
-      const reviewText = createCall[0].reviewText;
+      const createCall = (mockTransactionReviewService.createMany as jest.Mock)
+        .mock.calls[0];
+      const reviewText = createCall[0][0].reviewText;
 
       expect(reviewText).toContain('AI-generated review text');
     });
@@ -387,9 +412,11 @@ describe('CategoryWeightAnalysisProcessor', () => {
         ],
       };
 
-      // Mock AI service to fail
-      (mockAgentService.generateAIResponse as jest.Mock).mockRejectedValue(
-        new Error('Ollama service unavailable')
+      // Mock ReviewGenerationService to return fallback (it handles errors internally)
+      (
+        mockReviewGenerationService.generateReview as jest.Mock
+      ).mockResolvedValue(
+        '# Spending Analysis Report\n\n**Total Spending:** $1500.00 USD\n\nFOOD'
       );
 
       (mockUserService.find as jest.Mock)
@@ -410,13 +437,15 @@ describe('CategoryWeightAnalysisProcessor', () => {
       await processor.process(mockJob as Job);
 
       // Assert
-      expect(mockAgentService.generateAIResponse).toHaveBeenCalledTimes(1);
-      expect(mockTransactionReviewService.create).toHaveBeenCalledTimes(1);
+      expect(mockReviewGenerationService.generateReview).toHaveBeenCalledTimes(
+        1
+      );
+      expect(mockTransactionReviewService.createMany).toHaveBeenCalledTimes(1);
 
       // Verify it fell back to formatted review (should contain markdown headers)
-      const createCall = (mockTransactionReviewService.create as jest.Mock).mock
-        .calls[0];
-      const reviewText = createCall[0].reviewText;
+      const createCall = (mockTransactionReviewService.createMany as jest.Mock)
+        .mock.calls[0];
+      const reviewText = createCall[0][0].reviewText;
 
       expect(reviewText).toContain('# Spending Analysis Report');
       expect(reviewText).toContain('$1500.00 USD');

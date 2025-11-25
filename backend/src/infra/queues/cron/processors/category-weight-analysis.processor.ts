@@ -4,189 +4,30 @@ import { Job } from 'bullmq';
 import { UserService } from '@domain/services/user.service';
 import { SpendingAnalysisService } from '@domain/services/spending-analysis.service';
 import { TransactionReviewService } from '@domain/services/transaction-review.service';
-import { AgentService } from '@domain/services/agent.service';
+import { ReviewGenerationService } from '@domain/services/review-generation.service';
 import { AnalysisRunRepository } from '@domain/repositories/analysis-run.repository';
-import { subDays, startOfDay, format } from 'date-fns';
-
-const BATCH_SIZE = 200;
+import { subDays, startOfDay } from 'date-fns';
+import { analysisConfig } from '@config/analysis.config';
 
 export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
   #userService: UserService;
   #spendingAnalysisService: SpendingAnalysisService;
   #transactionReviewService: TransactionReviewService;
-  #agentService: AgentService;
+  #reviewGenerationService: ReviewGenerationService;
   #analysisRunRepository: AnalysisRunRepository;
 
   constructor(
     userService: UserService,
     spendingAnalysisService: SpendingAnalysisService,
     transactionReviewService: TransactionReviewService,
-    agentService: AgentService,
+    reviewGenerationService: ReviewGenerationService,
     analysisRunRepository: AnalysisRunRepository
   ) {
     this.#userService = userService;
     this.#spendingAnalysisService = spendingAnalysisService;
     this.#transactionReviewService = transactionReviewService;
-    this.#agentService = agentService;
+    this.#reviewGenerationService = reviewGenerationService;
     this.#analysisRunRepository = analysisRunRepository;
-  }
-
-  /**
-   * Generates an AI prompt for creating a personalized spending review
-   */
-  private generateAIPrompt(result: {
-    userId: string;
-    period: { from: Date; to: Date };
-    totalSpendingUsd: number;
-    categories: Array<{
-      category: string;
-      weight: number;
-      spendUsd: number;
-      actualShare: number;
-      deltaPct: number;
-      breached: boolean;
-    }>;
-  }): string {
-    const periodFrom = format(result.period.from, 'MMM dd, yyyy');
-    const periodTo = format(result.period.to, 'MMM dd, yyyy');
-    const breachedCategories = result.categories.filter((c) => c.breached);
-
-    let prompt = `You are a personal finance advisor. Generate a friendly, personalized spending analysis report for a user based on the following data:\n\n`;
-    prompt += `**Analysis Period:** ${periodFrom} to ${periodTo} (14-day rolling window)\n`;
-    prompt += `**Total Spending:** $${result.totalSpendingUsd.toFixed(2)} USD\n\n`;
-
-    if (breachedCategories.length > 0) {
-      prompt += `**Categories Over Budget (${breachedCategories.length}):**\n`;
-      breachedCategories.forEach((cat) => {
-        prompt += `- ${cat.category}: Spent $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}% of total) vs target ${(cat.weight * 100).toFixed(1)}%, exceeded by ${cat.deltaPct.toFixed(1)}%\n`;
-      });
-      prompt += `\n`;
-    }
-
-    prompt += `**All Categories Breakdown:**\n`;
-    result.categories
-      .sort((a, b) => b.spendUsd - a.spendUsd)
-      .forEach((cat) => {
-        const status = cat.breached ? 'OVER' : 'Within';
-        prompt += `- ${cat.category}: $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}% actual vs ${(cat.weight * 100).toFixed(1)}% target) - ${status}\n`;
-      });
-
-    prompt += `\n**Instructions:**\n`;
-    prompt += `1. Create a warm, encouraging, and actionable spending report in markdown format\n`;
-    prompt += `2. Start with a brief summary of their overall spending health\n`;
-    prompt += `3. If there are overspending categories, provide specific, practical tips to reduce spending in those areas\n`;
-    prompt += `4. If they're doing well, congratulate them and encourage continued good habits\n`;
-    prompt += `5. Keep the tone conversational but professional\n`;
-    prompt += `6. Use emojis sparingly (✅, ⚠️, 💡, 🎯) to make it engaging\n`;
-    prompt += `7. End with a motivational note\n`;
-    prompt += `8. Format the report using markdown with headers, bullet points, and emphasis\n\n`;
-    prompt += `Generate the report now:`;
-
-    return prompt;
-  }
-
-  /**
-   * Formats analysis result into a human-readable review text (fallback)
-   */
-  private formatReviewText(result: {
-    userId: string;
-    period: { from: Date; to: Date };
-    totalSpendingUsd: number;
-    categories: Array<{
-      category: string;
-      weight: number;
-      spendUsd: number;
-      actualShare: number;
-      deltaPct: number;
-      breached: boolean;
-    }>;
-  }): string {
-    const periodFrom = format(result.period.from, 'MMM dd, yyyy');
-    const periodTo = format(result.period.to, 'MMM dd, yyyy');
-    const breachedCategories = result.categories.filter((c) => c.breached);
-
-    let reviewText = `# Spending Analysis Report\n\n`;
-    reviewText += `**Period:** ${periodFrom} - ${periodTo}\n`;
-    reviewText += `**Total Spending:** $${result.totalSpendingUsd.toFixed(2)} USD\n\n`;
-
-    if (breachedCategories.length === 0) {
-      reviewText += `✅ **Great job!** All spending categories are within your target allocations.\n\n`;
-    } else {
-      reviewText += `⚠️ **Attention Required:** ${breachedCategories.length} ${breachedCategories.length === 1 ? 'category has' : 'categories have'} exceeded target allocations.\n\n`;
-      reviewText += `## Categories Over Budget\n\n`;
-
-      breachedCategories.forEach((cat) => {
-        reviewText += `### ${cat.category}\n`;
-        reviewText += `- **Target Allocation:** ${(cat.weight * 100).toFixed(1)}%\n`;
-        reviewText += `- **Actual Spending:** $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}%)\n`;
-        reviewText += `- **Overage:** ${cat.deltaPct.toFixed(1)}% above target\n\n`;
-      });
-    }
-
-    reviewText += `## All Categories Breakdown\n\n`;
-    result.categories
-      .sort((a, b) => b.spendUsd - a.spendUsd)
-      .forEach((cat) => {
-        const status = cat.breached ? '⚠️' : '✅';
-        reviewText += `${status} **${cat.category}:** $${cat.spendUsd.toFixed(2)} (${(cat.actualShare * 100).toFixed(1)}% vs ${(cat.weight * 100).toFixed(1)}% target)\n`;
-      });
-
-    reviewText += `\n---\n`;
-    reviewText += `*This report was automatically generated based on your spending patterns and category weight preferences.*`;
-
-    return reviewText;
-  }
-
-  /**
-   * Generates a review using AI with fallback to formatted text
-   */
-  private async generateReviewWithFallback(
-    result: {
-      userId: string;
-      period: { from: Date; to: Date };
-      totalSpendingUsd: number;
-      categories: Array<{
-        category: string;
-        weight: number;
-        spendUsd: number;
-        actualShare: number;
-        deltaPct: number;
-        breached: boolean;
-      }>;
-    },
-    userId: string
-  ): Promise<string> {
-    try {
-      const startTime = Date.now();
-      const prompt = this.generateAIPrompt(result);
-
-      log.info(
-        `Generating AI review for userId: ${userId} | promptLength: ${prompt.length}, totalSpending: ${result.totalSpendingUsd}, breachedCategories: ${result.categories.filter((c) => c.breached).length}`
-      );
-
-      const aiReview = await this.#agentService.generateAIResponse(prompt);
-      const duration = Date.now() - startTime;
-
-      log.info(
-        `Successfully generated AI review for userId: ${userId} | durationMs: ${duration}, reviewLength: ${aiReview.length}`
-      );
-
-      return aiReview;
-    } catch (error) {
-      const errorName = error instanceof Error ? error.name : 'Unknown';
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const breachedCount = result.categories.filter((c) => c.breached).length;
-
-      log.error({
-        message: `AI review generation failed for userId: ${userId}, falling back to formatted review | totalSpending: $${result.totalSpendingUsd}, categoriesCount: ${result.categories.length}, breachedCount: ${breachedCount}, errorName: ${errorName}, errorMessage: ${errorMessage}`,
-        error,
-        code: 'AI_REVIEW_GENERATION_FAILED',
-      });
-
-      // Fallback to formatted review
-      return this.formatReviewText(result);
-    }
   }
 
   /**
@@ -223,17 +64,19 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
     let totalSkipped = 0;
     let totalCompleted = 0;
     let totalFailed = 0;
-    const MAX_ITERATIONS = 10000; // Safety limit: 10k batches * 200 = 2M users max
     let iterations = 0;
+
+    // Collect reviews for batch creation
+    const reviewBatch: Array<{ userId: string; reviewText: string }> = [];
 
     try {
       // Paginate through all users
       while (true) {
         iterations++;
 
-        if (iterations > MAX_ITERATIONS) {
+        if (iterations > analysisConfig.MAX_ITERATIONS) {
           log.error({
-            message: `Exceeded max iterations (${MAX_ITERATIONS}), breaking loop to prevent infinite execution`,
+            message: `Exceeded max iterations (${analysisConfig.MAX_ITERATIONS}), breaking loop to prevent infinite execution`,
             error: new Error('Max iterations exceeded'),
             code: 'CATEGORY_WEIGHT_ANALYSIS_MAX_ITERATIONS',
           });
@@ -241,7 +84,7 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
         }
 
         const users = await this.#userService.find({
-          take: BATCH_SIZE,
+          take: analysisConfig.BATCH_SIZE,
           skip,
         });
 
@@ -311,20 +154,23 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
               `Category Weight Analysis Result | ${JSON.stringify(analysisResult)}`
             );
 
-            // Create transaction review record with AI-generated content
-            const reviewText = await this.generateReviewWithFallback(
-              result,
-              user.id
-            );
-            const transactionReview =
-              await this.#transactionReviewService.create(
-                { reviewText },
-                user.id
-              );
+            // Generate review using ReviewGenerationService
+            const reviewText =
+              await this.#reviewGenerationService.generateReview(result);
 
-            log.info(
-              `Created transaction review ${transactionReview.id} for userId: ${user.id}`
-            );
+            // Add to batch
+            reviewBatch.push({
+              userId: user.id,
+              reviewText,
+            });
+
+            // Batch insert reviews when reaching batch size
+            if (reviewBatch.length >= analysisConfig.REVIEW_BATCH_SIZE) {
+              const count =
+                await this.#transactionReviewService.createMany(reviewBatch);
+              log.info(`Batch created ${count} transaction reviews`);
+              reviewBatch.length = 0; // Clear batch
+            }
 
             // Mark as completed
             analysisRun.markAsCompleted();
@@ -346,23 +192,29 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
             // Mark the specific user's run as failed
             // Note: We don't have a reference to analysisRun here since it's scoped to try block
             // This is a design limitation - in production, consider storing run.id before analysis
-            // For now, we rely on next day's cron to retry FAILED runs
-            log.warn({
-              message: `Analysis run will remain in PROCESSING state for userId: ${user.id}. Manual intervention or next cron run required.`,
-              code: 'ANALYSIS_RUN_ORPHANED',
-            });
+            // For now, we rely on stale cleanup processor to retry FAILED runs
+            log.warn(
+              `Analysis run may remain in PROCESSING state for userId: ${user.id}. Stale cleanup processor will handle recovery.`
+            );
 
             // Continue processing other users
             continue;
           }
         }
 
-        skip += BATCH_SIZE;
+        skip += analysisConfig.BATCH_SIZE;
 
         // Log batch progress
         log.info(
           `Batch complete: processed=${totalProcessed}, skipped=${totalSkipped}, completed=${totalCompleted}, failed=${totalFailed}`
         );
+      }
+
+      // Final batch insert for any remaining reviews
+      if (reviewBatch.length > 0) {
+        const count =
+          await this.#transactionReviewService.createMany(reviewBatch);
+        log.info(`Final batch created ${count} transaction reviews`);
       }
 
       // Final summary

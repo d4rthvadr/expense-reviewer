@@ -120,6 +120,32 @@ export class AnalysisRunRepository extends Database {
       throw error;
     }
   }
+
+  /**
+   * Finds stale analysis runs still in PROCESSING status
+   * older than the specified date threshold
+   */
+  async findStale(beforeDate: Date): Promise<AnalysisRunModel[]> {
+    try {
+      const entities: AnalysisRunEntity[] = await this.analysisRun.findMany({
+        where: {
+          status: AnalysisRunStatus.PROCESSING,
+          updatedAt: {
+            lt: beforeDate,
+          },
+        },
+      });
+
+      return entities.map((entity) => mapAnalysisRun(entity));
+    } catch (error) {
+      log.error({
+        message: 'Error finding stale analysis runs:',
+        error,
+        code: 'ANALYSIS_RUN_FIND_STALE_ERROR',
+      });
+      throw error;
+    }
+  }
 }
 
 export const analysisRunRepository = new AnalysisRunRepository();

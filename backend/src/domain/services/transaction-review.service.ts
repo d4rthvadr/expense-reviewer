@@ -134,6 +134,27 @@ export class TransactionReviewService {
     }
   }
 
+  /**
+   * Creates multiple transaction reviews in a batch
+   * @returns Number of reviews created
+   */
+  async createMany(
+    reviews: Array<{ userId: string; reviewText: string }>
+  ): Promise<number> {
+    try {
+      const count = await transactionReviewRepository.saveMany(reviews);
+      log.info(`Successfully created ${count} transaction reviews in batch`);
+      return count;
+    } catch (error) {
+      log.error({
+        message: 'Error batch creating transaction reviews:',
+        error,
+        code: 'TRANSACTION_REVIEW_CREATE_MANY_ERROR',
+      });
+      throw error;
+    }
+  }
+
   async update(
     transactionReviewId: string,
     data: CreateTransactionReviewDto,

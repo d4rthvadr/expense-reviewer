@@ -20,6 +20,7 @@ export function createMockTransactionReviewService() {
         updatedAt: new Date(),
       })
     ),
+    createMany: jest.fn().mockResolvedValue(1),
     find: jest.fn().mockResolvedValue({
       data: [],
       total: 0,
