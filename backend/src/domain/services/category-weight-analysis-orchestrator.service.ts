@@ -115,7 +115,7 @@ export class CategoryWeightAnalysisOrchestrator {
       periodTo: string;
     }> = [];
 
-    // Paginate through all users
+    // Paginate through users who need processing for this period
     while (true) {
       iterations++;
 
@@ -128,10 +128,16 @@ export class CategoryWeightAnalysisOrchestrator {
         break;
       }
 
-      const users = await this.#userService.find({
-        take: analysisConfig.BATCH_SIZE,
-        skip,
-      });
+      // Fetch only users who haven't been successfully processed for this period
+      // This is more efficient than fetching all users and filtering in application code
+      const users = await this.#userService.findUnprocessedUsersForPeriod(
+        dateFrom,
+        dateTo,
+        {
+          take: analysisConfig.BATCH_SIZE,
+          skip,
+        }
+      );
 
       if (users.length === 0) {
         log.info(`No more users to process, ending pagination at skip=${skip}`);

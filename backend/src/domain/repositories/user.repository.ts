@@ -28,6 +28,76 @@ export class UserRepository extends Database {
   }
 
   /**
+   * Finds users who haven't been successfully processed for the given analysis period.
+   * Returns users who either:
+   * 1. Have no analysis run record for this period
+   * 2. Have PENDING or FAILED status (eligible for retry)
+   *
+   * This is more efficient than fetching all users and filtering in application code,
+   * especially after the first successful run when most users are COMPLETED.
+   *
+   * @param periodStart - Start date of the analysis period
+   * @param periodEnd - End date of the analysis period
+   * @param options - Pagination options (take and skip)
+   * @returns Array of users that need processing for this period
+   */
+  async findUnprocessedForPeriod(
+    periodStart: Date,
+    periodEnd: Date,
+    options: { take: number; skip: number }
+  ): Promise<UserModel[]> {
+    log.info(
+      `Finding unprocessed users for period: ${periodStart.toISOString()} to ${periodEnd.toISOString()}, take=${options.take}, skip=${options.skip}`
+    );
+
+    try {
+      const users: UserEntity[] = await this.user.findMany({
+        where: {
+          OR: [
+            // Users with no analysis run for this period
+            {
+              AnalysisRun: {
+                none: {
+                  periodStart,
+                  periodEnd,
+                },
+              },
+            },
+            // Users with PENDING or FAILED runs (eligible for retry)
+            {
+              AnalysisRun: {
+                some: {
+                  periodStart,
+                  periodEnd,
+                  status: {
+                    in: ['PENDING', 'FAILED'],
+                  },
+                },
+              },
+            },
+          ],
+        },
+        take: options.take,
+        skip: options.skip,
+        orderBy: { id: 'asc' },
+      });
+
+      log.info(
+        `Found ${users.length} unprocessed users for period ${periodStart.toISOString()} to ${periodEnd.toISOString()}`
+      );
+
+      return users.map((user) => mapUser(user));
+    } catch (error) {
+      log.error({
+        message: 'An error occurred while finding unprocessed users:',
+        error,
+        code: 'USER_FIND_UNPROCESSED_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Retrieves a user by their unique identifier.
    *
    * @param userId - The unique identifier of the user to find.
