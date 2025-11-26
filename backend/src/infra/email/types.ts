@@ -3,6 +3,7 @@ enum TemplateNames {
   BASE = 'base',
   WELCOME = 'welcome',
   EXPENSE_REVIEWED = 'expense_reviewed',
+  TRANSACTION_REVIEW_RESULT = 'transaction_review_result',
 }
 
 type TemplatePayloadArgs = {
@@ -14,6 +15,12 @@ type TemplatePayloadArgs = {
     month: string;
     reviewComment: string;
     link: string;
+  };
+  [TemplateNames.TRANSACTION_REVIEW_RESULT]: {
+    userEmail: string;
+    reviewText: string;
+    periodFrom: string;
+    periodTo: string;
   };
   [TemplateNames.BASE]: {
     title: string;

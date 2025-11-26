@@ -8,6 +8,8 @@ import { ReviewGenerationService } from '@domain/services/review-generation.serv
 import { AnalysisRunRepository } from '@domain/repositories/analysis-run.repository';
 import { subDays, startOfDay } from 'date-fns';
 import { analysisConfig } from '@config/analysis.config';
+import { sendEmailQueueService } from '@infra/queues/send-email.queue';
+import { TemplateNames } from '@infra/email/types';
 
 export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
   #userService: UserService;
@@ -33,7 +35,7 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
   /**
    * Calculates the rolling 14-day period (UTC)
    */
-  private calculateRollingPeriod(): {
+  #calculateRollingPeriod(): {
     dateFrom: Date;
     dateTo: Date;
   } {
@@ -49,12 +51,39 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
     return { dateFrom, dateTo };
   }
 
+  /**
+   * Enqueue email jobs for a batch of reviews after successful DB persistence
+   */
+  async #enqueueEmailBatch(
+    emailBatch: Array<{
+      userEmail: string;
+      reviewText: string;
+      periodFrom: string;
+      periodTo: string;
+    }>
+  ): Promise<void> {
+    await sendEmailQueueService.addBulkJobs(
+      emailBatch.map((emailData) => ({
+        templateId: TemplateNames.TRANSACTION_REVIEW_RESULT,
+        userEmail: emailData.userEmail,
+        data: {
+          userEmail: emailData.userEmail,
+          reviewText: emailData.reviewText,
+          periodFrom: emailData.periodFrom,
+          periodTo: emailData.periodTo,
+        },
+      }))
+    );
+
+    log.info(`Enqueued ${emailBatch.length} email notifications`);
+  }
+
   async process(job: Job) {
     log.info({
       message: `Processing category weight analysis job with ID: ${job.id}`,
     });
 
-    const { dateFrom, dateTo } = this.calculateRollingPeriod();
+    const { dateFrom, dateTo } = this.#calculateRollingPeriod();
     log.info(
       `Analysis period: ${dateFrom.toISOString()} to ${dateTo.toISOString()}`
     );
@@ -67,7 +96,15 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
     let iterations = 0;
 
     // Collect reviews for batch creation
-    const reviewBatch: Array<{ userId: string; reviewText: string }> = [];
+    let reviewBatch: Array<{ userId: string; reviewText: string }> = [];
+
+    // Collect email data parallel to reviews for batch enqueuing
+    let emailBatch: Array<{
+      userEmail: string;
+      reviewText: string;
+      periodFrom: string;
+      periodTo: string;
+    }> = [];
 
     try {
       // Paginate through all users
@@ -164,12 +201,26 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
               reviewText,
             });
 
+            // Add email data to batch
+            emailBatch.push({
+              userEmail: user.email,
+              reviewText,
+              periodFrom: dateFrom.toISOString(),
+              periodTo: dateTo.toISOString(),
+            });
+
             // Batch insert reviews when reaching batch size
             if (reviewBatch.length >= analysisConfig.REVIEW_BATCH_SIZE) {
               const count =
                 await this.#transactionReviewService.createMany(reviewBatch);
               log.info(`Batch created ${count} transaction reviews`);
-              reviewBatch.length = 0; // Clear batch
+
+              // Enqueue emails for successfully persisted reviews
+              await this.#enqueueEmailBatch(emailBatch);
+
+              // Clear both batches
+              reviewBatch = [];
+              emailBatch = [];
             }
 
             // Mark as completed
@@ -215,6 +266,9 @@ export class CategoryWeightAnalysisProcessor implements CronServiceProcessor {
         const count =
           await this.#transactionReviewService.createMany(reviewBatch);
         log.info(`Final batch created ${count} transaction reviews`);
+
+        // Enqueue emails for successfully persisted final batch
+        await this.#enqueueEmailBatch(emailBatch);
       }
 
       // Final summary
