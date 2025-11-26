@@ -7,6 +7,7 @@ import { AnalysisRunRepository } from '@domain/repositories/analysis-run.reposit
 import { analysisConfig } from '@config/analysis.config';
 import type { sendEmailQueueService } from '@infra/queues/send-email.queue';
 import { TemplateNames } from '@infra/email/types';
+import { markdownToSafeHtml } from '@infra/libs/markdown.util';
 
 /**
  * Result summary for a category weight analysis job execution
@@ -193,6 +194,7 @@ export class CategoryWeightAnalysisOrchestrator {
                 data: {
                   userEmail: data.userEmail,
                   reviewText: data.reviewText,
+                  reviewHtml: markdownToSafeHtml(data.reviewText),
                   periodFrom: data.periodFrom,
                   periodTo: data.periodTo,
                 },
@@ -239,6 +241,7 @@ export class CategoryWeightAnalysisOrchestrator {
           data: {
             userEmail: data.userEmail,
             reviewText: data.reviewText,
+            reviewHtml: markdownToSafeHtml(data.reviewText),
             periodFrom: data.periodFrom,
             periodTo: data.periodTo,
           },

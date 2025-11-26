@@ -19,6 +19,7 @@ type TemplatePayloadArgs = {
   [TemplateNames.TRANSACTION_REVIEW_RESULT]: {
     userEmail: string;
     reviewText: string;
+    reviewHtml: string;
     periodFrom: string;
     periodTo: string;
   };
