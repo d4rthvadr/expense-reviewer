@@ -6,3 +6,4 @@ export { createMockNotificationService } from './notification-service.mock';
 export { createMockTransactionReviewService } from './transaction-review-service.mock';
 export { createMockAgentService } from './agent-service.mock';
 export { createMockReviewGenerationService } from './review-generation-service.mock';
+export { createMockCategoryWeightAnalysisOrchestrator } from './category-weight-analysis-orchestrator.mock';
