@@ -11,6 +11,7 @@ export default {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
   },
+  transformIgnorePatterns: ['node_modules/(?!(marked)/)'],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/server.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

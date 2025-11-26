@@ -15,6 +15,8 @@ import { transactionReviewService } from '@domain/services/transaction-review.se
 import { reviewGenerationService } from '@domain/services/review-generation.service';
 import { analysisRunService } from '@domain/services/analysis-run.service';
 import { analysisRunRepository } from '@domain/repositories/analysis-run.repository';
+import { CategoryWeightAnalysisOrchestrator } from '@domain/services/category-weight-analysis-orchestrator.service';
+import { sendEmailQueueService } from '@infra/queues/send-email.queue';
 
 const connection = getRedisInstance();
 
@@ -29,14 +31,21 @@ type CronServiceProcessorMap = Record<
   CronServiceProcessor
 >;
 
+// Create orchestrator instance
+const categoryWeightAnalysisOrchestrator =
+  new CategoryWeightAnalysisOrchestrator(
+    userService,
+    spendingAnalysisService,
+    reviewGenerationService,
+    transactionReviewService,
+    analysisRunRepository,
+    sendEmailQueueService
+  );
+
 const cronServiceProcessors: CronServiceProcessorMap = {
   transactionReviewProcessor: new TransactionReviewProcessor(userService),
   categoryWeightAnalysisProcessor: new CategoryWeightAnalysisProcessor(
-    userService,
-    spendingAnalysisService,
-    transactionReviewService,
-    reviewGenerationService,
-    analysisRunRepository
+    categoryWeightAnalysisOrchestrator
   ),
   staleAnalysisCleanupProcessor: new StaleAnalysisCleanupProcessor(
     analysisRunService,

@@ -40,6 +40,38 @@ export class UserService {
     return users.map((user) => this.#toUserCreatedDto(user));
   }
 
+  /**
+   * Finds users who haven't been successfully processed for the given analysis period.
+   * More efficient than fetching all users, especially after the first successful run
+   * when most users have COMPLETED status.
+   *
+   * Returns users who either:
+   * 1. Have no analysis run record for this period
+   * 2. Have PENDING or FAILED status (eligible for retry)
+   *
+   * @param periodStart - Start date of the analysis period
+   * @param periodEnd - End date of the analysis period
+   * @param options - Pagination options (take and skip)
+   * @returns Array of user DTOs that need processing for this period
+   */
+  async findUnprocessedUsersForPeriod(
+    periodStart: Date,
+    periodEnd: Date,
+    options: { take: number; skip: number }
+  ): Promise<UserResponseDto[]> {
+    log.info(
+      `Finding unprocessed users for period: ${periodStart.toISOString()} to ${periodEnd.toISOString()}`
+    );
+
+    const users = await this.#userRepository.findUnprocessedForPeriod(
+      periodStart,
+      periodEnd,
+      options
+    );
+
+    return users.map((user) => this.#toUserCreatedDto(user));
+  }
+
   async findById(userId: string): Promise<UserResponseDto | undefined> {
     log.info(`Finding user by id: ${userId}`);
 

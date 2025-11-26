@@ -14,6 +14,12 @@ export type SendEmailJobData = {
   data: TemplateWithPayloadArgs<TemplateNames>;
 };
 
+type QueueJobData = {
+  name: string;
+  data: SendEmailJobData;
+  options: JobsOptions;
+};
+
 class SendEmailQueueService extends Worker {
   #queue: Queue;
 
@@ -77,11 +83,30 @@ class SendEmailQueueService extends Worker {
     }
   }
 
+  #generateJobName(data: SendEmailJobData): string {
+    return `send-email-${data.templateId}-${data.userEmail}`;
+  }
+
+  #createJobData(data: SendEmailJobData): QueueJobData {
+    const name = this.#generateJobName(data);
+    return { name, data, options: this.defaultJobOptions };
+  }
+
   async addJob(data: SendEmailJobData) {
     log.info(`Adding job to queue with data: ${JSON.stringify(data)}`);
 
-    const jobName = `send-email-${data.templateId}-${data.userEmail}`;
-    await this.#queue.add(jobName, data, this.defaultJobOptions);
+    const { name, data: jobData, options } = this.#createJobData(data);
+    await this.#queue.add(name, jobData, options);
+  }
+
+  async addBulkJobs(jobsData: SendEmailJobData[]) {
+    const jobs: QueueJobData[] = jobsData.map((data) =>
+      this.#createJobData(data)
+    );
+
+    log.info(`Adding bulk jobs to queue: ${JSON.stringify(jobs)}`);
+
+    await this.#queue.addBulk(jobs);
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import CategoryWeightsManager from "@/components/category-weights-manager";
 import NotificationsList from "@/components/notifications-list";
@@ -25,7 +25,8 @@ const settingsSections = [
   },
 ];
 
-function SettingsPage() {
+// Separate component that uses useSearchParams
+function SettingsContent() {
   const searchParams = useSearchParams();
   const sectionParam = searchParams.get("section") as SettingsSection | null;
 
@@ -45,7 +46,6 @@ function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster />
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -122,6 +122,24 @@ function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+function SettingsPage() {
+  return (
+    <>
+      <Toaster />
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="text-muted-foreground">Loading settings...</div>
+          </div>
+        }
+      >
+        <SettingsContent />
+      </Suspense>
+    </>
   );
 }
 
