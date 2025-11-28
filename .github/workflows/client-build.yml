@@ -1,0 +1,54 @@
+name: 🎨 Client Build Check
+
+on:
+    push:
+        branches: [main, develop]
+        paths:
+            - "client/**"
+            - ".github/workflows/client-build.yml"
+    pull_request:
+        branches: [main, develop]
+        paths:
+            - "client/**"
+            - ".github/workflows/client-build.yml"
+
+jobs:
+    build:
+        name: Build Client
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 🔒 Checkout code
+              uses: actions/checkout@v4
+
+            - name: 📦 Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+                  cache-dependency-path: client/package-lock.json
+
+            - name: 📥 Install dependencies
+              working-directory: ./client
+              run: npm ci
+
+            - name: 🏗️ Build client
+              working-directory: ./client
+              run: |
+                  echo "🚀 Building Next.js client..."
+                  npm run build
+                  echo "✅ Build completed successfully"
+
+            - name: 📊 Build summary
+              if: success()
+              run: |
+                  echo "### ✅ Client Build Successful" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "The Next.js client built without errors." >> $GITHUB_STEP_SUMMARY
+
+            - name: ❌ Build failed
+              if: failure()
+              run: |
+                  echo "### ❌ Client Build Failed" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "Please check the build logs above for errors." >> $GITHUB_STEP_SUMMARY

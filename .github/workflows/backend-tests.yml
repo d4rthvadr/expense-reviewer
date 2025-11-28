@@ -1,0 +1,54 @@
+name: 🧪 Backend Tests
+
+on:
+    push:
+        branches: [main, develop]
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend-tests.yml"
+    pull_request:
+        branches: [main, develop]
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend-tests.yml"
+
+jobs:
+    test:
+        name: Run Backend Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 🔒 Checkout code
+              uses: actions/checkout@v4
+
+            - name: 📦 Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+                  cache-dependency-path: backend/package-lock.json
+
+            - name: 📥 Install dependencies
+              working-directory: ./backend
+              run: npm ci
+
+            - name: 🧪 Run tests
+              working-directory: ./backend
+              run: |
+                  echo "🚀 Running backend tests..."
+                  npm test
+                  echo "✅ All tests passed"
+
+            - name: 📊 Test summary
+              if: success()
+              run: |
+                  echo "### ✅ Backend Tests Passed" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "All backend tests completed successfully." >> $GITHUB_STEP_SUMMARY
+
+            - name: ❌ Tests failed
+              if: failure()
+              run: |
+                  echo "### ❌ Backend Tests Failed" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "Please check the test logs above for failures." >> $GITHUB_STEP_SUMMARY
