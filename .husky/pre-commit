@@ -1,2 +1,12 @@
 #!/bin/bash
-cd backend && echo "Running lint-staged..." && npx lint-staged --debug
+
+echo "Running tests..."
+cd backend && npm test
+
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ Tests passed. Running lint-staged..."
+npx lint-staged --debug
