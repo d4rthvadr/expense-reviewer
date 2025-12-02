@@ -135,11 +135,23 @@ export async function getTransactionsOverTime(
 /**
  * Fetches budget data from the server.
  *
+ * @param dateFrom - Optional start date in YYYY-MM-DD format
+ * @param dateTo - Optional end date in YYYY-MM-DD format
  * @returns {Promise<TListResponse<BudgetData>>} A promise that resolves to budget data and any error information.
  */
-export async function getBudgetData(): Promise<TListResponse<BudgetData>> {
+export async function getBudgetData(
+  dateFrom?: string,
+  dateTo?: string
+): Promise<TListResponse<BudgetData>> {
   try {
     const searchParams = new URLSearchParams();
+
+    if (dateFrom) {
+      searchParams.append("dateFrom", dateFrom);
+    }
+    if (dateTo) {
+      searchParams.append("dateTo", dateTo);
+    }
 
     console.log("Fetching budget data with filters:", searchParams.toString());
     const client = await getAuthenticatedClient();

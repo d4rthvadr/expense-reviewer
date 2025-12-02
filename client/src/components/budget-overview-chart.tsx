@@ -1,12 +1,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Calendar } from "lucide-react";
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { getBudgetData, type BudgetData } from "@/actions/analytics";
 import ErrorBoundary from "@/components/error-boundary";
 import ChartSkeleton from "@/components/chart-skeleton";
@@ -37,6 +45,8 @@ const BudgetOverviewChart = () => {
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   // Fetch budget data
   const fetchData = async () => {
@@ -44,7 +54,10 @@ const BudgetOverviewChart = () => {
     setError(null);
 
     try {
-      const response = await getBudgetData();
+      const dateFromStr = dateFrom?.toISOString().split("T")[0];
+      const dateToStr = dateTo?.toISOString().split("T")[0];
+
+      const response = await getBudgetData(dateFromStr, dateToStr);
 
       if (response.success && response.data) {
         const chartData: ChartData[] = response.data.map(
@@ -74,7 +87,8 @@ const BudgetOverviewChart = () => {
   // Load initial data
   useEffect(() => {
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFrom, dateTo]);
 
   // Chart content
   const ChartContent = () => {
@@ -152,6 +166,35 @@ const BudgetOverviewChart = () => {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h1 className="text-lg font-medium">Budget Overview</h1>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">From</label>
+                    <DatePicker
+                      date={dateFrom}
+                      onSetDate={setDateFrom}
+                      showLabel={false}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">To</label>
+                    <DatePicker
+                      date={dateTo}
+                      onSetDate={setDateTo}
+                      showLabel={false}
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
         <ChartContent />
       </div>
