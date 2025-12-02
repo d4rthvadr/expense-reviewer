@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import React from "react";
 import { UserButton } from "@clerk/nextjs";
 
@@ -13,23 +12,26 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import NotificationBell from "./notification-bell";
+import { MobileSidebar } from "./sidebar";
 
 const Navbar = () => {
   const { setTheme } = useTheme();
 
   return (
-    <nav className="p-4 flex items-center justify-between sticky top-0 bg-background z-10">
-      <Link href="/dashboard" className="text-lg font-bold">
-        ER
-      </Link>
+    <nav className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+      {/* Mobile Sidebar Toggle */}
+      <MobileSidebar />
 
-      <div className="flex items-center gap-8">
-        <Link href="/dashboard">Dashboard</Link>
-        <Link href="/dashboard/transactions">Transactions</Link>
-        <Link href="/dashboard/budgets">Budgets</Link>
-        <Link href="/dashboard/reports">Reports</Link>
-        <Link href="/dashboard/settings">Settings</Link>
+      {/* Logo (hidden on desktop, shown on mobile) */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <span className="text-lg font-bold">ER</span>
+      </div>
 
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Right side items */}
+      <div className="flex items-center gap-4">
         {/* NOTIFICATION BELL */}
         <NotificationBell />
 
