@@ -226,7 +226,9 @@ const TransactionList = () => {
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
-          <Button onClick={() => openEditSheet(null)}>Add Transaction</Button>
+          <Button variant="outline" onClick={() => openEditSheet(null)}>
+            Add Transaction
+          </Button>
         </div>
 
         {/* Filter Toolbar */}
