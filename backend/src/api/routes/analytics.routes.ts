@@ -89,6 +89,18 @@ router.get(
  *         schema:
  *           type: string
  *         description: Optional user ID filter
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for budget filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for budget filter (YYYY-MM-DD)
  *     responses:
  *       200:
  *         description: Budget data retrieved successfully

@@ -243,13 +243,26 @@ export class AnalyticsRepository {
     }
   }
 
-  async getBudgets(userId?: string): Promise<BudgetData[]> {
+  async getBudgets(
+    userId?: string,
+    dateFrom?: Date,
+    dateTo?: Date
+  ): Promise<BudgetData[]> {
     try {
       log.info('Fetching budget data with latest budget per category');
 
+      const where: any = userId ? { userId } : {};
+
+      // Add date range filter if provided
+      if (dateFrom || dateTo) {
+        where.createdAt = {};
+        if (dateFrom) where.createdAt.gte = dateFrom;
+        if (dateTo) where.createdAt.lte = dateTo;
+      }
+
       // Use DISTINCT ON to get latest budget per category
       const budgets = await this.db.budget.findMany({
-        where: userId ? { userId } : undefined,
+        where,
         distinct: ['category'],
         orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
         select: {

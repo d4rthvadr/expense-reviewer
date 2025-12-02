@@ -177,11 +177,38 @@ export class AnalyticsService {
     }
   }
 
-  async getBudgets(userId?: string): Promise<BudgetData[]> {
+  async getBudgets(
+    dateFrom: Date,
+    dateTo: Date,
+    userId: string
+  ): Promise<BudgetData[]> {
     try {
-      log.info('Retrieving budget data from analytics service');
+      // Validate date range if provided
+      if (dateFrom && dateTo && dateFrom > dateTo) {
+        throw new Error('Start date cannot be after end date');
+      }
 
-      const budgets = await this.analyticsRepository.getBudgets(userId);
+      // Set date to beginning and end of day for proper querying
+      const adjustedDateFrom = dateFrom ? new Date(dateFrom) : undefined;
+      const adjustedDateTo = dateTo ? new Date(dateTo) : undefined;
+
+      if (adjustedDateFrom) {
+        adjustedDateFrom.setHours(0, 0, 0, 0);
+      }
+
+      if (adjustedDateTo) {
+        adjustedDateTo.setHours(23, 59, 59, 999);
+      }
+
+      log.info(
+        `Retrieving budget data from analytics service${adjustedDateFrom && adjustedDateTo ? ` from ${adjustedDateFrom.toISOString()} to ${adjustedDateTo.toISOString()}` : ''}`
+      );
+
+      const budgets = await this.analyticsRepository.getBudgets(
+        userId,
+        adjustedDateFrom,
+        adjustedDateTo
+      );
 
       log.info(
         `Budget data retrieved successfully: ${budgets.length} categories`

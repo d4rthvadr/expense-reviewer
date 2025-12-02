@@ -33,7 +33,47 @@ export class AnalyticsController {
   }
 
   async getBudgets(req: Request, res: Response): Promise<void> {
-    const data = await analyticsService.getBudgets(req.user?.id);
+    const { dateFrom, dateTo } = req.query as {
+      dateFrom?: string;
+      dateTo?: string;
+    };
+
+    // Set default date range to last 30 days if not provided
+    let parsedDateFrom: Date;
+    let parsedDateTo: Date;
+
+    if (!dateFrom || !dateTo) {
+      const now = new Date();
+      parsedDateFrom = new Date(now);
+      parsedDateFrom.setDate(now.getDate() - 30); // 30 days ago
+      parsedDateTo = new Date(now); // Today
+    } else {
+      parsedDateFrom = new Date(dateFrom);
+      parsedDateTo = new Date(dateTo);
+
+      // Validate date formats
+      if (isNaN(parsedDateFrom.getTime()) || isNaN(parsedDateTo.getTime())) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid date format. Use YYYY-MM-DD format',
+        });
+        return;
+      }
+
+      if (parsedDateFrom > parsedDateTo) {
+        res.status(400).json({
+          success: false,
+          message: 'dateFrom must be before or equal to dateTo',
+        });
+        return;
+      }
+    }
+
+    const data = await analyticsService.getBudgets(
+      parsedDateFrom,
+      parsedDateTo,
+      req.user.id
+    );
 
     const response = {
       success: true,
