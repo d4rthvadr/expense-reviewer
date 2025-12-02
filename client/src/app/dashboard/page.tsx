@@ -3,6 +3,7 @@ import React from "react";
 import BudgetOverviewChart from "@/components/budget-overview-chart";
 import BudgetVsExpensesChart from "@/components/budget-vs-expenses-chart";
 import ExpensesVsIncomeChart from "@/components/expenses-vs-income-chart";
+import RecentTransactions from "@/components/recent-transactions";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function Dashboard() {
@@ -30,8 +31,13 @@ export default function Dashboard() {
           <BudgetVsExpensesChart />
         </div>
 
-        {/* Expenses vs Income Chart - Spans full width */}
-        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-2 xl:col-span-4">
+        {/* Recent Transactions - Spans 2 columns on tablet+ */}
+        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-2 xl:col-span-2">
+          <RecentTransactions />
+        </div>
+
+        {/* Expenses vs Income Chart - Spans remaining space */}
+        <div className="bg-primary-foreground p-4 sm:p-6 rounded-lg md:col-span-2 xl:col-span-2">
           <ExpensesVsIncomeChart />
         </div>
       </div>

@@ -22,7 +22,7 @@ import { revalidatePath } from "next/cache";
 export async function getTransactions(
   page: number = 1,
   limit: number = 10,
-  type?: 'EXPENSE' | 'INCOME'
+  type?: "EXPENSE" | "INCOME"
 ): Promise<TListResponse<Transaction>> {
   try {
     const client = await getAuthenticatedClient();
@@ -31,17 +31,16 @@ export async function getTransactions(
       limit: limit.toString(),
       page: page.toString(),
     });
-    
+
     if (type) {
-      queryParams.set('type', type);
+      queryParams.set("type", type);
     }
-    
+
     const url = `/transactions?${queryParams.toString()}`;
     const response = await client.get<TListResponse<Transaction>>(url);
 
     return response;
   } catch (error) {
-    console.error("Error fetching transactions:", error);
     return {
       ...defaultListResponse,
       ...clientErrorHandler(error),
@@ -55,7 +54,9 @@ export async function getTransactions(
  * @param id - The unique identifier of the transaction to retrieve.
  * @returns A promise that resolves to a `TResponse` object containing the transaction data or an error message.
  */
-export async function getTransactionById(id: string): Promise<TResponse<Transaction>> {
+export async function getTransactionById(
+  id: string
+): Promise<TResponse<Transaction>> {
   try {
     const client = await getAuthenticatedClient();
     const response = await client.get<TResponse<Transaction>["data"]>(
@@ -142,7 +143,7 @@ export async function deleteTransaction(
     revalidatePath("/dashboard/transactions");
     revalidatePath("/dashboard/expenses"); // Keep for backward compatibility
     revalidatePath("/dashboard/income");
-    
+
     return { success: true, data: response };
   } catch (error) {
     console.error("Error deleting transaction:", error);
