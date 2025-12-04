@@ -12,6 +12,7 @@ import {
   webhookRoutes,
   transactionRoutes,
   transactionReviewRoutes,
+  userRoutes,
 } from './api/routes';
 import { requestErrorHandler } from './api/routes/utils/request-error-handler';
 import swaggerOptions from './docs/swagger';
@@ -26,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, _, next) => {
   log.info({
-    message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body)} | headers: ${JSON.stringify(req.headers)}`,
+    message: `Received request: ${req.method} ${req.originalUrl} | meta: ${JSON.stringify(req.body ?? {})} `,
   });
   next();
 });
@@ -84,6 +85,7 @@ app.use('/api/agents', apiAuth, agentRoutes);
 app.use('/api/transactions', apiAuth, transactionRoutes);
 app.use('/api/budgets', apiAuth, budgetRoutes);
 app.use('/api/analytics', apiAuth, analyticsRoutes);
+app.use('/api/users', apiAuth, userRoutes);
 app.use('/api/preferences/category-weights', apiAuth, categoryWeightRoutes);
 app.use('/api/recurring-templates', apiAuth, recurringTemplateRoutes);
 app.use('/api/notifications', apiAuth, notificationRoutes);

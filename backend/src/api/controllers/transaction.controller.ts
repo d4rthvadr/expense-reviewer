@@ -46,6 +46,33 @@ export class TransactionController {
         filters.type = req.query.type as TransactionType;
       }
 
+      // Handle date range filtering with 30-day default
+      const dateFrom = req.query.dateFrom as string | undefined;
+      const dateTo = req.query.dateTo as string | undefined;
+
+      let parsedDateFrom: Date;
+      let parsedDateTo: Date;
+
+      if (!dateFrom || !dateTo) {
+        // Default to last 30 days
+        const now = new Date();
+        parsedDateFrom = new Date(now);
+        parsedDateFrom.setDate(now.getDate() - 30);
+        parsedDateTo = new Date(now);
+      } else {
+        parsedDateFrom = new Date(dateFrom);
+        parsedDateTo = new Date(dateTo);
+      }
+
+      // Set to beginning and end of day
+      parsedDateFrom.setHours(0, 0, 0, 0);
+      parsedDateTo.setHours(23, 59, 59, 999);
+
+      filters.createdAt = {
+        gte: parsedDateFrom,
+        lte: parsedDateTo,
+      };
+
       return filters;
     });
 

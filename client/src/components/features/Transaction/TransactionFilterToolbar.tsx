@@ -2,8 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { useTransactionStore } from "@/stores/transactionStore";
+import TransactionDateFilter from "./TransactionDateFilter";
 
-const TransactionFilterToolbar = () => {
+interface TransactionFilterToolbarProps {
+  onDateChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void;
+}
+
+const TransactionFilterToolbar = ({
+  onDateChange,
+}: TransactionFilterToolbarProps) => {
   const { transactionTypeFilter, setTransactionTypeFilter, clearFilters } =
     useTransactionStore();
 
@@ -31,10 +38,8 @@ const TransactionFilterToolbar = () => {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-4 bg-muted/50 rounded-lg mb-4">
-      <span className="text-sm font-medium text-foreground mr-2">
-        Filter by:
-      </span>
+    <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg mb-4">
+      <span className="text-sm font-medium text-foreground">Filter by:</span>
 
       <div className="flex flex-wrap items-center gap-2">
         {filterOptions.map((option) => (
@@ -53,12 +58,18 @@ const TransactionFilterToolbar = () => {
         ))}
       </div>
 
+      {/* Divider */}
+      <div className="h-6 w-px bg-border hidden sm:block" />
+
+      {/* Date Range Filter */}
+      <TransactionDateFilter onDateChange={onDateChange} />
+
       {transactionTypeFilter !== "ALL" && (
         <Button
           variant="ghost"
           size="sm"
           onClick={clearFilters}
-          className="text-muted-foreground hover:text-foreground ml-2"
+          className="text-muted-foreground hover:text-foreground ml-auto"
         >
           Clear Filters
         </Button>

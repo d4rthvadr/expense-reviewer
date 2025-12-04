@@ -39,6 +39,8 @@ const formatAmount = (amount: number, currency: string = "USD"): string => {
 const TransactionList = () => {
   const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [paginationMeta, setPaginationMeta] = useState({
     page: 1,
     totalPages: 1,
@@ -61,6 +63,14 @@ const TransactionList = () => {
     refreshTransactions(); // Refresh data after editing
   };
 
+  const handleDateChange = useCallback(
+    (from: Date | undefined, to: Date | undefined) => {
+      setDateFrom(from);
+      setDateTo(to);
+    },
+    []
+  );
+
   const refreshTransactions = useCallback(
     async (page: number = 1, newPageSize: number = 10) => {
       setIsLoading(true);
@@ -68,7 +78,18 @@ const TransactionList = () => {
         // Convert filter to API type
         const filterType =
           transactionTypeFilter === "ALL" ? undefined : transactionTypeFilter;
-        const response = await getTransactions(page, newPageSize, filterType);
+
+        // Format dates to YYYY-MM-DD
+        const dateFromStr = dateFrom?.toISOString().split("T")[0];
+        const dateToStr = dateTo?.toISOString().split("T")[0];
+
+        const response = await getTransactions(
+          page,
+          newPageSize,
+          filterType,
+          dateFromStr,
+          dateToStr
+        );
 
         const { data, ...pagination } = response;
 
@@ -82,7 +103,7 @@ const TransactionList = () => {
         setIsLoading(false);
       }
     },
-    [transactionTypeFilter]
+    [transactionTypeFilter, dateFrom, dateTo]
   );
 
   useEffect(() => {
@@ -232,7 +253,7 @@ const TransactionList = () => {
         </div>
 
         {/* Filter Toolbar */}
-        <TransactionFilterToolbar />
+        <TransactionFilterToolbar onDateChange={handleDateChange} />
 
         {/* Transactions List */}
         <div className="mt-6">

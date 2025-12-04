@@ -13,6 +13,7 @@ interface UserDataInput {
   updatedAt?: Date;
   lastLogin?: Date;
   lastRecurSync?: Date;
+  hasSeenWelcome?: boolean;
 }
 
 export class UserModel {
@@ -26,6 +27,7 @@ export class UserModel {
   #updatedAt: Date;
   #lastLogin?: Date;
   #lastRecurSync?: Date;
+  #hasSeenWelcome: boolean;
 
   constructor(data: UserDataInput) {
     const {
@@ -39,6 +41,7 @@ export class UserModel {
       updatedAt = new Date(),
       lastLogin,
       lastRecurSync,
+      hasSeenWelcome = false,
     } = data;
     this.#id = id;
     this.#name = name;
@@ -50,6 +53,7 @@ export class UserModel {
     this.#updatedAt = updatedAt;
     this.#lastLogin = lastLogin;
     this.#lastRecurSync = lastRecurSync;
+    this.#hasSeenWelcome = hasSeenWelcome;
   }
 
   /**
@@ -220,5 +224,23 @@ export class UserModel {
    */
   set lastLogin(value: Date | undefined) {
     this.#lastLogin = value;
+  }
+
+  /**
+   * Gets whether the user has seen the welcome banner.
+   *
+   * @returns {boolean} True if the user has seen the welcome banner, false otherwise.
+   */
+  get hasSeenWelcome(): boolean {
+    return this.#hasSeenWelcome;
+  }
+
+  /**
+   * Sets whether the user has seen the welcome banner.
+   *
+   * @param value - True to mark the welcome banner as seen, false otherwise.
+   */
+  set hasSeenWelcome(value: boolean) {
+    this.#hasSeenWelcome = value;
   }
 }

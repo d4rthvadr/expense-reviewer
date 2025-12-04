@@ -16,13 +16,17 @@ import { revalidatePath } from "next/cache";
  * @param page - The page number (1-based)
  * @param limit - Number of items per page
  * @param type - Optional filter by transaction type (EXPENSE or INCOME)
+ * @param dateFrom - Optional start date for filtering (YYYY-MM-DD)
+ * @param dateTo - Optional end date for filtering (YYYY-MM-DD)
  * @returns {Promise<TListResponse<Transaction>>} A promise that resolves to the list of transactions and any error information.
  *
  **/
 export async function getTransactions(
   page: number = 1,
   limit: number = 10,
-  type?: "EXPENSE" | "INCOME"
+  type?: "EXPENSE" | "INCOME",
+  dateFrom?: string,
+  dateTo?: string
 ): Promise<TListResponse<Transaction>> {
   try {
     const client = await getAuthenticatedClient();
@@ -34,6 +38,14 @@ export async function getTransactions(
 
     if (type) {
       queryParams.set("type", type);
+    }
+
+    if (dateFrom) {
+      queryParams.set("dateFrom", dateFrom);
+    }
+
+    if (dateTo) {
+      queryParams.set("dateTo", dateTo);
     }
 
     const url = `/transactions?${queryParams.toString()}`;

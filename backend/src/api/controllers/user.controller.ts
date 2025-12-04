@@ -1,13 +1,23 @@
 import { log } from '@infra/logger';
 import { userService, UserService } from '../../domain/services/user.service';
+import {
+  categoryWeightService,
+  CategoryWeightService,
+} from '../../domain/services/category-weight.service';
 import { Request, Response } from 'express';
 import { CreateUserRequestDto } from './dtos/request/create-user-request.dto';
 import { RequestBodyType } from '../types/request-body.type';
 
 export class UserController {
   #userService: UserService;
-  constructor(userService: UserService) {
+  #categoryWeightService: CategoryWeightService;
+
+  constructor(
+    userService: UserService,
+    categoryWeightService: CategoryWeightService
+  ) {
     this.#userService = userService;
+    this.#categoryWeightService = categoryWeightService;
   }
 
   create = async (
@@ -29,6 +39,32 @@ export class UserController {
 
     res.status(200).json(user);
   };
+
+  markWelcomeSeen = async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    log.info(`Marking welcome as seen for user: ${userId}`);
+
+    await this.#userService.markWelcomeSeen(userId);
+
+    res.status(200).json({ success: true });
+  };
+
+  getOnboardingStatus = async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    log.info(`Fetching onboarding status for user: ${userId}`);
+
+    const user = await this.#userService.findById(userId);
+    const hasCustomizedCategoryWeights =
+      await this.#categoryWeightService.hasUserCustomizedWeights(userId);
+
+    res.status(200).json({
+      hasSeenWelcome: user?.hasSeenWelcome || false,
+      hasCustomizedCategoryWeights,
+    });
+  };
 }
 
-export const userController = new UserController(userService);
+export const userController = new UserController(
+  userService,
+  categoryWeightService
+);

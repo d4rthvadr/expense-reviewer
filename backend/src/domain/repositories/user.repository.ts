@@ -144,6 +144,7 @@ export class UserRepository extends Database {
           currency: data.currency,
           password: data.password,
           lastRecurSync: data.lastRecurSync,
+          hasSeenWelcome: data.hasSeenWelcome,
           lastLogin: data.lastLogin,
         },
         update: {
@@ -153,6 +154,7 @@ export class UserRepository extends Database {
           currency: data.currency,
           password: data.password,
           lastRecurSync: data.lastRecurSync,
+          hasSeenWelcome: data.hasSeenWelcome,
           lastLogin: data.lastLogin,
         },
       });

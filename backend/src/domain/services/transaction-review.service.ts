@@ -5,6 +5,9 @@ import {
   transactionReviewRepository,
 } from '@domain/repositories/transaction-review.repository';
 import { TransactionReviewFactory } from '@domain/factories/transaction-review.factory';
+import { TransactionReviewResponseDto } from '@api/controllers/dtos/response/transaction-review-response.dto';
+import { PaginatedResultDto } from '@api/controllers/dtos/response/paginated-response.dto';
+import { paginateDataResult } from '@api/controllers/utils/paginate-response';
 
 interface CreateTransactionReviewDto {
   reviewText: string;
@@ -46,7 +49,7 @@ export class TransactionReviewService {
   async find(
     data: GetTransactionReviewsDto,
     pagination: PaginationDto
-  ): Promise<{ data: TransactionReviewModel[]; total: number }> {
+  ): Promise<PaginatedResultDto<TransactionReviewResponseDto>> {
     try {
       const query: FindTransactionReviewsQuery = {
         userId: data.userId,
@@ -63,7 +66,12 @@ export class TransactionReviewService {
         message: `Found ${result.data.length} transaction reviews for user ${data.userId}`,
       });
 
-      return result;
+      return paginateDataResult(
+        result.data.map((review) => this.#toTransactionReviewDto(review)),
+        result.total,
+        pagination.limit,
+        pagination.offset
+      );
     } catch (error) {
       log.error({
         message: 'Error finding transaction reviews:',
@@ -78,7 +86,7 @@ export class TransactionReviewService {
   async findById(
     transactionReviewId: string,
     userId: string
-  ): Promise<TransactionReviewModel> {
+  ): Promise<TransactionReviewResponseDto> {
     try {
       const transactionReview =
         await transactionReviewRepository.findById(transactionReviewId);
@@ -93,7 +101,7 @@ export class TransactionReviewService {
         message: `Found transaction review ${transactionReviewId} for user ${userId}`,
       });
 
-      return transactionReview;
+      return this.#toTransactionReviewDto(transactionReview);
     } catch (error) {
       log.error({
         message: `Error finding transaction review ${transactionReviewId}:`,
@@ -108,7 +116,7 @@ export class TransactionReviewService {
   async create(
     data: CreateTransactionReviewDto,
     userId: string
-  ): Promise<TransactionReviewModel> {
+  ): Promise<TransactionReviewResponseDto> {
     try {
       const transactionReview = new TransactionReviewModel({
         reviewText: data.reviewText,
@@ -122,7 +130,7 @@ export class TransactionReviewService {
         message: `Created transaction review ${savedTransactionReview.id} for user ${userId}`,
       });
 
-      return savedTransactionReview;
+      return this.#toTransactionReviewDto(savedTransactionReview);
     } catch (error) {
       log.error({
         message: 'Error creating transaction review:',
@@ -159,13 +167,20 @@ export class TransactionReviewService {
     transactionReviewId: string,
     data: CreateTransactionReviewDto,
     userId: string
-  ): Promise<TransactionReviewModel> {
+  ): Promise<TransactionReviewResponseDto> {
     try {
       // First verify the transaction review exists and belongs to the user
-      const existingTransactionReview = await this.findById(
-        transactionReviewId,
-        userId
-      );
+      const existingTransactionReview =
+        await transactionReviewRepository.findById(transactionReviewId);
+
+      if (
+        !existingTransactionReview ||
+        existingTransactionReview.userId !== userId
+      ) {
+        throw new TransactionReviewNotFoundException(
+          `Transaction review with id ${transactionReviewId} not found for user ${userId}`
+        );
+      }
 
       // Update the transaction review
       const updatedTransactionReview = new TransactionReviewModel({
@@ -185,7 +200,7 @@ export class TransactionReviewService {
         message: `Updated transaction review ${transactionReviewId} for user ${userId}`,
       });
 
-      return savedTransactionReview;
+      return this.#toTransactionReviewDto(savedTransactionReview);
     } catch (error) {
       log.error({
         message: `Error updating transaction review ${transactionReviewId}:`,
@@ -197,13 +212,20 @@ export class TransactionReviewService {
     }
   }
 
-  async delete(
-    transactionReviewId: string,
-    userId: string
-  ): Promise<TransactionReviewModel> {
+  async delete(transactionReviewId: string, userId: string): Promise<void> {
     try {
       // First verify the transaction review exists and belongs to the user
-      await this.findById(transactionReviewId, userId);
+      const existingTransactionReview =
+        await transactionReviewRepository.findById(transactionReviewId);
+
+      if (
+        !existingTransactionReview ||
+        existingTransactionReview.userId !== userId
+      ) {
+        throw new TransactionReviewNotFoundException(
+          `Transaction review with id ${transactionReviewId} not found for user ${userId}`
+        );
+      }
 
       // Delete the transaction review
       const deletedTransactionReview =
@@ -218,8 +240,6 @@ export class TransactionReviewService {
       log.info({
         message: `Deleted transaction review ${transactionReviewId} for user ${userId}`,
       });
-
-      return deletedTransactionReview;
     } catch (error) {
       log.error({
         message: `Error deleting transaction review ${transactionReviewId}:`,
@@ -234,7 +254,7 @@ export class TransactionReviewService {
   async createReview(
     reviewText: string,
     userId: string
-  ): Promise<TransactionReviewModel> {
+  ): Promise<TransactionReviewResponseDto> {
     log.info(`Creating transaction review for user ID: ${userId}`);
 
     const newReview = TransactionReviewFactory.createNew({
@@ -242,7 +262,22 @@ export class TransactionReviewService {
       userId,
     });
 
-    return await this.#transactionReviewRepository.save(newReview);
+    const savedReview = await this.#transactionReviewRepository.save(newReview);
+    return this.#toTransactionReviewDto(savedReview);
+  }
+
+  #toTransactionReviewDto(
+    data: TransactionReviewModel
+  ): TransactionReviewResponseDto {
+    const { id, reviewText, createdAt, updatedAt, userId, transactions } = data;
+    return {
+      id,
+      reviewText,
+      createdAt,
+      updatedAt,
+      userId,
+      transactions,
+    };
   }
 }
 

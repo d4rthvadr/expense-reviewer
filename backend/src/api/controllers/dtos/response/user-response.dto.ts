@@ -9,4 +9,5 @@ export interface UserResponseDto {
   lastRecurSync?: Date;
   email: string;
   createdAt: Date;
+  hasSeenWelcome: boolean;
 }

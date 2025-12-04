@@ -52,6 +52,15 @@ const route = Express.Router();
  *         description: User not found
  */
 
+// /api/users/me/welcome
+route.patch('/me/welcome', asyncHandler(userController.markWelcomeSeen));
+
+// /api/users/me/onboarding-status
+route.get(
+  '/me/onboarding-status',
+  asyncHandler(userController.getOnboardingStatus)
+);
+
 // /api/users/id
 route.get('/:id', asyncHandler(userController.findOne));
 

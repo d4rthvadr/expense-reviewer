@@ -1,8 +1,8 @@
-import ExpenseList from "@/components/features/Transaction/TransactionList";
+import TransactionList from "@/components/features/Transaction/TransactionList";
 import React from "react";
 
 const TransactionListPage = async () => {
-  return <ExpenseList />;
+  return <TransactionList />;
 };
 
 export default TransactionListPage;

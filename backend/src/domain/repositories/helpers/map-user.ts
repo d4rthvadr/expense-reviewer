@@ -30,5 +30,6 @@ export function mapUser(entity: UserEntity | null): UserModel | null {
     updatedAt: entity.updatedAt,
     password: entity.password,
     lastRecurSync: convertNullToUndefined(entity.lastRecurSync),
+    hasSeenWelcome: entity.hasSeenWelcome,
   });
 }
