@@ -145,7 +145,7 @@ export async function getUnreadNotificationCount(): Promise<UnreadCountResponse>
 }
 
 /**
- * Mark a notification as read (for future use)
+ * Mark a notification as read
  */
 export async function acknowledgeNotification(
   notificationId: string
@@ -160,6 +160,37 @@ export async function acknowledgeNotification(
     const errorResult = clientErrorHandler(
       error,
       "Failed to acknowledge notification"
+    );
+    return {
+      ...errorResult,
+    };
+  }
+}
+
+/**
+ * Mark all notifications as read for the authenticated user
+ */
+export async function markAllNotificationsAsRead(): Promise<{
+  success: boolean;
+  count?: number;
+  error?: string;
+}> {
+  try {
+    const client = await getAuthenticatedClient();
+    const response = await client.post<{ success: boolean; count: number }>(
+      "/notifications/mark-all-read",
+      {} as { success: boolean; count: number }
+    );
+
+    return {
+      success: true,
+      count: response.count,
+    };
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+    const errorResult = clientErrorHandler(
+      error,
+      "Failed to mark all notifications as read"
     );
     return {
       ...errorResult,
