@@ -181,6 +181,28 @@ export class CategoryWeightService {
       );
     }
   }
+
+  /**
+   * Check if user has customized any category weights
+   * Returns true if user has any custom category weight records
+   */
+  async hasUserCustomizedWeights(userId: string): Promise<boolean> {
+    try {
+      log.info(`Checking if user ${userId} has customized category weights`);
+      const userWeights = await this.#repository.findUserWeights(userId);
+      const hasCustomWeights = userWeights.length > 0;
+
+      log.info(`User ${userId} has ${userWeights.length} custom weights`);
+      return hasCustomWeights;
+    } catch (error) {
+      log.error({
+        message: `Error checking customized weights for user ${userId}`,
+        error,
+        code: 'CATEGORY_WEIGHT_CHECK_ERROR',
+      });
+      throw error;
+    }
+  }
 }
 
 export const categoryWeightService = new CategoryWeightService(

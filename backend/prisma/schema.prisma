@@ -94,6 +94,7 @@ model User {
   lastRecurSync     DateTime?
   lastLogin         DateTime?
   currency          Currency?           @default(USD)
+  hasSeenWelcome    Boolean             @default(false)
   updatedAt         DateTime            @updatedAt
   Budget            Budget[]
   RecurringTemplate RecurringTemplate[]

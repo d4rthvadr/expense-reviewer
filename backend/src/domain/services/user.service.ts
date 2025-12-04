@@ -281,12 +281,35 @@ export class UserService {
     return syncTimestamp;
   }
 
+  async markWelcomeSeen(userId: string): Promise<void> {
+    log.info(`Marking welcome as seen for user: ${userId}`);
+
+    try {
+      const user = await this.#userRepository.findOne(userId);
+      if (!user) {
+        log.warn(`User not found with ID: ${userId}`);
+        throw new ResourceNotFoundException(
+          `User not found with ID: ${userId}`
+        );
+      }
+
+      user.hasSeenWelcome = true;
+      await this.#userRepository.save(user);
+
+      log.info(`Successfully marked welcome as seen for user: ${userId}`);
+    } catch (error) {
+      log.error(`Error marking welcome as seen for user ${userId}: ${error}`);
+      throw error;
+    }
+  }
+
   #toUserCreatedDto({
     id,
     name,
     email,
     status,
     createdAt,
+    hasSeenWelcome,
   }: UserModel): UserResponseDto {
     return {
       id,
@@ -294,6 +317,7 @@ export class UserService {
       email,
       status,
       createdAt,
+      hasSeenWelcome,
     };
   }
 }
