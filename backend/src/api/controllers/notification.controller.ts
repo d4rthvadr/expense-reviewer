@@ -5,8 +5,6 @@ import {
 } from '../../domain/services/notification.service';
 import { Request, Response } from 'express';
 import { NotificationFiltersRequestDto } from './dtos/request/notification-filters-request.dto';
-import { NotificationResponseDto } from './dtos/response/notification-response.dto';
-import { NotificationModel } from '@domain/models/notification.model';
 import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
 import { NotificationResourceType } from '@domain/enum/notification-resource-type.enum';
@@ -45,13 +43,7 @@ export class NotificationController {
       filters
     );
 
-    return res
-      .status(200)
-      .json(
-        notifications.map((notification) =>
-          this.#toNotificationResponseDto(notification)
-        )
-      );
+    return res.status(200).json(notifications);
   };
 
   /**
@@ -83,37 +75,31 @@ export class NotificationController {
     log.info(`Acknowledging notification ${id} for userId: ${userId}`);
 
     const notification =
-      await this.#notificationService.acknowledgeNotification(id, userId);
+      await this.#notificationService.acknowledgeNotification(userId, id);
 
     if (!notification) {
       return res.status(404).json({ error: 'Notification not found' });
     }
 
-    return res.status(200).json(this.#toNotificationResponseDto(notification));
+    return res.status(200).json(notification);
   };
 
   /**
-   * Convert NotificationModel to NotificationResponseDto
+   * Mark all notifications as read for the authenticated user
    */
-  #toNotificationResponseDto(
-    notification: NotificationModel
-  ): NotificationResponseDto {
-    return {
-      id: notification.id,
-      userId: notification.userId,
-      type: notification.type,
-      severity: notification.severity,
-      resourceType: notification.resourceType,
-      resourceId: notification.resourceId,
-      title: notification.title,
-      message: notification.message,
-      meta: notification.meta as Record<string, unknown> | undefined,
-      isRead: notification.isRead,
-      dedupeKey: notification.dedupeKey,
-      createdAt: notification.createdAt,
-      updatedAt: notification.updatedAt,
-    };
-  }
+  markAllAsRead = async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    log.info(`Marking all notifications as read for userId: ${userId}`);
+
+    const count = await this.#notificationService.markAllAsRead(userId);
+
+    return res.status(200).json({ success: true, count });
+  };
 }
 
 export const notificationController = new NotificationController(
