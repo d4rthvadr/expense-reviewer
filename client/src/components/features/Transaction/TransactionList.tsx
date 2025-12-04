@@ -7,6 +7,7 @@ import { Transaction } from "@/constants/transaction";
 import { useTransactionStore } from "@/stores/transactionStore";
 import TransactionEditForm from "./TransactionEditForm";
 import TransactionFilterToolbar from "./TransactionFilterToolbar";
+import TransactionDateFilter from "./TransactionDateFilter";
 import { Toaster } from "@/components/ui/sonner";
 import { getTransactions } from "@/actions/transaction";
 import {
@@ -39,6 +40,8 @@ const formatAmount = (amount: number, currency: string = "USD"): string => {
 const TransactionList = () => {
   const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [paginationMeta, setPaginationMeta] = useState({
     page: 1,
     totalPages: 1,
@@ -61,6 +64,11 @@ const TransactionList = () => {
     refreshTransactions(); // Refresh data after editing
   };
 
+  const handleDateChange = (from: Date | undefined, to: Date | undefined) => {
+    setDateFrom(from);
+    setDateTo(to);
+  };
+
   const refreshTransactions = useCallback(
     async (page: number = 1, newPageSize: number = 10) => {
       setIsLoading(true);
@@ -68,7 +76,18 @@ const TransactionList = () => {
         // Convert filter to API type
         const filterType =
           transactionTypeFilter === "ALL" ? undefined : transactionTypeFilter;
-        const response = await getTransactions(page, newPageSize, filterType);
+
+        // Format dates to YYYY-MM-DD
+        const dateFromStr = dateFrom?.toISOString().split("T")[0];
+        const dateToStr = dateTo?.toISOString().split("T")[0];
+
+        const response = await getTransactions(
+          page,
+          newPageSize,
+          filterType,
+          dateFromStr,
+          dateToStr
+        );
 
         const { data, ...pagination } = response;
 
@@ -82,7 +101,7 @@ const TransactionList = () => {
         setIsLoading(false);
       }
     },
-    [transactionTypeFilter]
+    [transactionTypeFilter, dateFrom, dateTo]
   );
 
   useEffect(() => {
@@ -226,9 +245,12 @@ const TransactionList = () => {
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
-          <Button variant="outline" onClick={() => openEditSheet(null)}>
-            Add Transaction
-          </Button>
+          <div className="flex items-center gap-2">
+            <TransactionDateFilter onDateChange={handleDateChange} />
+            <Button variant="outline" onClick={() => openEditSheet(null)}>
+              Add Transaction
+            </Button>
+          </div>
         </div>
 
         {/* Filter Toolbar */}
