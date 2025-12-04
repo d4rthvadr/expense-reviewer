@@ -16,7 +16,7 @@ export const requestErrorHandler = (
     res.json(errorData);
     return;
   }
-
+  // TODO: log the error details to a monitoring service and return a generic message instead
   const errMessage = error?.message ?? new ApplicationException().message;
 
   res.status(500).json(normalizeError({ message: errMessage }).error);

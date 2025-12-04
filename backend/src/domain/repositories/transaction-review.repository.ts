@@ -82,6 +82,8 @@ export class TransactionReviewRepository extends Database {
           }),
         ]);
 
+      console.log('Fetched transaction reviews:', { records, total });
+
       return {
         data: records.map((review: TransactionReviewFullEntity) =>
           mapTransactionReview(review)
