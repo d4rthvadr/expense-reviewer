@@ -7,7 +7,6 @@ import { Transaction } from "@/constants/transaction";
 import { useTransactionStore } from "@/stores/transactionStore";
 import TransactionEditForm from "./TransactionEditForm";
 import TransactionFilterToolbar from "./TransactionFilterToolbar";
-import TransactionDateFilter from "./TransactionDateFilter";
 import { Toaster } from "@/components/ui/sonner";
 import { getTransactions } from "@/actions/transaction";
 import {
@@ -64,10 +63,13 @@ const TransactionList = () => {
     refreshTransactions(); // Refresh data after editing
   };
 
-  const handleDateChange = (from: Date | undefined, to: Date | undefined) => {
-    setDateFrom(from);
-    setDateTo(to);
-  };
+  const handleDateChange = useCallback(
+    (from: Date | undefined, to: Date | undefined) => {
+      setDateFrom(from);
+      setDateTo(to);
+    },
+    []
+  );
 
   const refreshTransactions = useCallback(
     async (page: number = 1, newPageSize: number = 10) => {
@@ -245,16 +247,13 @@ const TransactionList = () => {
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
-          <div className="flex items-center gap-2">
-            <TransactionDateFilter onDateChange={handleDateChange} />
-            <Button variant="outline" onClick={() => openEditSheet(null)}>
-              Add Transaction
-            </Button>
-          </div>
+          <Button variant="outline" onClick={() => openEditSheet(null)}>
+            Add Transaction
+          </Button>
         </div>
 
         {/* Filter Toolbar */}
-        <TransactionFilterToolbar />
+        <TransactionFilterToolbar onDateChange={handleDateChange} />
 
         {/* Transactions List */}
         <div className="mt-6">
