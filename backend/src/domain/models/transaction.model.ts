@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface TransactionDataInput {
   id?: string;
-  name: string;
+  name?: string;
   description?: string;
   category: Category;
   currency?: Currency;
@@ -19,7 +19,7 @@ interface TransactionDataInput {
 
 export class TransactionModel {
   readonly #id: string;
-  #name: string;
+  #name?: string;
   #description?: string;
   #userId?: string;
   #category: Category;

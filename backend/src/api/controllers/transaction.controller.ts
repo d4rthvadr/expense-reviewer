@@ -23,7 +23,7 @@ interface CreateTransactionRequestDto {
 }
 
 interface UpdateTransactionRequestDto {
-  name: string;
+  name?: string;
   description?: string;
   category: Category;
   qty?: number;

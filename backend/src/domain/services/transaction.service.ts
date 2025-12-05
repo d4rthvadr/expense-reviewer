@@ -231,7 +231,7 @@ class TransactionService {
   #toTransactionDto(transaction: TransactionModel): TransactionResponseDto {
     return {
       id: transaction.id,
-      name: transaction.name!,
+      name: transaction.name,
       description: transaction.description,
       amount: transaction.amount,
       amountUsd: transaction.amountUsd,

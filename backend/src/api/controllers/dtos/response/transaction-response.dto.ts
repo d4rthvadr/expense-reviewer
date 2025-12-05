@@ -4,7 +4,7 @@ import { TransactionType } from '@domain/enum/transaction-type.enum';
 
 export interface TransactionResponseDto {
   id: string;
-  name: string;
+  name?: string;
   description?: string;
   currency?: Currency;
   category: Category;

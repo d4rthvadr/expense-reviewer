@@ -3,7 +3,7 @@ import { Currency } from '@domain/enum/currency.enum';
 import { TransactionType } from '@domain/enum/transaction-type.enum';
 
 interface Transaction {
-  name: string;
+  name?: string;
   description?: string;
   currency: Currency;
   category: Category;
