@@ -3,12 +3,7 @@ import { Currency } from '@domain/enum/currency.enum';
 import { body, param } from 'express-validator';
 
 export const createBudgetValidators = [
-  body('name')
-    .optional()
-    .isString()
-    .withMessage('Name must be a string')
-    .notEmpty()
-    .withMessage('Name is required'),
+  body('name').optional().isString().withMessage('Name must be a string'),
   body('amount')
     .isNumeric()
     .withMessage('Amount must be a number')

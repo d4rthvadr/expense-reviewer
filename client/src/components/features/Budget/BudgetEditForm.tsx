@@ -37,8 +37,9 @@ const formSchema = z.object({
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })
     .max(100)
-    .optional(),
-  amount: z.number().min(0, { message: "Amount must be positive" }),
+    .optional()
+    .or(z.literal("")),
+  amount: z.number().min(0.01, { message: "Amount must be greater than 0" }),
   category: z.enum(CategoryValues as [string, ...string[]]),
   currency: z.string().optional(),
   description: z.string().optional(),
@@ -162,7 +163,7 @@ const BudgetEditForm = ({
                   <FormItem>
                     <FormLabel>Budget Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Monthly Groceries" {...field} />
+                      <Input placeholder="eg: Monthly Groceries" {...field} />
                     </FormControl>
                     <FormDescription>
                       Give your budget a descriptive name.
@@ -177,11 +178,11 @@ const BudgetEditForm = ({
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount *</FormLabel>
                     <FormControl>
                       <Input
                         type="text"
-                        placeholder="0.00"
+                        placeholder="eg: 0.00"
                         {...field}
                         onChange={(e) =>
                           field.onChange(parseFloat(e.target.value) || 0)
@@ -201,7 +202,7 @@ const BudgetEditForm = ({
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Category *</FormLabel>
                     <FormControl>
                       <SelectComponent
                         field={field}
