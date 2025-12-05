@@ -3,7 +3,11 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { RefreshCw, AlertCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getNotifications, NotificationItem } from "@/actions/notification";
+import {
+  getNotifications,
+  NotificationItem,
+  markAllNotificationsAsRead,
+} from "@/actions/notification";
 import { getSeverityColor, getSeverityLabel } from "@/constants/notifications";
 import { formatRelativeTime } from "@/lib/time";
 
@@ -15,6 +19,7 @@ const NotificationsList = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false);
 
   // Fetch notifications list
   const fetchNotifications = useCallback(async (cursor?: string) => {
@@ -45,6 +50,25 @@ const NotificationsList = () => {
     setIsLoading(false);
     setIsLoadingMore(false);
   }, []);
+
+  // Mark all as read when component mounts
+  useEffect(() => {
+    async function markAsRead() {
+      if (!hasMarkedAsRead) {
+        try {
+          const response = await markAllNotificationsAsRead();
+          if (response.success) {
+            console.log(`Marked ${response.count} notifications as read`);
+            setHasMarkedAsRead(true);
+          }
+        } catch (error) {
+          console.error("Failed to mark notifications as read:", error);
+        }
+      }
+    }
+
+    markAsRead();
+  }, [hasMarkedAsRead]);
 
   // Initial fetch
   useEffect(() => {

@@ -8,7 +8,7 @@ import { TransactionFindFilters } from '@domain/services/interfaces/transaction-
 
 export interface TransactionEntity {
   id?: string;
-  name: string;
+  name?: string | null;
   amount: number;
   amountUsd: number;
   category: string;

@@ -22,7 +22,7 @@ export function mapTransaction(
   return new TransactionModel({
     id: entity.id,
     description: convertNullToUndefined(entity.description),
-    name: entity.name,
+    name: convertNullToUndefined(entity.name),
     category: convertToFamilyType(entity.category, Category),
     currency: convertToFamilyType(
       convertNullToUndefined(entity.currency),

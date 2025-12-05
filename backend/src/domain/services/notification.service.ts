@@ -13,6 +13,7 @@ import { NotificationType } from '@domain/enum/notification-type.enum';
 import { NotificationSeverity } from '@domain/enum/notification-severity.enum';
 import { NotificationResourceType } from '@domain/enum/notification-resource-type.enum';
 import { Category } from '@domain/enum/category.enum';
+import { NotificationResponseDto } from '@api/controllers/dtos/response/notification-response.dto';
 
 export interface CategoryThresholdNotificationData {
   userId: string;
@@ -38,7 +39,9 @@ export class NotificationService {
   /**
    * Generic method to publish a notification with optional dedupe
    */
-  async publish(data: NotificationCreateDataDto): Promise<NotificationModel> {
+  async publish(
+    data: NotificationCreateDataDto
+  ): Promise<NotificationResponseDto> {
     try {
       // Check for existing notification if dedupe key provided
       if (data.dedupeKey) {
@@ -47,7 +50,7 @@ export class NotificationService {
           log.info(
             `Skipped duplicate notification with dedupe key: ${data.dedupeKey}`
           );
-          return existing;
+          return this.#toNotificationDto(existing);
         }
       }
 
@@ -55,7 +58,8 @@ export class NotificationService {
       const notification = NotificationFactory.createNotification(data);
 
       // Persist to repository
-      return await this.#repository.create(notification);
+      const created = await this.#repository.create(notification);
+      return this.#toNotificationDto(created);
     } catch (error) {
       log.error({
         message: `Error publishing notification for user: ${data.userId}`,
@@ -71,7 +75,7 @@ export class NotificationService {
    */
   async notifyCategoryThresholdBreach(
     data: CategoryThresholdNotificationData
-  ): Promise<NotificationModel> {
+  ): Promise<NotificationResponseDto> {
     const {
       userId,
       category,
@@ -140,13 +144,17 @@ export class NotificationService {
   async listUserNotifications(
     userId: string,
     options: NotificationListOptions = {}
-  ): Promise<NotificationModel[]> {
+  ): Promise<NotificationResponseDto[]> {
     const { includeRead = true, ...filters } = options;
 
-    return await this.#repository.listForUser(userId, {
+    const notifications = await this.#repository.listForUser(userId, {
       ...filters,
       unreadOnly: !includeRead,
     });
+
+    return notifications.map((notification) =>
+      this.#toNotificationDto(notification)
+    );
   }
 
   /**
@@ -155,7 +163,7 @@ export class NotificationService {
   async acknowledgeNotification(
     userId: string,
     notificationId: string
-  ): Promise<NotificationModel | null> {
+  ): Promise<NotificationResponseDto | null> {
     try {
       // First verify the notification belongs to the user
       const notification = await this.#repository.findById(notificationId);
@@ -167,10 +175,16 @@ export class NotificationService {
       }
 
       if (notification.isRead) {
-        return notification; // Already read
+        return this.#toNotificationDto(notification); // Already read
       }
 
-      return await this.#repository.markAsRead(notificationId);
+      const updated = await this.#repository.markAsRead(notificationId);
+      if (!updated) {
+        throw new Error(
+          `Failed to mark notification ${notificationId} as read`
+        );
+      }
+      return this.#toNotificationDto(updated);
     } catch (error) {
       log.error({
         message: `Error acknowledging notification ${notificationId} for user: ${userId}`,
@@ -195,6 +209,44 @@ export class NotificationService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Mark all notifications as read for a user
+   */
+  async markAllAsRead(userId: string): Promise<number> {
+    try {
+      log.info(`Marking all notifications as read for user: ${userId}`);
+      return await this.#repository.markAllAsRead(userId);
+    } catch (error) {
+      log.error({
+        message: `Error marking all notifications as read for user: ${userId}`,
+        error,
+        code: 'MARK_ALL_NOTIFICATIONS_READ_ERROR',
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Convert NotificationModel to NotificationResponseDto
+   */
+  #toNotificationDto(notification: NotificationModel): NotificationResponseDto {
+    return {
+      id: notification.id,
+      userId: notification.userId,
+      type: notification.type,
+      severity: notification.severity,
+      resourceType: notification.resourceType,
+      resourceId: notification.resourceId,
+      title: notification.title,
+      message: notification.message,
+      meta: notification.meta as Record<string, unknown> | undefined,
+      isRead: notification.isRead,
+      dedupeKey: notification.dedupeKey,
+      createdAt: notification.createdAt,
+      updatedAt: notification.updatedAt,
+    };
   }
 
   /**

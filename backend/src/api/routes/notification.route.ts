@@ -106,6 +106,32 @@ route.get('/unread-count', asyncHandler(notificationController.getUnreadCount));
 
 /**
  * @swagger
+ * /api/notifications/mark-all-read:
+ *   post:
+ *     summary: Mark all notifications as read for the authenticated user
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                   description: Number of notifications marked as read
+ *       401:
+ *         description: User not authenticated
+ */
+route.post(
+  '/mark-all-read',
+  asyncHandler(notificationController.markAllAsRead)
+);
+
+/**
+ * @swagger
  * /api/notifications/{id}/acknowledge:
  *   post:
  *     summary: Mark a specific notification as read

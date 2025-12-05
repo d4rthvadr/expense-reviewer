@@ -4,7 +4,7 @@ import { TransactionType } from '@domain/enum/transaction-type.enum';
 import { TransactionModel } from '@domain/models/transaction.model';
 
 interface TransactionCreateDataDto {
-  name: string;
+  name?: string;
   description?: string;
   currency?: Currency;
   category: Category;

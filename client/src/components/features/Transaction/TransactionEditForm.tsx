@@ -37,8 +37,10 @@ const formSchema = z.object({
   name: z
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })
-    .max(100),
-  amount: z.number().min(0),
+    .max(100)
+    .optional()
+    .or(z.literal("")),
+  amount: z.number().min(0.01, { message: "Amount must be greater than 0" }),
   currency: z.string().optional(),
   description: z.string().optional(),
   qty: z.number().min(1),
@@ -203,12 +205,15 @@ const TransactionEditForm = ({
                 name="qty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quantity</FormLabel>
+                    <FormLabel>Quantity *</FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -221,12 +226,15 @@ const TransactionEditForm = ({
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount *</FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
                         className={
                           selectedType === "EXPENSE"
                             ? "border-red-200 focus:border-red-300"
@@ -244,7 +252,7 @@ const TransactionEditForm = ({
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Category *</FormLabel>
                     <FormControl>
                       <SelectComponent
                         field={field}

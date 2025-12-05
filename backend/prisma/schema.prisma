@@ -108,7 +108,7 @@ model User {
 
 model Transaction {
   id                  String          @id
-  name                String
+  name                String?
   description         String?
   qty                 Int?
   category            Category        @default(OTHER)

@@ -256,7 +256,7 @@ export const exampleService = new ExampleService(exampleRepository);
 
 - Request DTOs in `api/controllers/dtos/request/`
 - Response DTOs in `api/controllers/dtos/response/`
-- Always map domain models to DTOs in controllers
+- **Services must return DTOs (not Models).** Use private `#toDto()` methods in services to map Models → DTOs. Controllers receive DTOs directly from services and should not perform additional mapping
 
 ### Validation Pattern
 
