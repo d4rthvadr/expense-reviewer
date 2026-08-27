@@ -27,3 +27,6 @@ backend/generated/prisma/
 # Other
 *.swp
 *.swo
+
+docs/handoff
+docs/specs

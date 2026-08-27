@@ -1,5 +1,36 @@
 # Copilot Instructions for Expense Tracker
 
+## Quick Start For AI Agents
+
+Use this sequence before making code changes:
+
+1. Read project context in [CLAUDE.md](../CLAUDE.md) for commands, stack, and architecture.
+2. Use scoped instructions first:
+
+- [shared.instructions.md](instructions/shared.instructions.md)
+- [frontend.instructions.md](instructions/frontend.instructions.md)
+
+3. Prefer links over re-documentation for deep details:
+
+- [README.md](../README.md)
+- [backend/docs/overview.md](../backend/docs/overview.md)
+- [backend/docs/api.md](../backend/docs/api.md)
+
+4. For orchestration/planning tasks, use the custom agent `Orchestrate Parallel Work`.
+
+### Commands AI Should Reach For
+
+- Infra: `docker-compose up -d`
+- Backend dev: `cd backend && npm run dev`
+- Backend tests: `cd backend && npm run test`
+- Frontend dev: `cd client && npm run dev`
+- Frontend lint: `cd client && npm run lint`
+
+### Custom Agents In This Repo
+
+- `Orchestrate Parallel Work`: creates parallel-vs-synchronous execution plans with explicit gates.
+- `dependency-boundary`: maps dependency notes and isolated boundaries for safe parallel work.
+
 ## Architecture Overview
 
 This is a **Domain-Driven Design (DDD)** TypeScript/Node.js backend with a React frontend for personal finance management. The system tracks transactions, analyzes spending against category weight preferences, and sends intelligent notifications.
@@ -79,11 +110,11 @@ Maps Prisma entities to domain models:
 export function mapAnalysisRun(entity: AnalysisRunEntity): AnalysisRunModel;
 export function mapAnalysisRun(entity: null): null;
 export function mapAnalysisRun(
-  entity: AnalysisRunEntity | null
+  entity: AnalysisRunEntity | null,
 ): AnalysisRunModel | null;
 /* eslint-enable no-unused-vars */
 export function mapAnalysisRun(
-  entity: AnalysisRunEntity | null
+  entity: AnalysisRunEntity | null,
 ): AnalysisRunModel | null {
   if (!entity) return null;
 
@@ -268,7 +299,7 @@ route.post(
   "/",
   createNotificationRequestValidator,
   validateRequest,
-  asyncHandler(controller.create)
+  asyncHandler(controller.create),
 );
 
 // In validators
@@ -407,7 +438,7 @@ class ExampleQueueService extends Worker {
       async (job: Job) => {
         await this.handleJob(job);
       },
-      { connection }
+      { connection },
     );
 
     this.#queue = queue;
@@ -415,7 +446,7 @@ class ExampleQueueService extends Worker {
 
     this.on("completed", (job) => {
       log.info(
-        `Job ${job.name}:${job.id} successfully processed by ${this.constructor.name}`
+        `Job ${job.name}:${job.id} successfully processed by ${this.constructor.name}`,
       );
     });
 
@@ -536,7 +567,7 @@ route.post(
   "/",
   createResourceValidator,
   validateRequest,
-  asyncHandler(controller.create)
+  asyncHandler(controller.create),
 );
 ```
 

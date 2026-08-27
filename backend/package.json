@@ -18,6 +18,7 @@
     "test:coverage": "jest --coverage",
     "db:deploy": "npx prisma migrate deploy",
     "db:migrate": "npx prisma migrate dev --create-only",
+    "db:studio": "npx prisma studio",
     "db:gen": "npx prisma generate",
     "db:seed-defaults": "npx ts-node scripts/seed-default-category-weights.ts",
     "prepare": "cd .. && husky install",
